@@ -1,8 +1,8 @@
-// src/contexts/AuthContext.tsx
+// src/contexts/AuthContext.tsx - Updated for modern Supabase
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@supabase/auth-helpers-nextjs'
+import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
 
 interface Profile {
