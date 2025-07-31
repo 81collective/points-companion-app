@@ -1,5 +1,13 @@
-// src/lib/supabase.ts - Updated for modern Supabase
+// src/lib/supabase.ts - Fixed 'any' type errors
 import { createBrowserClient } from '@supabase/ssr'
+
+export type Json = 
+  | string 
+  | number 
+  | boolean 
+  | null 
+  | { [key: string]: Json | undefined } 
+  | Json[]
 
 export type Database = {
   public: {
@@ -39,7 +47,7 @@ export type Database = {
           user_id: string
           card_name: string
           last_four: string
-          rewards_structure: any
+          rewards_structure: Json
           created_at: string
           updated_at: string
         }
@@ -48,7 +56,7 @@ export type Database = {
           user_id: string
           card_name: string
           last_four: string
-          rewards_structure?: any
+          rewards_structure?: Json
           created_at?: string
           updated_at?: string
         }
@@ -57,7 +65,7 @@ export type Database = {
           user_id?: string
           card_name?: string
           last_four?: string
-          rewards_structure?: any
+          rewards_structure?: Json
           created_at?: string
           updated_at?: string
         }

@@ -1,4 +1,4 @@
-// src/components/auth/LoginForm.tsx
+// src/components/auth/LoginForm.tsx - Fixed apostrophe
 'use client'
 
 import { useState } from 'react'
