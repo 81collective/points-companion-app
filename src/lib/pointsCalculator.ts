@@ -1,7 +1,6 @@
 import type {
   Transaction,
   CreditCard,
-  CardRewardsStructure,
   CardRewardCategory,
   PointsCalculationResult,
   CardRecommendation,
@@ -89,7 +88,7 @@ export function compareCardsForTransaction(
       if (!best || result.pointsEarned > best.pointsEarned) {
         best = result
       }
-    } catch (e) {
+    } catch {
       // Ignore cards with invalid structures
       continue
     }
@@ -115,7 +114,7 @@ export function estimateAnnualPoints(
       const result = calculatePoints(tx, card, yearToDateSpend)
       total += result.pointsEarned
       details += `Tx ${tx.id}: ${result.pointsEarned} points. `
-    } catch (e) {
+    } catch {
       details += `Tx ${tx.id}: Error. `
     }
   }
