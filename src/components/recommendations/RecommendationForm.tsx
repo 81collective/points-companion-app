@@ -25,8 +25,8 @@ export default function RecommendationForm() {
   const [submitted, setSubmitted] = useState(false);
   const { register, handleSubmit, formState: { errors }, getValues } = useForm<RecommendationFormData>();
 
-  const onSubmit = (data: RecommendationFormData) => {
-    setSubmitted(true); // Removed unused variable 'data'
+  const onSubmit = () => {
+    setSubmitted(true);
   };
 
   return (

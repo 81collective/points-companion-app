@@ -1,0 +1,160 @@
+import { CreditCardTemplate, CardIssuer, RewardCategory } from '@/types/creditCards';
+
+export const creditCardDatabase: CreditCardTemplate[] = [
+  {
+    id: 'chase-sapphire-preferred',
+    name: 'Chase Sapphire Preferred',
+    issuer: CardIssuer.Chase,
+    nickname: 'CSP',
+    image: '/card-logos/chase-sapphire-preferred.png',
+    rewards: [
+      { category: RewardCategory.Travel, multiplier: 2 },
+      { category: RewardCategory.Dining, multiplier: 2 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'chase-sapphire-reserve',
+    name: 'Chase Sapphire Reserve',
+    issuer: CardIssuer.Chase,
+    nickname: 'CSR',
+    image: '/card-logos/chase-sapphire-reserve.png',
+    rewards: [
+      { category: RewardCategory.Travel, multiplier: 3 },
+      { category: RewardCategory.Dining, multiplier: 3 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'chase-freedom-unlimited',
+    name: 'Chase Freedom Unlimited',
+    issuer: CardIssuer.Chase,
+    nickname: 'CFU',
+    image: '/card-logos/chase-freedom-unlimited.png',
+    rewards: [
+      { category: RewardCategory.EverythingElse, multiplier: 1.5 },
+      { category: RewardCategory.Rotating, multiplier: 5, notes: 'Rotating quarterly categories' },
+    ],
+    popular: true,
+  },
+  {
+    id: 'chase-freedom-flex',
+    name: 'Chase Freedom Flex',
+    issuer: CardIssuer.Chase,
+    nickname: 'CFF',
+    image: '/card-logos/chase-freedom-flex.png',
+    rewards: [
+      { category: RewardCategory.Rotating, multiplier: 5, notes: 'Rotating quarterly categories' },
+      { category: RewardCategory.Drugstores, multiplier: 3 },
+      { category: RewardCategory.Dining, multiplier: 3 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'amex-gold',
+    name: 'American Express Gold',
+    issuer: CardIssuer.Amex,
+    image: '/card-logos/amex-gold.png',
+    rewards: [
+      { category: RewardCategory.Dining, multiplier: 4 },
+      { category: RewardCategory.Supermarkets, multiplier: 4, cap: '$25k/year' },
+      { category: RewardCategory.Flights, multiplier: 3 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'amex-platinum',
+    name: 'American Express Platinum',
+    issuer: CardIssuer.Amex,
+    image: '/card-logos/amex-platinum.png',
+    rewards: [
+      { category: RewardCategory.Flights, multiplier: 5 },
+      { category: RewardCategory.Hotels, multiplier: 5 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'capital-one-venture',
+    name: 'Capital One Venture',
+    issuer: CardIssuer.CapitalOne,
+    image: '/card-logos/capital-one-venture.png',
+    rewards: [
+      { category: RewardCategory.EverythingElse, multiplier: 2 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'capital-one-venture-x',
+    name: 'Capital One Venture X',
+    issuer: CardIssuer.CapitalOne,
+    image: '/card-logos/capital-one-venture-x.png',
+    rewards: [
+      { category: RewardCategory.EverythingElse, multiplier: 2 },
+      { category: RewardCategory.Hotels, multiplier: 10, notes: 'Through Capital One Travel portal' },
+      { category: RewardCategory.Hotels, multiplier: 5, notes: 'Through Capital One Travel portal' },
+    ],
+    popular: true,
+  },
+  {
+    id: 'citi-double-cash',
+    name: 'Citi Double Cash',
+    issuer: CardIssuer.Citi,
+    image: '/card-logos/citi-double-cash.png',
+    rewards: [
+      { category: RewardCategory.EverythingElse, multiplier: 2, notes: '1% purchase + 1% payment' },
+    ],
+    popular: true,
+  },
+  {
+    id: 'discover-it-cash-back',
+    name: 'Discover it Cash Back',
+    issuer: CardIssuer.Discover,
+    image: '/card-logos/discover-it-cash-back.png',
+    rewards: [
+      { category: RewardCategory.Rotating, multiplier: 5, notes: 'Rotating quarterly categories' },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'boa-cash-rewards',
+    name: 'Bank of America Cash Rewards',
+    issuer: CardIssuer.BankOfAmerica,
+    image: '/card-logos/boa-cash-rewards.png',
+    rewards: [
+      { category: RewardCategory.Gas, multiplier: 3 },
+      { category: RewardCategory.Groceries, multiplier: 2 },
+      { category: RewardCategory.Wholesale, multiplier: 2 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'wells-fargo-active-cash',
+    name: 'Wells Fargo Active Cash',
+    issuer: CardIssuer.WellsFargo,
+    image: '/card-logos/wells-fargo-active-cash.png',
+    rewards: [
+      { category: RewardCategory.EverythingElse, multiplier: 2 },
+    ],
+    popular: true,
+  },
+  {
+    id: 'apple-card',
+    name: 'Apple Card',
+    issuer: CardIssuer.Apple,
+    image: '/card-logos/apple-card.png',
+    rewards: [
+      { category: RewardCategory.ApplePurchases, multiplier: 3 },
+      { category: RewardCategory.ApplePay, multiplier: 2 },
+      { category: RewardCategory.EverythingElse, multiplier: 1 },
+    ],
+    popular: true,
+  },
+  // ...add 12+ more cards for full coverage
+];

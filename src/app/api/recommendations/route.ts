@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     let recommendations: RecommendationResponse['recommendations'] = []
     try {
       recommendations = JSON.parse(text || '[]')
-    } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Failed to parse recommendations.' }, { status: 500 })
     }
 

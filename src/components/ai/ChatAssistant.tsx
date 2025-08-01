@@ -7,7 +7,7 @@ interface Message {
   timestamp: number;
 }
 
-export default function ChatAssistant({ userId }: { userId: string }) {
+export default function ChatAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);

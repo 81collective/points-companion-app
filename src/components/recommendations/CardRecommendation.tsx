@@ -17,7 +17,7 @@ export default function CardRecommendation({ amount, merchant, category }: CardR
   const [cards, setCards] = useState<CreditCard[]>([]);
   const { supabase } = useSupabase();
 
-  const fetchUserCards = async () => {
+  const fetchUserCards = React.useCallback(async () => {
     try {
       const { data: userCards, error } = await supabase
         .from('credit_cards')
@@ -30,7 +30,7 @@ export default function CardRecommendation({ amount, merchant, category }: CardR
       setError('Failed to load your credit cards');
       console.error('Error fetching cards:', err);
     }
-  };
+  }, [supabase]);
 
   const getRecommendation = async () => {
     setLoading(true);

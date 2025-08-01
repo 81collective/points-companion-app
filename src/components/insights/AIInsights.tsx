@@ -39,7 +39,7 @@ export default function AIInsights() {
   const [loading, setLoading] = useState(true);
   const { supabase } = useSupabase();
 
-  const analyzeSpending = (transactions: Transaction[], cards: CreditCard[]): SpendingAnalysis[] => {
+  const analyzeSpending = React.useCallback((transactions: Transaction[], cards: CreditCard[]): SpendingAnalysis[] => {
     const categorySpending: { [key: string]: SpendingAnalysis } = {};
 
     transactions.forEach(tx => {
@@ -73,7 +73,7 @@ export default function AIInsights() {
     });
 
     return Object.values(categorySpending);
-  };
+  }, []);
 
   const findBestCard = (category: string, cards: CreditCard[]): CreditCard | null => {
     let bestCard = null;

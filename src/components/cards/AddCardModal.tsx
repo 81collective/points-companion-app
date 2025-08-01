@@ -1,10 +1,11 @@
 // AddCardModal.tsx: modal for adding a new credit card
 
 import React from 'react'
-import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { CreditCard } from './types'
+import CardSelector from './CardSelector'
+import { autoPopulateRewards, validateRewardStructure } from '@/lib/cardAutoPopulation'
+import { CreditCardTemplate, RewardStructure } from '@/types/creditCards'
 import { createClient } from '@/lib/supabase'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -18,10 +19,7 @@ interface AddCardModalProps {
 // const rewardOptions = ["1x", "1.5x", "2x", "3x", "5x"];
 
 const cardSchema = z.object({
-  card_name: z.string()
-    .min(2, 'Card name required')
-    .max(32, 'Card name too long')
-    .regex(/^[a-zA-Z0-9 .,'-]+$/, 'Card name contains invalid characters'),
+  card_name: z.string().min(2, 'Card name required').max(32, 'Card name too long').regex(/^[a-zA-Z0-9 .,'-]+$/, 'Card name contains invalid characters'),
   last_four: z.string().regex(/^\d{4}$/, 'Last 4 digits must be exactly 4 numbers'),
   dining: z.enum(["1x", "2x", "3x", "5x"]),
   gas: z.enum(["1x", "2x", "3x", "5x"]),
@@ -34,52 +32,64 @@ const cardSchema = z.object({
 type CardFormValues = z.infer<typeof cardSchema>;
 
 const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userId }) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<CardFormValues>({
-    resolver: zodResolver(cardSchema),
-    defaultValues: {
-      card_name: '',
-      last_four: '',
-      dining: '1x',
-      gas: '1x',
-      groceries: '1x',
-      travel: '1x',
-      online_shopping: '1x',
-      everything_else: '1x',
-    }
-  });
+  const [selectedCard, setSelectedCard] = React.useState<CreditCardTemplate | null>(null);
+  const [rewards, setRewards] = React.useState<RewardStructure[]>([]);
+  const [customMode, setCustomMode] = React.useState(false);
+  const [lastFour, setLastFour] = React.useState('');
   const [error, setError] = React.useState('');
+  const [modified, setModified] = React.useState(false);
 
-  const sanitizeCardName = (name: string) => name.replace(/[^a-zA-Z0-9 .,'-]/g, '').trim();
-  const onSubmit = async (values: CardFormValues) => {
+  React.useEffect(() => {
+    if (selectedCard && !customMode) {
+      setRewards(autoPopulateRewards(selectedCard.id));
+      setModified(false);
+    }
+  }, [selectedCard, customMode]);
+
+  const handleRewardChange = (idx: number, field: keyof RewardStructure, value: number | string) => {
+    setRewards(prev => {
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return updated;
+    });
+    setModified(true);
+  };
+
+  const handleReset = () => {
+    if (selectedCard) setRewards(autoPopulateRewards(selectedCard.id));
+    setModified(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
+    if (!validateRewardStructure(rewards)) {
+      setError('Invalid reward structure.');
+      return;
+    }
     try {
       const supabase = createClient();
       const { data, error } = await supabase.from('credit_cards').insert([
         {
           user_id: userId,
-          card_name: sanitizeCardName(values.card_name),
-          last_four: values.last_four,
-          rewards_structure: {
-            dining: values.dining,
-            gas: values.gas,
-            groceries: values.groceries,
-            travel: values.travel,
-            online_shopping: values.online_shopping,
-            everything_else: values.everything_else,
-          },
+          card_name: selectedCard ? selectedCard.name : 'Custom Card',
+          last_four: lastFour,
+          rewards_structure: rewards,
         }
       ]).select().single();
       if (error) {
         setError('Unable to add card. Please try again or contact support.');
-        console.error('Add card error:', error);
         return;
       }
       onAdd(data as CreditCard);
-      reset();
+      setSelectedCard(null);
+      setRewards([]);
+      setLastFour('');
+      setCustomMode(false);
+      setModified(false);
       onClose();
-    } catch (err: unknown) {
+    } catch (err) {
       setError('Network error. Please check your connection and try again.');
-      console.error('Add card network error:', err);
     }
   };
 
@@ -90,94 +100,66 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userI
         <Dialog.Content className="fixed inset-0 flex items-center justify-center z-50">
           <form
             className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md flex flex-col gap-4"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit}
           >
             <h2 className="text-xl font-bold text-blue-700 mb-2">Add New Card</h2>
             <div>
-              <label className="block text-sm font-medium mb-1">Card Name</label>
-              <input
-                type="text"
-                {...register('card_name')}
-                className="border rounded px-3 py-2 w-full"
-                placeholder="Card Name"
-              />
-              {errors.card_name && <span className="text-red-500 text-xs">{errors.card_name.message}</span>}
+              <label className="block text-sm font-medium mb-1">Select Card</label>
+              <CardSelector onSelect={card => {
+                setSelectedCard(card);
+                setCustomMode(card === null);
+              }} />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Last 4 Digits</label>
               <input
                 type="text"
-                {...register('last_four')}
                 className="border rounded px-3 py-2 w-full"
                 placeholder="1234"
                 maxLength={4}
                 inputMode="numeric"
+                value={lastFour}
+                onChange={e => setLastFour(e.target.value)}
               />
-              {errors.last_four && <span className="text-red-500 text-xs">{errors.last_four.message}</span>}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Dining</label>
-                <select {...register('dining')} className="border rounded px-3 py-2 w-full">
-                  <option value="1x">1x</option>
-                  <option value="2x">2x</option>
-                  <option value="3x">3x</option>
-                  <option value="5x">5x</option>
-                </select>
+            {rewards.length > 0 && (
+              <div className="mt-2">
+                <label className="block text-sm font-medium mb-1">Rewards Structure</label>
+                <div className="space-y-2">
+                  {rewards.map((r, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <span className="text-xs font-semibold w-24">{r.category}</span>
+                      <input
+                        type="number"
+                        className="border rounded px-2 py-1 w-16"
+                        value={r.multiplier}
+                        onChange={e => handleRewardChange(idx, 'multiplier', Number(e.target.value))}
+                        min={0.5}
+                        step={0.5}
+                      />
+                      {r.cap && <span className="text-xs text-gray-500">Cap: {r.cap}</span>}
+                      {r.notes && <span className="text-xs text-gray-400">{r.notes}</span>}
+                    </div>
+                  ))}
+                </div>
+                {modified && (
+                  <div className="text-yellow-600 text-xs mt-1">You have modified auto-populated values.</div>
+                )}
+                {!customMode && (
+                  <button type="button" className="mt-2 px-2 py-1 bg-gray-200 rounded" onClick={handleReset}>
+                    Reset to Default
+                  </button>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Gas</label>
-                <select {...register('gas')} className="border rounded px-3 py-2 w-full">
-                  <option value="1x">1x</option>
-                  <option value="2x">2x</option>
-                  <option value="3x">3x</option>
-                  <option value="5x">5x</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Groceries</label>
-                <select {...register('groceries')} className="border rounded px-3 py-2 w-full">
-                  <option value="1x">1x</option>
-                  <option value="2x">2x</option>
-                  <option value="3x">3x</option>
-                  <option value="5x">5x</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Travel</label>
-                <select {...register('travel')} className="border rounded px-3 py-2 w-full">
-                  <option value="1x">1x</option>
-                  <option value="2x">2x</option>
-                  <option value="3x">3x</option>
-                  <option value="5x">5x</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Online Shopping</label>
-                <select {...register('online_shopping')} className="border rounded px-3 py-2 w-full">
-                  <option value="1x">1x</option>
-                  <option value="2x">2x</option>
-                  <option value="3x">3x</option>
-                  <option value="5x">5x</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Everything Else</label>
-                <select {...register('everything_else')} className="border rounded px-3 py-2 w-full">
-                  <option value="1x">1x</option>
-                  <option value="1.5x">1.5x</option>
-                  <option value="2x">2x</option>
-                </select>
-              </div>
-            </div>
+            )}
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
             <div className="flex gap-2 mt-2">
               <button
                 type="submit"
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition flex-1"
-                disabled={isSubmitting}
+                disabled={false}
               >
-                {isSubmitting ? 'Adding...' : 'Add Card'}
+                Add Card
               </button>
               <button
                 type="button"
