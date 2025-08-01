@@ -70,7 +70,7 @@ export default function CardRecommendation({ amount, merchant, category }: CardR
   // Fetch cards when component mounts
   useEffect(() => {
     fetchUserCards();
-  }, []);
+  }, [fetchUserCards]);
 
   if (error) {
     return (

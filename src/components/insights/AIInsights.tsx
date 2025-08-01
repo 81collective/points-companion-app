@@ -174,7 +174,7 @@ export default function AIInsights() {
     };
 
     fetchInsights();
-  }, []);
+  }, [analyzeSpending, supabase]);
 
   const getIcon = (type: Insight['type']) => {
     switch (type) {
