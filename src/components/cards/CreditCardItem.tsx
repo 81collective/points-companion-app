@@ -12,7 +12,14 @@ function getTopRewards(rewards: Record<string, string>) {
   return sorted.slice(0, 3)
 }
 
-const CreditCardItem: React.FC<{ card: CreditCard }> = ({ card }) => {
+interface CreditCardItemProps {
+  card: CreditCard
+  onEdit: () => void
+  onDelete: () => void
+  loading?: boolean
+}
+
+const CreditCardItem: React.FC<CreditCardItemProps> = ({ card, onEdit, onDelete, loading }) => {
   const lastFour = card.last_four.padStart(4, '0')
   const topRewards = getTopRewards(card.rewards_structure as Record<string, string>)
 
@@ -21,10 +28,20 @@ const CreditCardItem: React.FC<{ card: CreditCard }> = ({ card }) => {
       <div className="flex justify-between items-center mb-2">
         <span className="text-lg font-bold tracking-wide drop-shadow">{card.card_name}</span>
         <div className="flex gap-2">
-          <button className="bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full p-2 transition" title="Edit">
+          <button
+            className="bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full p-2 transition"
+            title="Edit"
+            onClick={onEdit}
+            disabled={loading}
+          >
             <Pencil className="w-4 h-4 text-white" />
           </button>
-          <button className="bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full p-2 transition" title="Delete">
+          <button
+            className="bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full p-2 transition"
+            title="Delete"
+            onClick={onDelete}
+            disabled={loading}
+          >
             <Trash2 className="w-4 h-4 text-white" />
           </button>
         </div>
