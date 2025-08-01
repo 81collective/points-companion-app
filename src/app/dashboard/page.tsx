@@ -49,13 +49,20 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-2">
               Here&apos;s your rewards overview and recommendations for today.
             </p>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-4">
               <Link 
                 href="/dashboard/cards" 
                 className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Add a Card
+              </Link>
+              <Link 
+                href="/dashboard/insights" 
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <TrendingUp className="w-5 h-5 mr-2" />
+                View Insights
               </Link>
             </div>
           </div>
