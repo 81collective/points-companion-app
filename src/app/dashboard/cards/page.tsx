@@ -10,7 +10,7 @@ import EditCardModal from '@/components/cards/EditCardModal'
 import DeleteCardDialog from '@/components/cards/DeleteCardDialog'
 import { CreditCard as CreditCardIcon } from 'lucide-react'
 import { CreditCard } from '@/components/cards/types'
-import { Loader2 } from 'lucide-react'
+// import { Loader2 } from 'lucide-react'
 
 export default function CardsPage() {
   const { user } = useAuth()
@@ -47,7 +47,7 @@ export default function CardsPage() {
     await fetchCards()
   }
 
-  const handleEditCard = async (updatedCard: CreditCard) => {
+  const handleEditCard = async () => {
     setEditCard(null)
     setFeedback('Card updated successfully!')
     await fetchCards()
@@ -64,7 +64,7 @@ export default function CardsPage() {
       setFeedback('Card deleted successfully!')
       setDeleteCard(null)
       await fetchCards()
-    } catch (err: unknown) {
+    } catch {
       setFeedback('Failed to delete card.')
     }
     setActionLoadingId(null)

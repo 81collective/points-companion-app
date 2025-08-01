@@ -7,7 +7,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 function getTopRewards(rewards: Record<string, string>) {
   // Get top 2-3 categories by reward value
   const sorted = Object.entries(rewards)
-    .filter(([_, v]) => typeof v === 'string')
+    .filter((entry) => typeof entry[1] === 'string')
     .sort((a, b) => parseFloat((b[1] as string)) - parseFloat((a[1] as string)))
   return sorted.slice(0, 3)
 }

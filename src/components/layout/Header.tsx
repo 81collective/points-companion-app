@@ -25,45 +25,53 @@ export default function Header() {
           </nav>
         </div>
 
-        <div className="relative">
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+        <div className="flex items-center gap-4">
+          <a
+            href="/dashboard"
+            className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition font-semibold"
           >
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-              {profile?.first_name ? profile.first_name[0].toUpperCase() : user?.email?.[0].toUpperCase()}
-            </div>
-            <span className="text-sm font-medium text-gray-700">
-              {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : user?.email}
-            </span>
-          </button>
+            Go to Dashboard
+          </a>
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                {profile?.first_name ? profile.first_name[0].toUpperCase() : user?.email?.[0].toUpperCase()}
+              </div>
+              <span className="text-sm font-medium text-gray-700">
+                {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : user?.email}
+              </span>
+            </button>
 
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-              <button
-                onClick={() => setShowDropdown(false)}
-                className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <User className="h-4 w-4" />
-                <span>Profile</span>
-              </button>
-              <button
-                onClick={() => setShowDropdown(false)}
-                className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </button>
-              <hr className="my-1" />
-              <button
-                onClick={handleSignOut}
-                className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign out</span>
-              </button>
-            </div>
-          )}
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <button
+                  onClick={() => setShowDropdown(false)}
+                  className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
+                </button>
+                <button
+                  onClick={() => setShowDropdown(false)}
+                  className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </button>
+                <hr className="my-1" />
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

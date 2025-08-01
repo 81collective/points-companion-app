@@ -15,7 +15,7 @@ interface AddCardModalProps {
   userId: string | undefined
 }
 
-const rewardOptions = ["1x", "1.5x", "2x", "3x", "5x"];
+// const rewardOptions = ["1x", "1.5x", "2x", "3x", "5x"];
 
 const cardSchema = z.object({
   card_name: z.string().min(2, 'Card name required'),
