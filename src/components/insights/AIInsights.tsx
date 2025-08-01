@@ -3,12 +3,16 @@ import React from 'react';
 
 import { useEffect, useState } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
-import { Lightbulb, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Lightbulb, AlertTriangle, TrendingUp, Sparkles, Target, DollarSign, ArrowUpRight, Clock } from 'lucide-react';
 
 interface Insight {
-  type: 'tip' | 'alert' | 'opportunity';
+  type: 'tip' | 'alert' | 'opportunity' | 'achievement' | 'prediction';
   title: string;
   description: string;
+  impact?: 'high' | 'medium' | 'low';
+  actionable?: boolean;
+  savings?: number;
+  timeframe?: string;
 }
 
 interface Transaction {
@@ -38,6 +42,7 @@ interface SpendingAnalysis {
 export default function AIInsights() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'high' | 'actionable'>('all');
   const { supabase } = useSupabase();
 
   const analyzeSpending = React.useCallback((transactions: Transaction[], cards: CreditCard[]): SpendingAnalysis[] => {

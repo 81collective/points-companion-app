@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import ChatAssistant from '@/components/ai/ChatAssistant';
 
 export default function AiAssistantPage() {

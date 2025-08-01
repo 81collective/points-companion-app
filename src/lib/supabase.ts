@@ -45,27 +45,27 @@ export type Database = {
         Row: {
           id: string
           user_id: string
-          card_name: string
-          last_four: string
-          rewards_structure: Json
+          name: string
+          last4: string
+          rewards: string[]
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          card_name: string
-          last_four: string
-          rewards_structure?: Json
+          name: string
+          last4: string
+          rewards?: string[]
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          card_name?: string
-          last_four?: string
-          rewards_structure?: Json
+          name?: string
+          last4?: string
+          rewards?: string[]
           created_at?: string
           updated_at?: string
         }

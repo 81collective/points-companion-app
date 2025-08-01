@@ -8,11 +8,11 @@ import { createClient } from '@/lib/supabase'
 import * as Dialog from '@radix-ui/react-dialog'
 
 const cardSchema = z.object({
-  card_name: z.string()
+  name: z.string()
     .min(2, 'Card name required')
     .max(32, 'Card name too long')
     .regex(/^[a-zA-Z0-9 .,'-]+$/, 'Card name contains invalid characters'),
-  last_four: z.string().regex(/^\d{4}$/, 'Last 4 digits must be exactly 4 numbers'),
+  last4: z.string().regex(/^\d{4}$/, 'Last 4 digits must be exactly 4 numbers'),
   dining: z.enum(["1x", "2x", "3x", "5x"]),
   gas: z.enum(["1x", "2x", "3x", "5x"]),
   groceries: z.enum(["1x", "2x", "3x", "5x"]),
@@ -34,14 +34,14 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<CardFormValues>({
     resolver: zodResolver(cardSchema),
     defaultValues: card ? {
-      card_name: card.card_name,
-      last_four: card.last_four,
-      dining: (typeof card.rewards_structure.dining === 'string' ? card.rewards_structure.dining : '1x') as '1x' | '2x' | '3x' | '5x',
-      gas: (typeof card.rewards_structure.gas === 'string' ? card.rewards_structure.gas : '1x') as '1x' | '2x' | '3x' | '5x',
-      groceries: (typeof card.rewards_structure.groceries === 'string' ? card.rewards_structure.groceries : '1x') as '1x' | '2x' | '3x' | '5x',
-      travel: (typeof card.rewards_structure.travel === 'string' ? card.rewards_structure.travel : '1x') as '1x' | '2x' | '3x' | '5x',
-      online_shopping: (typeof card.rewards_structure.online_shopping === 'string' ? card.rewards_structure.online_shopping : '1x') as '1x' | '2x' | '3x' | '5x',
-      everything_else: (typeof card.rewards_structure.everything_else === 'string' ? card.rewards_structure.everything_else : '1x') as '1x' | '1.5x' | '2x',
+      name: card.name,
+      last4: card.last4,
+      dining: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('dining:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+      gas: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('gas:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+      groceries: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('groceries:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+      travel: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('travel:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+      online_shopping: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('online_shopping:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+      everything_else: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('everything_else:'))?.split(':')[1] || '1x') as '1x' | '1.5x' | '2x',
     } : undefined
   });
   const [error, setError] = React.useState('');
@@ -49,14 +49,14 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
   React.useEffect(() => {
     if (card) {
       reset({
-        card_name: card.card_name,
-        last_four: card.last_four,
-        dining: (typeof card.rewards_structure.dining === 'string' ? card.rewards_structure.dining : '1x') as '1x' | '2x' | '3x' | '5x',
-        gas: (typeof card.rewards_structure.gas === 'string' ? card.rewards_structure.gas : '1x') as '1x' | '2x' | '3x' | '5x',
-        groceries: (typeof card.rewards_structure.groceries === 'string' ? card.rewards_structure.groceries : '1x') as '1x' | '2x' | '3x' | '5x',
-        travel: (typeof card.rewards_structure.travel === 'string' ? card.rewards_structure.travel : '1x') as '1x' | '2x' | '3x' | '5x',
-        online_shopping: (typeof card.rewards_structure.online_shopping === 'string' ? card.rewards_structure.online_shopping : '1x') as '1x' | '2x' | '3x' | '5x',
-        everything_else: (typeof card.rewards_structure.everything_else === 'string' ? card.rewards_structure.everything_else : '1x') as '1x' | '1.5x' | '2x',
+        name: card.name,
+        last4: card.last4,
+        dining: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('dining:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+        gas: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('gas:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+        groceries: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('groceries:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+        travel: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('travel:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+        online_shopping: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('online_shopping:'))?.split(':')[1] || '1x') as '1x' | '2x' | '3x' | '5x',
+        everything_else: (Array.isArray(card.rewards) && card.rewards.find(r => r.startsWith('everything_else:'))?.split(':')[1] || '1x') as '1x' | '1.5x' | '2x',
       })
     }
   }, [card, reset])
@@ -67,16 +67,16 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
     try {
       const supabase = createClient();
       const { data, error } = await supabase.from('credit_cards').update({
-        card_name: sanitizeCardName(values.card_name),
-        last_four: values.last_four,
-        rewards_structure: {
-          dining: values.dining,
-          gas: values.gas,
-          groceries: values.groceries,
-          travel: values.travel,
-          online_shopping: values.online_shopping,
-          everything_else: values.everything_else,
-        },
+        name: sanitizeCardName(values.name),
+        last4: values.last4,
+        rewards: [
+          `dining:${values.dining}`,
+          `gas:${values.gas}`,
+          `groceries:${values.groceries}`,
+          `travel:${values.travel}`,
+          `online_shopping:${values.online_shopping}`,
+          `everything_else:${values.everything_else}`,
+        ],
       }).eq('id', card?.id).select().single();
       if (error) {
         setError('Unable to update card. Please try again or contact support.');
@@ -105,23 +105,23 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
               <label className="block text-sm font-medium mb-1">Card Name</label>
               <input
                 type="text"
-                {...register('card_name')}
+                {...register('name')}
                 className="border rounded px-3 py-2 w-full"
                 placeholder="Card Name"
               />
-              {errors.card_name && <span className="text-red-500 text-xs">{errors.card_name.message}</span>}
+              {errors.name && <span className="text-red-500 text-xs">{errors.name.message}</span>}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Last 4 Digits</label>
               <input
                 type="text"
-                {...register('last_four')}
+                {...register('last4')}
                 className="border rounded px-3 py-2 w-full"
                 placeholder="1234"
                 maxLength={4}
                 inputMode="numeric"
               />
-              {errors.last_four && <span className="text-red-500 text-xs">{errors.last_four.message}</span>}
+              {errors.last4 && <span className="text-red-500 text-xs">{errors.last4.message}</span>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

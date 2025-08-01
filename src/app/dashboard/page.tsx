@@ -3,7 +3,7 @@ import AIPerformanceMetrics from '@/components/analytics/AIPerformanceMetrics'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Header from '@/components/layout/Header'
-import { CreditCard, TrendingUp, DollarSign, Plus } from 'lucide-react'
+import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
 
@@ -15,22 +15,28 @@ export default function DashboardPage() {
       title: 'Total Points Earned',
       value: '12,847',
       change: '+2.5%',
+      trend: 'up',
       icon: TrendingUp,
-      color: 'text-green-600'
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50'
     },
     {
       title: 'This Month',
       value: '1,234',
       change: '+12%',
+      trend: 'up',
       icon: DollarSign,
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50'
     },
     {
       title: 'Active Cards',
-      value: '3', // TODO: Replace with dynamic count
+      value: '3',
       change: 'No change',
+      trend: 'neutral',
       icon: CreditCard,
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50'
     }
   ]
 
@@ -39,47 +45,73 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         
-        <main className="max-w-7xl mx-auto px-4 py-8">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''}!
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Here&apos;s your rewards overview and recommendations for today.
-            </p>
-            <div className="mt-4 flex gap-4">
+          <div className="mb-12">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''}! 
+                  <span className="inline-block ml-2">👋</span>
+                </h1>
+                <p className="text-xl text-gray-600">
+                  Here&apos;s your rewards overview and smart recommendations for today.
+                </p>
+              </div>
+              <div className="hidden md:flex items-center space-x-3">
+                <Link 
+                  href="/dashboard/cards" 
+                  className="inline-flex items-center px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Card
+                </Link>
+                <Link 
+                  href="/dashboard/insights" 
+                  className="inline-flex items-center px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl border border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  View Insights
+                </Link>
+              </div>
+            </div>
+            
+            {/* Mobile buttons */}
+            <div className="mt-6 flex md:hidden gap-3">
               <Link 
                 href="/dashboard/cards" 
-                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-xl transition-colors"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Add a Card
+                Add Card
               </Link>
               <Link 
                 href="/dashboard/insights" 
-                className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl border border-gray-200 transition-colors"
               >
-                <TrendingUp className="w-5 h-5 mr-2" />
-                View Insights
+                <BarChart3 className="w-5 h-5 mr-2" />
+                Insights
               </Link>
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon
               return (
-                <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                      <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                      <p className={`text-sm mt-1 ${stat.color}`}>{stat.change}</p>
+                <div key={index} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>
+                      <div className="flex items-center mt-3">
+                        <ArrowUpRight className="w-4 h-4 text-emerald-500 mr-1" />
+                        <span className={`text-sm font-medium ${stat.color}`}>{stat.change}</span>
+                      </div>
                     </div>
-                    <div className="p-3 rounded-lg bg-gray-50">
-                      <IconComponent className={`h-6 w-6 ${stat.color}`} />
+                    <div className={`p-4 rounded-2xl ${stat.bgColor}`}>
+                      <IconComponent className={`h-7 w-7 ${stat.color}`} />
                     </div>
                   </div>
                 </div>
@@ -87,58 +119,74 @@ export default function DashboardPage() {
             })}
           </div>
 
-          {/* Breadcrumb Navigation */}
-          <nav className="mb-6 flex items-center text-sm text-gray-500 gap-2" aria-label="Breadcrumb">
-            <Link href="/dashboard" className="hover:text-blue-700">Dashboard</Link>
-            <span>/</span>
-            <span className="text-gray-700 font-medium">Overview</span>
-          </nav>
-
-          {/* AI Performance Metrics */}
-          <div className="mb-8">
-            {/* Analytics Dashboard */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">AI Performance & Analytics</h2>
-              <p className="text-gray-600 mb-4">See how well the AI is optimizing your rewards and recommendations.</p>
-              {/* AIPerformanceMetrics component */}
-              <AIPerformanceMetrics />
-            </div>
-          </div>
-
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Card Recommendations */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Card Recommendations</h2>
-              <p className="text-gray-600 mb-4">Enter transaction details to get personalized card recommendations.</p>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
+            {/* Card Recommendations - Takes 2 columns */}
+            <div className="xl:col-span-2 bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <div className="flex items-center mb-6">
+                <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl mr-4">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900">Smart Recommendations</h2>
+                  <p className="text-gray-600">Get AI-powered suggestions for maximum rewards</p>
+                </div>
+              </div>
               <RecommendationForm />
             </div>
 
             {/* Your Credit Cards Summary */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Your Credit Cards</h2>
-                <Link href="/dashboard/cards" className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  <Plus className="h-4 w-4" />
-                  <span>Manage Cards</span>
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Your Cards</h2>
+                <Link href="/dashboard/cards" className="text-rose-500 hover:text-rose-600 font-medium text-sm transition-colors">
+                  Manage all →
                 </Link>
               </div>
               {/* TODO: Replace with actual card summary */}
-              <div className="flex flex-col items-center py-8 text-gray-500">
-                <CreditCard className="h-12 w-12 mb-3 text-gray-300" />
-                <p className="text-lg font-medium">No cards added yet</p>
-                <p className="text-sm mt-1">Add your credit cards to start getting personalized recommendations</p>
+              <div className="flex flex-col items-center py-12 text-gray-500">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                  <CreditCard className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-lg font-medium text-gray-900 mb-2">No cards added yet</p>
+                <p className="text-sm text-center text-gray-500 mb-6">Add your credit cards to start getting personalized recommendations</p>
+                <Link 
+                  href="/dashboard/cards"
+                  className="inline-flex items-center px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Card
+                </Link>
               </div>
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="text-center py-8 text-gray-500">
-              <TrendingUp className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-              <p className="text-lg font-medium">No recent activity</p>
-              <p className="text-sm mt-1">Connect your bank accounts to see transaction history and recommendations</p>
+          {/* AI Performance & Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* AI Performance Metrics */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <div className="flex items-center mb-6">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl mr-4">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">AI Performance</h2>
+                  <p className="text-gray-600">Track optimization success</p>
+                </div>
+              </div>
+              <AIPerformanceMetrics />
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Activity</h2>
+              <div className="flex flex-col items-center py-12 text-gray-500">
+                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                  <TrendingUp className="h-8 w-8 text-gray-400" />
+                </div>
+                <p className="text-lg font-medium text-gray-900 mb-2">No recent activity</p>
+                <p className="text-sm text-center text-gray-500">Connect your accounts to see transaction history and recommendations</p>
+              </div>
             </div>
           </div>
         </main>

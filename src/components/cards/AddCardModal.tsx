@@ -1,7 +1,6 @@
 // AddCardModal.tsx: modal for adding a new credit card
 
 import React from 'react'
-import { z } from 'zod'
 import { CreditCard } from './types'
 import CardSelector from './CardSelector'
 import { autoPopulateRewards, validateRewardStructure } from '@/lib/cardAutoPopulation'

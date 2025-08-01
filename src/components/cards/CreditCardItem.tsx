@@ -20,13 +20,23 @@ interface CreditCardItemProps {
 }
 
 const CreditCardItem: React.FC<CreditCardItemProps> = ({ card, onEdit, onDelete, loading }) => {
-  const lastFour = card.last_four.padStart(4, '0')
-  const topRewards = getTopRewards(card.rewards_structure as Record<string, string>)
+  const lastFour = (card.last4 ?? '').padStart(4, '0')
+  
+  // Convert rewards array to RewardsStructure format for RewardsDisplay
+  const rewardsStructure = card.rewards.reduce((acc, reward) => {
+    const [category, multiplier] = reward.split(':')
+    if (category && multiplier) {
+      acc[category] = multiplier
+    }
+    return acc
+  }, {} as Record<string, string>)
+  
+  const topRewards = getTopRewards(rewardsStructure)
 
   return (
     <div className="relative bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 rounded-2xl shadow-lg p-6 min-w-[260px] max-w-md w-full text-white transition-transform hover:scale-105 hover:shadow-2xl">
       <div className="flex justify-between items-center mb-2">
-        <span className="text-lg font-bold tracking-wide drop-shadow">{card.card_name}</span>
+        <span className="text-lg font-bold tracking-wide drop-shadow">{card.name}</span>
         <div className="flex gap-2">
           <button
             className="bg-white bg-opacity-20 hover:bg-opacity-40 rounded-full p-2 transition"
@@ -57,7 +67,7 @@ const CreditCardItem: React.FC<CreditCardItemProps> = ({ card, onEdit, onDelete,
           ))}
         </div>
       </div>
-      <RewardsDisplay rewards={card.rewards_structure} />
+      <RewardsDisplay rewards={rewardsStructure} />
     </div>
   )
 }
