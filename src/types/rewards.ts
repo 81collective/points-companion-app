@@ -1,3 +1,4 @@
+export type Category = 'dining' | 'groceries' | 'travel' | 'gas' | 'other';
 export interface Transaction {
   id: string
   amount: number

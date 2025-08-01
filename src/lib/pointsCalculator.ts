@@ -1,3 +1,17 @@
+export function getOptimalCardForCategory(category: string): string {
+  switch (category) {
+    case 'dining':
+      return 'Chase Sapphire Preferred (3x points)';
+    case 'groceries':
+      return 'Amex Gold Card (4x points)';
+    case 'travel':
+      return 'Capital One Venture (2x miles)';
+    case 'gas':
+      return 'Citi Premier (3x points)';
+    default:
+      return 'No optimal card found';
+  }
+}
 import type {
   Transaction,
   CreditCard,

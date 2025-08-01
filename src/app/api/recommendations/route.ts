@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   let body: RecommendationRequest
   try {
     body = await req.json()
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
