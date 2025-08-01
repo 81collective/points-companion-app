@@ -17,8 +17,12 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           <h1 className="text-xl font-bold text-gray-900">Points Companion</h1>
+          <nav className="hidden md:flex gap-4">
+            <a href="/dashboard" className="text-gray-700 hover:text-blue-700 font-medium transition">Dashboard</a>
+            <a href="/dashboard/cards" className="text-gray-700 hover:text-blue-700 font-medium transition">My Cards</a>
+          </nav>
         </div>
 
         <div className="relative">

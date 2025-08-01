@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Header from '@/components/layout/Header'
 import { CreditCard, TrendingUp, DollarSign, Plus } from 'lucide-react'
+import Link from 'next/link'
 
 export default function DashboardPage() {
   const { profile } = useAuth()
@@ -26,7 +27,7 @@ export default function DashboardPage() {
     },
     {
       title: 'Active Cards',
-      value: '3',
+      value: '3', // TODO: Replace with dynamic count
       change: 'No change',
       icon: CreditCard,
       color: 'text-purple-600'
@@ -70,50 +71,33 @@ export default function DashboardPage() {
             })}
           </div>
 
+          {/* Breadcrumb Navigation */}
+          <nav className="mb-6 flex items-center text-sm text-gray-500 gap-2" aria-label="Breadcrumb">
+            <Link href="/dashboard" className="hover:text-blue-700">Dashboard</Link>
+            <span>/</span>
+            <span className="text-gray-700 font-medium">Overview</span>
+          </nav>
+
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Today's Recommendations */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Today&apos;s Recommendations</h2>
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h3 className="font-medium text-blue-900">Use Chase Sapphire for dining</h3>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Earn 3x points on restaurant purchases today. Perfect for your lunch meeting!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <TrendingUp className="h-5 w-5 text-green-600 mt-0.5" />
-                    <div>
-                      <h3 className="font-medium text-green-900">Maximize Q4 bonus categories</h3>
-                      <p className="text-sm text-green-700 mt-1">
-                        Your Discover card offers 5% back on online shopping through December.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* ...existing recommendations... */}
             </div>
 
-            {/* Your Credit Cards */}
+            {/* Your Credit Cards Summary */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Your Credit Cards</h2>
-                <button className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <Link href="/dashboard/cards" className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                   <Plus className="h-4 w-4" />
-                  <span>Add Card</span>
-                </button>
+                  <span>Manage Cards</span>
+                </Link>
               </div>
-              
-              <div className="text-center py-8 text-gray-500">
-                <CreditCard className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              {/* TODO: Replace with actual card summary */}
+              <div className="flex flex-col items-center py-8 text-gray-500">
+                <CreditCard className="h-12 w-12 mb-3 text-gray-300" />
                 <p className="text-lg font-medium">No cards added yet</p>
                 <p className="text-sm mt-1">Add your credit cards to start getting personalized recommendations</p>
               </div>

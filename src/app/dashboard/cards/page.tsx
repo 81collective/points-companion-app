@@ -8,6 +8,7 @@ import CardList from '@/components/cards/CardList'
 import AddCardModal from '@/components/cards/AddCardModal'
 import EditCardModal from '@/components/cards/EditCardModal'
 import DeleteCardDialog from '@/components/cards/DeleteCardDialog'
+import { CreditCard as CreditCardIcon } from 'lucide-react'
 import { CreditCard } from '@/components/cards/types'
 import { Loader2 } from 'lucide-react'
 
@@ -82,9 +83,27 @@ export default function CardsPage() {
           </button>
         </div>
         {feedback && <div className="mb-4 text-center text-sm text-green-600 animate-fade-in">{feedback}</div>}
+        {/* Breadcrumb Navigation */}
+        <nav className="mb-4 flex items-center text-sm text-gray-500 gap-2" aria-label="Breadcrumb">
+          <a href="/dashboard" className="hover:text-blue-700">Dashboard</a>
+          <span>/</span>
+          <span className="text-gray-700 font-medium">My Cards</span>
+        </nav>
         {loading ? (
-          <div className="flex justify-center items-center h-32">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-gradient-to-br from-blue-100 via-white to-purple-100 rounded-2xl shadow p-6 min-w-[260px] max-w-md w-full h-40 flex flex-col justify-between">
+                <div className="h-6 bg-blue-200 rounded w-1/2 mb-2" />
+                <div className="h-4 bg-purple-200 rounded w-1/3 mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-2/3" />
+              </div>
+            ))}
+          </div>
+        ) : cards.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <CreditCardIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-lg font-medium">No cards added yet</p>
+            <p className="text-sm mt-1">Add your credit cards to start getting personalized recommendations</p>
           </div>
         ) : (
           <CardList
