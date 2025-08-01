@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import ChatAssistant from '@/components/ai/ChatAssistant';
 
 export default function AiAssistantPage() {
-  const [userId] = useState('demo-user'); // Replace with real user context
   // Placeholder for saved conversation history and quick actions
   return (
     <div className="min-h-screen bg-gray-50">
