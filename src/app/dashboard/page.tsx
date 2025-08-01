@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Header from '@/components/layout/Header'
 import { CreditCard, TrendingUp, DollarSign, Plus } from 'lucide-react'
 import Link from 'next/link'
+import RecommendationForm from '@/components/recommendations/RecommendationForm'
 
 export default function DashboardPage() {
   const { profile } = useAuth()
@@ -48,6 +49,15 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-2">
               Here&apos;s your rewards overview and recommendations for today.
             </p>
+            <div className="mt-4">
+              <Link 
+                href="/dashboard/cards" 
+                className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add a Card
+              </Link>
+            </div>
           </div>
 
           {/* Stats Grid */}
@@ -80,10 +90,11 @@ export default function DashboardPage() {
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Today's Recommendations */}
+            {/* Card Recommendations */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Today&apos;s Recommendations</h2>
-              {/* ...existing recommendations... */}
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Card Recommendations</h2>
+              <p className="text-gray-600 mb-4">Enter transaction details to get personalized card recommendations.</p>
+              <RecommendationForm />
             </div>
 
             {/* Your Credit Cards Summary */}
