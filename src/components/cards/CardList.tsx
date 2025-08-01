@@ -1,6 +1,6 @@
 // CardList.tsx: displays a list of credit cards
 import React from 'react'
-import CardItem from './CardItem'
+import CreditCardItem from './CreditCardItem'
 import { CreditCard } from './types'
 
 interface CardListProps {
@@ -14,7 +14,7 @@ const CardList: React.FC<CardListProps> = ({ cards }) => {
   return (
     <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
       {cards.map(card => (
-        <CardItem key={card.id} card={card} />
+        <CreditCardItem key={card.id} card={card} />
       ))}
     </div>
   )
