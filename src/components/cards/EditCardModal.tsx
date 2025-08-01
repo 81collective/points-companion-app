@@ -8,8 +8,11 @@ import { createClient } from '@/lib/supabase'
 import * as Dialog from '@radix-ui/react-dialog'
 
 const cardSchema = z.object({
-  card_name: z.string().min(2, 'Card name required'),
-  last_four: z.string().regex(/^\d{4}$/, 'Must be 4 digits'),
+  card_name: z.string()
+    .min(2, 'Card name required')
+    .max(32, 'Card name too long')
+    .regex(/^[a-zA-Z0-9 .,'-]+$/, 'Card name contains invalid characters'),
+  last_four: z.string().regex(/^\d{4}$/, 'Last 4 digits must be exactly 4 numbers'),
   dining: z.enum(["1x", "2x", "3x", "5x"]),
   gas: z.enum(["1x", "2x", "3x", "5x"]),
   groceries: z.enum(["1x", "2x", "3x", "5x"]),
@@ -58,12 +61,13 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
     }
   }, [card, reset])
 
+  const sanitizeCardName = (name: string) => name.replace(/[^a-zA-Z0-9 .,'-]/g, '').trim();
   const onSubmit = async (values: CardFormValues) => {
     setError('');
     try {
       const supabase = createClient();
       const { data, error } = await supabase.from('credit_cards').update({
-        card_name: values.card_name,
+        card_name: sanitizeCardName(values.card_name),
         last_four: values.last_four,
         rewards_structure: {
           dining: values.dining,
@@ -74,15 +78,16 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
           everything_else: values.everything_else,
         },
       }).eq('id', card?.id).select().single();
-      if (error) throw error;
+      if (error) {
+        setError('Unable to update card. Please try again or contact support.');
+        console.error('Edit card error:', error);
+        return;
+      }
       onUpdate(data as CreditCard);
       onClose();
     } catch (err: unknown) {
-      if (typeof err === 'object' && err !== null && 'message' in err) {
-        setError((err as { message?: string }).message || 'Failed to update card');
-      } else {
-        setError('Failed to update card');
-      }
+      setError('Network error. Please check your connection and try again.');
+      console.error('Edit card network error:', err);
     }
   };
 
