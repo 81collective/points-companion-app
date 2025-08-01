@@ -1,6 +1,5 @@
-// src/app/dashboard/page.tsx
-'use client'
-
+"use client"
+import AIPerformanceMetrics from '@/components/analytics/AIPerformanceMetrics'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Header from '@/components/layout/Header'
@@ -94,6 +93,17 @@ export default function DashboardPage() {
             <span>/</span>
             <span className="text-gray-700 font-medium">Overview</span>
           </nav>
+
+          {/* AI Performance Metrics */}
+          <div className="mb-8">
+            {/* Analytics Dashboard */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">AI Performance & Analytics</h2>
+              <p className="text-gray-600 mb-4">See how well the AI is optimizing your rewards and recommendations.</p>
+              {/* AIPerformanceMetrics component */}
+              <AIPerformanceMetrics />
+            </div>
+          </div>
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

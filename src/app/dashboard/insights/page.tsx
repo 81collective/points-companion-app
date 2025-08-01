@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
 export default function InsightsPage() {
-  const { profile } = useAuth();
 
   return (
     <ProtectedRoute>
