@@ -56,14 +56,15 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient();
 
-    // Build query to find nearby businesses
+    // Build query to find nearby businesses (using miles)
+    const radiusMiles = radiusMeters / 5280; // Convert feet to miles for bounding box
     let query = supabase
       .from('businesses')
       .select('*')
-      .gte('latitude', latitude - (radiusMeters / 111000)) // Rough conversion: 1 degree ≈ 111km
-      .lte('latitude', latitude + (radiusMeters / 111000))
-      .gte('longitude', longitude - (radiusMeters / (111000 * Math.cos(latitude * Math.PI / 180))))
-      .lte('longitude', longitude + (radiusMeters / (111000 * Math.cos(latitude * Math.PI / 180))));
+      .gte('latitude', latitude - (radiusMiles / 69)) // Rough conversion: 1 degree ≈ 69 miles
+      .lte('latitude', latitude + (radiusMiles / 69))
+      .gte('longitude', longitude - (radiusMiles / (69 * Math.cos(latitude * Math.PI / 180))))
+      .lte('longitude', longitude + (radiusMiles / (69 * Math.cos(latitude * Math.PI / 180))));
 
     // Filter by category if provided
     if (category && category !== 'all') {
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
     }).filter(business => business.distance <= radiusMeters)
       .sort((a, b) => a.distance - b.distance) || [];
 
-    // PRIORITIZE Google Places API for real-time data
+    // Google Places API is working! Prioritize it for fresh, real-time data
     let googlePlaces = [];
     const hasGoogleApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     console.log('Google API check:', { 
@@ -110,7 +111,7 @@ export async function GET(request: NextRequest) {
       apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'
     });
 
-    // Always try Google Places API first for real-time data
+    // Always fetch from Google Places API for real-time data (since it's working!)
     if (hasGoogleApiKey) {
       try {
         console.log('Fetching from Google Places API...');
@@ -162,7 +163,7 @@ export async function GET(request: NextRequest) {
             longitude: longitude + 0.001,
             rating: 4.2,
             price_level: 2,
-            distance: 150,
+            distance: 492, // ~500 feet
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           },
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
             longitude: longitude - 0.001,
             rating: 4.0,
             price_level: 2,
-            distance: 200,
+            distance: 656, // ~650 feet
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           },
@@ -188,7 +189,7 @@ export async function GET(request: NextRequest) {
             longitude: longitude - 0.002,
             rating: 3.8,
             price_level: 1,
-            distance: 300,
+            distance: 984, // ~1000 feet
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
@@ -243,7 +244,7 @@ export async function GET(request: NextRequest) {
 
 // Helper function to calculate distance between two points
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371e3; // Earth's radius in meters
+  const R = 3959; // Earth's radius in miles
   const φ1 = lat1 * Math.PI / 180;
   const φ2 = lat2 * Math.PI / 180;
   const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -254,7 +255,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
             Math.sin(Δλ/2) * Math.sin(Δλ/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-  return R * c;
+  return R * c * 5280; // Convert miles to feet for consistency
 }
 
 // Helper function to fetch from Google Places API

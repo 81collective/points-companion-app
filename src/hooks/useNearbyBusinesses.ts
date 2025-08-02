@@ -32,18 +32,19 @@ export function useNearbyBusinesses({
       }
 
       try {
-        // First try the server-side API
+        // Server-side API is now working! Try it first
         const serverResult = await fetchNearbyBusinessesFromApi(latitude, longitude, category, radius);
         
-        // If server API works and returns results, use them
-        if (serverResult.success && serverResult.data && serverResult.data.length > 0) {
+        // Server API should now return real Google Places data
+        if (serverResult.success && serverResult.data) {
+          console.log(`Found ${serverResult.data.length} businesses via server API`);
           return serverResult;
         }
 
-        // If server API fails or returns no results, try client-side Google Places
-        console.log('Server API returned no results, trying client-side Google Places...');
+        // Fallback to client-side only if server completely fails
+        console.log('Server API failed, trying client-side Google Places as backup...');
         
-        // Check if Google Maps is loaded
+        // Check if Google Maps is loaded for client-side fallback
         if (typeof window !== 'undefined' && window.google && window.google.maps) {
           const placesService = getClientPlacesService();
           const clientBusinesses = await placesService.searchNearby(latitude, longitude, category, radius);
@@ -54,8 +55,9 @@ export function useNearbyBusinesses({
           }
         }
 
-        // If both fail, return the server result (which might have sample data)
+        // If both fail, return server result (which might have sample data)
         return serverResult;
+        
         
       } catch (error) {
         console.error('Error in useNearbyBusinesses:', error);

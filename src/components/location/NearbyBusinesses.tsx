@@ -7,6 +7,7 @@ import { MapPin, Star, Navigation, Grid, Map, Loader2 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
+import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import LocationPermission from '@/components/location/LocationPermission';
 import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
 import { Business } from '@/types/location.types';
@@ -30,7 +31,7 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [radius, setRadius] = useState(2000); // 2km default
+  const [radius, setRadius] = useState(3218); // 2 miles default
   
   // Debounce radius to prevent excessive API calls
   const [debouncedRadius] = useDebounce(radius, 300);
@@ -44,6 +45,14 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
     category: selectedCategory,
     radius: debouncedRadius,
     enabled: permissionState.granted && !!location
+  });
+
+  // Get credit card recommendations for selected business
+  const { recommendations, loading: recommendationsLoading } = useCardRecommendations({
+    category: selectedBusiness?.category || selectedCategory,
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+    enabled: !!selectedBusiness && permissionState.granted && !!location
   });
 
   const categories = [
@@ -154,11 +163,11 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                 aria-label="Select search radius"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value={500}>500m</option>
-                <option value={1000}>1km</option>
-                <option value={2000}>2km</option>
-                <option value={5000}>5km</option>
-                <option value={10000}>10km</option>
+                <option value={805}>0.5 miles</option>
+                <option value={1609}>1 mile</option>
+                <option value={3218}>2 miles</option>
+                <option value={8047}>5 miles</option>
+                <option value={16093}>10 miles</option>
               </select>
             </div>
           </div>
@@ -227,9 +236,9 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                             <div className="flex items-center space-x-1 text-gray-500">
                               <MapPin className="h-3 w-3" />
                               <span>
-                                {business.distance < 1000 
-                                  ? `${Math.round(business.distance)}m`
-                                  : `${(business.distance / 1000).toFixed(1)}km`
+                                {business.distance < 1609.34 
+                                  ? `${Math.round(business.distance * 3.28084)}ft`
+                                  : `${(business.distance * 0.000621371).toFixed(1)}mi`
                                 }
                               </span>
                             </div>
@@ -267,30 +276,58 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
 
           {/* Selected Business Details */}
           {selectedBusiness && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">Selected Business</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h4 className="font-semibold text-blue-900 mb-4">Selected Business</h4>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Business Details */}
                 <div>
-                  <p className="font-medium text-gray-900">{selectedBusiness.name}</p>
-                  <p className="text-sm text-gray-600">{selectedBusiness.address}</p>
+                  <p className="font-medium text-gray-900 mb-1">{selectedBusiness.name}</p>
+                  <p className="text-sm text-gray-600 mb-3">{selectedBusiness.address}</p>
+                  <div className="flex items-center space-x-4 text-sm">
+                    {selectedBusiness.rating && (
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span>{selectedBusiness.rating}</span>
+                      </div>
+                    )}
+                    {selectedBusiness.distance && (
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span>
+                          {selectedBusiness.distance < 1609.34 
+                            ? `${Math.round(selectedBusiness.distance * 3.28084)}ft away`
+                            : `${(selectedBusiness.distance * 0.000621371).toFixed(1)}mi away`
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-4 text-sm">
-                  {selectedBusiness.rating && (
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span>{selectedBusiness.rating}</span>
+
+                {/* Credit Card Recommendations */}
+                <div>
+                  <h5 className="font-medium text-gray-900 mb-3">💳 Best Credit Cards for {selectedBusiness.name}</h5>
+                  {recommendationsLoading ? (
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Finding best cards...</span>
                     </div>
-                  )}
-                  {selectedBusiness.distance && (
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span>
-                        {selectedBusiness.distance < 1000 
-                          ? `${Math.round(selectedBusiness.distance)}m away`
-                          : `${(selectedBusiness.distance / 1000).toFixed(1)}km away`
-                        }
-                      </span>
+                  ) : recommendations.length > 0 ? (
+                    <div className="space-y-2">
+                      {recommendations.slice(0, 3).map((rec, index) => (
+                        <div key={index} className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-sm text-gray-900">{rec.card.card_name}</span>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              {rec.annual_value > 0 ? `$${rec.annual_value.toFixed(0)}/year value` : `${rec.match_score}% match`}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">{rec.reasons?.join(', ') || 'Great rewards for this category'}</p>
+                        </div>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No specific recommendations available</p>
                   )}
                 </div>
               </div>

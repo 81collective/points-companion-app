@@ -87,7 +87,7 @@ export class ClientPlacesService {
   }
 
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3; // Earth's radius in meters
+    const R = 3959; // Earth's radius in miles (instead of 6371 km)
     const φ1 = lat1 * Math.PI / 180;
     const φ2 = lat2 * Math.PI / 180;
     const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -98,7 +98,7 @@ export class ClientPlacesService {
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    return R * c;
+    return R * c * 5280; // Convert miles to feet for consistency with meters
   }
 }
 
