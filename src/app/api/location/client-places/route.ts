@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
       use_client_side_places: true
     });
 
-  } catch (error) {
+  } catch (err) {
+    console.error('API error:', err);
     return NextResponse.json({
       success: false,
       error: 'Internal server error'

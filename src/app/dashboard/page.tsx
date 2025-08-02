@@ -7,6 +7,9 @@ import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Spar
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
 import NearbyBusinesses from '@/components/location/NearbyBusinesses'
+import PortfolioOptimizer from '@/components/executive/PortfolioOptimizer'
+import PaymentDecisionEngine from '@/components/executive/PaymentDecisionEngine'
+import TravelStatusTracker from '@/components/executive/TravelStatusTracker'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 
@@ -362,6 +365,18 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Executive Features */}
+          <div className="space-y-8 mb-12">
+            {/* Payment Decision Engine */}
+            <PaymentDecisionEngine />
+            
+            {/* Portfolio Optimizer */}
+            <PortfolioOptimizer />
+            
+            {/* Travel Status Tracker */}
+            <TravelStatusTracker />
           </div>
         </main>
       </div>

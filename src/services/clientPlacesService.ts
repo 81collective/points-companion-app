@@ -1,5 +1,20 @@
 // Client-side Google Places service that respects referer restrictions
-export class ClientPlacesService {
+import { Business } from '@/types/location.types';
+
+interface PlaceSearchResult {
+  id: string;
+  name: string;
+  category: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  rating?: number;
+  price_level?: number;
+  place_id?: string;
+  distance: number;
+}
+
+class ClientPlacesService {
   private map: google.maps.Map | null = null;
   private service: google.maps.places.PlacesService | null = null;
 
@@ -29,7 +44,7 @@ export class ClientPlacesService {
     longitude: number,
     category: string = 'restaurant',
     radius: number = 2000
-  ): Promise<any[]> {
+  ): Promise<PlaceSearchResult[]> {
     return new Promise((resolve, reject) => {
       if (!this.service) {
         // Try to initialize if not already done
