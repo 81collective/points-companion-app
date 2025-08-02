@@ -32,30 +32,28 @@ export function useNearbyBusinesses({
       }
 
       try {
-        // Server-side API is now working! Try it first
+        // Use enhanced fallback service for production-safe results
+        if (typeof window !== 'undefined' && window.google && window.google.maps) {
+          console.log('Using client-side Google Places with production fallback...');
+          const placesService = getClientPlacesService();
+          const businesses = await placesService.searchNearbyWithFallback(latitude, longitude, radius, category);
+          
+          if (businesses.length > 0) {
+            console.log(`Found ${businesses.length} businesses via enhanced fallback`);
+            return { success: true, data: businesses };
+          }
+        }
+
+        // Fallback to server-only API if client-side isn't available
+        console.log('Client-side not available, trying server-only API...');
         const serverResult = await fetchNearbyBusinessesFromApi(latitude, longitude, category, radius);
         
-        // Server API should now return real Google Places data
         if (serverResult.success && serverResult.data) {
           console.log(`Found ${serverResult.data.length} businesses via server API`);
           return serverResult;
         }
 
-        // Fallback to client-side only if server completely fails
-        console.log('Server API failed, trying client-side Google Places as backup...');
-        
-        // Check if Google Maps is loaded for client-side fallback
-        if (typeof window !== 'undefined' && window.google && window.google.maps) {
-          const placesService = getClientPlacesService();
-          const clientBusinesses = await placesService.searchNearby(latitude, longitude, category, radius);
-          
-          if (clientBusinesses.length > 0) {
-            console.log(`Found ${clientBusinesses.length} businesses via client-side Google Places`);
-            return { success: true, data: clientBusinesses };
-          }
-        }
-
-        // If both fail, return server result (which might have sample data)
+        // Return server result even if empty (may contain sample data)
         return serverResult;
         
         

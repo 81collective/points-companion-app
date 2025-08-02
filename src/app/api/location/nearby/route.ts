@@ -102,20 +102,24 @@ export async function GET(request: NextRequest) {
     }).filter(business => business.distance <= radiusMeters)
       .sort((a, b) => a.distance - b.distance) || [];
 
-    // Google Places API is working! Prioritize it for fresh, real-time data
+    // Google Places API configuration for production
     let googlePlaces = [];
-    const hasGoogleApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const serverApiKey = process.env.GOOGLE_MAPS_API_KEY; // Server-side key (without NEXT_PUBLIC_)
+    const clientApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Client-side key
+    const hasGoogleApiKey = !!(serverApiKey || clientApiKey);
+    
     console.log('Google API check:', { 
-      hasApiKey: hasGoogleApiKey, 
+      hasServerKey: !!serverApiKey,
+      hasClientKey: !!clientApiKey,
       dbResultCount: businessesWithDistance.length,
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'
+      environment: process.env.NODE_ENV
     });
 
-    // Always fetch from Google Places API for real-time data (since it's working!)
-    if (hasGoogleApiKey) {
+    // Try server-side Google Places API first (production-safe)
+    if (serverApiKey) {
       try {
-        console.log('Fetching from Google Places API...');
-        googlePlaces = await fetchGooglePlaces(latitude, longitude, radiusMeters, category);
+        console.log('Fetching from Google Places API (server-side)...');
+        googlePlaces = await fetchGooglePlaces(latitude, longitude, radiusMeters, category, serverApiKey);
         console.log('Google Places API results:', googlePlaces.length);
         
         // Store new places in database for future use
@@ -146,10 +150,32 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.warn('Google Places API error:', error);
+        console.warn('Server-side Google Places API error:', error);
+        
+        // Fallback: return instruction for client-side fetch if we have client key
+        if (clientApiKey) {
+          console.log('Falling back to client-side Google Places instruction');
+          return NextResponse.json({
+            businesses: businessesWithDistance.slice(0, 50),
+            user_location: { latitude, longitude },
+            use_client_places: true, // Signal client to fetch additional places
+            client_api_available: true,
+            success: true
+          });
+        }
       }
-    } else if (!hasGoogleApiKey) {
-      console.log('No Google API key available, using database + sample data');
+    } else if (clientApiKey) {
+      // No server key, return database results + instruction for client-side fetch
+      console.log('No server-side API key, instructing client-side fetch');
+      return NextResponse.json({
+        businesses: businessesWithDistance.slice(0, 50),
+        user_location: { latitude, longitude },
+        use_client_places: true,
+        client_api_available: true,
+        success: true
+      });
+    } else {
+      console.log('No Google API key available, using database + sample data only');
       
       // Only use sample data if no local database results AND no Google API
       if (businessesWithDistance.length === 0) {
@@ -259,8 +285,8 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 // Helper function to fetch from Google Places API
-async function fetchGooglePlaces(lat: number, lng: number, radius: number, category?: string | null) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+async function fetchGooglePlaces(lat: number, lng: number, radius: number, category?: string | null, providedApiKey?: string) {
+  const apiKey = providedApiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
     console.log('No Google API key provided');
     return [];

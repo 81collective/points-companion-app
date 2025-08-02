@@ -115,6 +115,79 @@ class ClientPlacesService {
 
     return R * c * 5280; // Convert miles to feet for consistency with meters
   }
+
+  // Enhanced method for production-safe nearby searches with fallback
+  public async searchNearbyWithFallback(
+    lat: number, 
+    lng: number, 
+    radius: number = 2000, 
+    category?: string | null
+  ): Promise<PlaceSearchResult[]> {
+    console.log('searchNearbyWithFallback called:', { lat, lng, radius, category });
+    
+    try {
+      // First, try our server API (which may return use_client_places flag)
+      const serverResponse = await fetch(`/api/location/nearby?latitude=${lat}&longitude=${lng}&radius=${radius}&category=${category || 'all'}`);
+      const serverData = await serverResponse.json();
+      
+      // If server indicates to use client-side Places API
+      if (serverData.use_client_places && serverData.client_api_available) {
+        console.log('Server requested client-side Google Places fetch');
+        
+        // Use client-side Google Places as fallback
+        const clientPlaces = await this.searchNearby(lat, lng, category || 'restaurant', radius);
+        
+        // Combine server results (database) with client Places
+        const combinedResults = [
+          ...serverData.businesses || [],
+          ...clientPlaces
+        ];
+        
+        // Remove duplicates by place_id or coordinates
+        const uniqueResults = this.deduplicateResults(combinedResults);
+        
+        console.log('Combined results:', {
+          serverCount: serverData.businesses?.length || 0,
+          clientCount: clientPlaces.length,
+          finalCount: uniqueResults.length
+        });
+        
+        return uniqueResults;
+      }
+      
+      // Server provided complete results, return them
+      return serverData.businesses || [];
+      
+    } catch (error) {
+      console.error('Error in searchNearbyWithFallback:', error);
+      
+      // Last resort: try direct client-side Google Places
+      try {
+        return await this.searchNearby(lat, lng, category || 'restaurant', radius);
+      } catch (clientError) {
+        console.error('Client-side fallback also failed:', clientError);
+        return [];
+      }
+    }
+  }
+
+  // Helper to remove duplicate results
+  private deduplicateResults(results: PlaceSearchResult[]): PlaceSearchResult[] {
+    const seen = new Set<string>();
+    const unique: PlaceSearchResult[] = [];
+    
+    for (const result of results) {
+      // Create unique key from place_id or coordinates
+      const key = result.place_id || `${result.latitude?.toFixed(6)},${result.longitude?.toFixed(6)}`;
+      
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(result);
+      }
+    }
+    
+    return unique;
+  }
 }
 
 // Singleton instance

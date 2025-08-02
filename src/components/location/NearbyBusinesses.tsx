@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Star, Navigation, Grid, Map, Loader2 } from 'lucide-react';
@@ -54,6 +54,17 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
     longitude: location?.longitude,
     enabled: !!selectedBusiness && permissionState.granted && !!location
   });
+
+  // Add real-time effect when business is selected
+  useEffect(() => {
+    if (selectedBusiness) {
+      console.log('🎯 Selected business for recommendations:', {
+        name: selectedBusiness.name,
+        category: selectedBusiness.category,
+        location: `${location?.latitude}, ${location?.longitude}`
+      });
+    }
+  }, [selectedBusiness, location]);
 
   const categories = [
     { key: 'dining', label: 'Dining', icon: '🍽️', color: 'bg-orange-100 text-orange-800' },
@@ -305,29 +316,54 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                 </div>
 
                 {/* Credit Card Recommendations */}
-                <div>
-                  <h5 className="font-medium text-gray-900 mb-3">💳 Best Credit Cards for {selectedBusiness.name}</h5>
+                <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl p-4 border-2 border-emerald-200">
+                  <div className="flex items-center mb-3">
+                    <div className="p-1 bg-emerald-500 rounded-lg mr-2">
+                      <span className="text-white text-sm">💳</span>
+                    </div>
+                    <h5 className="font-semibold text-emerald-900">Best Credit Cards for {selectedBusiness.name}</h5>
+                  </div>
                   {recommendationsLoading ? (
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div className="flex items-center space-x-2 text-sm text-emerald-600 bg-white rounded-lg p-3">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Finding best cards...</span>
+                      <span>Finding optimal cards...</span>
                     </div>
                   ) : recommendations.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {recommendations.slice(0, 3).map((rec, index) => (
-                        <div key={index} className="bg-white rounded-lg p-3 border border-gray-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-sm text-gray-900">{rec.card.card_name}</span>
-                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                              {rec.annual_value > 0 ? `$${rec.annual_value.toFixed(0)}/year value` : `${rec.match_score}% match`}
-                            </span>
+                        <div key={index} className="bg-white rounded-lg p-4 border border-emerald-200 shadow-sm">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold text-gray-900">{rec.card.card_name}</span>
+                            <div className="flex items-center space-x-2">
+                              {index === 0 && (
+                                <span className="text-xs bg-emerald-500 text-white px-2 py-1 rounded-full font-medium">
+                                  BEST
+                                </span>
+                              )}
+                              <span className="text-sm bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full font-medium">
+                                {rec.annual_value > 0 ? `$${rec.annual_value.toFixed(0)}/year` : `${rec.match_score}% match`}
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-600">{rec.reasons?.join(', ') || 'Great rewards for this category'}</p>
+                          <p className="text-sm text-gray-600 mb-2">{rec.reasons?.join(', ') || 'Great rewards for this category'}</p>
+                          {rec.estimated_points && (
+                            <div className="text-xs text-emerald-700">
+                              Estimated: {rec.estimated_points} points per $100 spent
+                            </div>
+                          )}
                         </div>
                       ))}
+                      {recommendations.length > 3 && (
+                        <div className="text-center">
+                          <span className="text-sm text-emerald-600">+ {recommendations.length - 3} more card options</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">No specific recommendations available</p>
+                    <div className="bg-white rounded-lg p-3 border border-emerald-200">
+                      <p className="text-sm text-gray-500">No specific recommendations available for this category</p>
+                      <p className="text-xs text-gray-400 mt-1">Try selecting a different business type</p>
+                    </div>
                   )}
                 </div>
               </div>
