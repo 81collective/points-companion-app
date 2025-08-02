@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
     const radius = searchParams.get('radius') || '5000'; // Default 5km radius
     const category = searchParams.get('category');
 
+    console.log('Location API called with:', { lat, lng, radius, category });
+
     if (!lat || !lng) {
+      console.log('Missing coordinates');
       return NextResponse.json(
         { error: 'Latitude and longitude are required', success: false },
         { status: 400 }
@@ -42,11 +45,14 @@ export async function GET(request: NextRequest) {
     const radiusMeters = parseInt(radius);
 
     if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusMeters)) {
+      console.log('Invalid coordinates:', { latitude, longitude, radiusMeters });
       return NextResponse.json(
         { error: 'Invalid coordinates or radius', success: false },
         { status: 400 }
       );
     }
+
+    console.log('Searching for businesses near:', { latitude, longitude, radiusMeters, category });
 
     const supabase = createClient();
 
@@ -65,6 +71,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: businesses, error } = await query.limit(50);
+
+    console.log('Database query result:', { 
+      businessCount: businesses?.length || 0, 
+      error: error?.message,
+      sampleBusiness: businesses?.[0] 
+    });
 
     if (error) {
       console.error('Database error:', error);
@@ -91,12 +103,22 @@ export async function GET(request: NextRequest) {
 
     // Also try to fetch from Google Places API if we have few results
     let googlePlaces = [];
-    if (businessesWithDistance.length < 10 && process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+    const hasGoogleApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    console.log('Google API check:', { 
+      hasApiKey: hasGoogleApiKey, 
+      dbResultCount: businessesWithDistance.length,
+      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'
+    });
+
+    if (businessesWithDistance.length < 10 && hasGoogleApiKey) {
       try {
+        console.log('Fetching from Google Places API...');
         googlePlaces = await fetchGooglePlaces(latitude, longitude, radiusMeters, category);
+        console.log('Google Places API results:', googlePlaces.length);
         
         // Store new places in database for future use
         if (googlePlaces.length > 0) {
+          console.log('Sample Google Place:', googlePlaces[0]);
           const newBusinesses = googlePlaces.map((place: GooglePlaceResult) => ({
             name: place.name,
             category: place.category || 'general',
@@ -111,12 +133,73 @@ export async function GET(request: NextRequest) {
           }));
 
           // Insert new businesses (ignore conflicts)
-          await supabase
+          const { error: insertError } = await supabase
             .from('businesses')
             .upsert(newBusinesses, { onConflict: 'place_id', ignoreDuplicates: true });
+          
+          if (insertError) {
+            console.error('Error inserting new businesses:', insertError);
+          } else {
+            console.log('Successfully stored', newBusinesses.length, 'new businesses');
+          }
         }
       } catch (error) {
         console.warn('Google Places API error:', error);
+      }
+    } else if (!hasGoogleApiKey) {
+      console.log('No Google API key available, falling back to sample data');
+      
+      // If no Google API key and no local results, provide some sample businesses
+      if (businessesWithDistance.length === 0) {
+        const sampleBusinesses = [
+          {
+            id: 'sample_1',
+            name: 'Local Coffee Shop',
+            category: 'dining',
+            address: 'Near your location',
+            latitude: latitude + 0.001,
+            longitude: longitude + 0.001,
+            rating: 4.2,
+            price_level: 2,
+            distance: 150,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'sample_2',
+            name: 'Neighborhood Grocery',
+            category: 'groceries',
+            address: 'Near your location',
+            latitude: latitude - 0.001,
+            longitude: longitude - 0.001,
+            rating: 4.0,
+            price_level: 2,
+            distance: 200,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'sample_3',
+            name: 'Gas Station',
+            category: 'gas',
+            address: 'Near your location',
+            latitude: latitude + 0.002,
+            longitude: longitude - 0.002,
+            rating: 3.8,
+            price_level: 1,
+            distance: 300,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        
+        // Filter by category if specified
+        const filteredSamples = category && category !== 'all' 
+          ? sampleBusinesses.filter(b => b.category === category)
+          : sampleBusinesses;
+        
+        businessesWithDistance.push(...filteredSamples);
+        console.log('Added sample businesses:', filteredSamples.length);
       }
     }
 
@@ -176,7 +259,10 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 // Helper function to fetch from Google Places API
 async function fetchGooglePlaces(lat: number, lng: number, radius: number, category?: string | null) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  if (!apiKey) return [];
+  if (!apiKey) {
+    console.log('No Google API key provided');
+    return [];
+  }
 
   // Map our categories to Google Places types
   const categoryMap: { [key: string]: string } = {
@@ -192,20 +278,30 @@ async function fetchGooglePlaces(lat: number, lng: number, radius: number, categ
   const type = category ? categoryMap[category] || 'establishment' : 'establishment';
   
   const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
+  
+  console.log('Google Places API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
 
   try {
     const response = await fetch(url);
+    console.log('Google Places API response status:', response.status);
+    
     if (!response.ok) {
-      throw new Error(`Google Places API error: ${response.status}`);
+      throw new Error(`Google Places API HTTP error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('Google Places API response status:', data.status);
+    console.log('Google Places API results count:', data.results?.length || 0);
     
     if (data.status !== 'OK') {
-      throw new Error(`Google Places API status: ${data.status}`);
+      if (data.status === 'ZERO_RESULTS') {
+        console.log('Google Places API returned zero results');
+        return [];
+      }
+      throw new Error(`Google Places API status: ${data.status} - ${data.error_message || 'Unknown error'}`);
     }
 
-    return data.results.map((place: GooglePlaceResult) => ({
+    const results = data.results.map((place: GooglePlaceResult) => ({
       name: place.name,
       category: category || 'general',
       address: place.vicinity || place.formatted_address || '',
@@ -216,6 +312,9 @@ async function fetchGooglePlaces(lat: number, lng: number, radius: number, categ
       price_level: place.price_level,
       distance: calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
     }));
+    
+    console.log('Processed Google Places results:', results.length);
+    return results;
   } catch (error) {
     console.error('Google Places fetch error:', error);
     return [];

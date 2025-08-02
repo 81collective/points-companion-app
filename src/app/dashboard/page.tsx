@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header'
 import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles, PieChart, Target } from 'lucide-react'
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
+import NearbyBusinesses from '@/components/location/NearbyBusinesses'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 
@@ -291,6 +292,11 @@ export default function DashboardPage() {
                 <p className="text-sm text-center text-gray-500">Connect your accounts to see transaction history and recommendations</p>
               </div>
             </div>
+          </div>
+
+          {/* Nearby Businesses */}
+          <div className="mb-12">
+            <NearbyBusinesses />
           </div>
 
           {/* Advanced Analytics Preview */}
