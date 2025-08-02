@@ -34,11 +34,6 @@ export default function LoginForm({ onToggleMode }: LoginFormProps) {
 
   return (
     <div className="w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-2 text-gray-600">Sign in to your Points Companion account</p>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">

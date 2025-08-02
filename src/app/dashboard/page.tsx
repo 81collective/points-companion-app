@@ -6,9 +6,38 @@ import Header from '@/components/layout/Header'
 import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles, PieChart, Target } from 'lucide-react'
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
+import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/lib/supabase'
 
 export default function DashboardPage() {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
+  const [cardCount, setCardCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  const supabase = createClient()
+
+  const fetchCardCount = useCallback(async () => {
+    if (!user?.id) return
+    
+    try {
+      const { count, error } = await supabase
+        .from('credit_cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+
+      if (error) throw error
+      setCardCount(count || 0)
+    } catch (err) {
+      console.error('Error fetching card count:', err)
+      setCardCount(0)
+    } finally {
+      setLoading(false)
+    }
+  }, [supabase, user?.id])
+
+  useEffect(() => {
+    fetchCardCount()
+  }, [fetchCardCount])
 
   const stats = [
     {
@@ -31,8 +60,8 @@ export default function DashboardPage() {
     },
     {
       title: 'Active Cards',
-      value: '3',
-      change: 'No change',
+      value: loading ? '...' : cardCount.toString(),
+      change: cardCount === 0 ? 'Add your first card' : 'No change',
       trend: 'neutral',
       icon: CreditCard,
       color: 'text-purple-600',
@@ -157,21 +186,51 @@ export default function DashboardPage() {
                   Manage all →
                 </Link>
               </div>
-              {/* TODO: Replace with actual card summary */}
-              <div className="flex flex-col items-center py-12 text-gray-500">
-                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-                  <CreditCard className="h-8 w-8 text-gray-400" />
+              
+              {loading ? (
+                <div className="flex flex-col items-center py-12 text-gray-500">
+                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4 animate-pulse">
+                    <CreditCard className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-900 mb-2">Loading cards...</p>
                 </div>
-                <p className="text-lg font-medium text-gray-900 mb-2">No cards added yet</p>
-                <p className="text-sm text-center text-gray-500 mb-6">Add your credit cards to start getting personalized recommendations</p>
-                <Link 
-                  href="/dashboard/cards"
-                  className="inline-flex items-center px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors text-sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Card
-                </Link>
-              </div>
+              ) : cardCount === 0 ? (
+                <div className="flex flex-col items-center py-12 text-gray-500">
+                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                    <CreditCard className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-900 mb-2">No cards added yet</p>
+                  <p className="text-sm text-center text-gray-500 mb-6">Add your credit cards to start getting personalized recommendations</p>
+                  <Link 
+                    href="/dashboard/cards"
+                    className="inline-flex items-center px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-lg transition-colors text-sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Card
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <CreditCard className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{cardCount} Active Card{cardCount !== 1 ? 's' : ''}</p>
+                        <p className="text-sm text-gray-600">Manage and optimize your cards</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <Link 
+                    href="/dashboard/cards"
+                    className="w-full inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-200 transition-colors text-sm"
+                  >
+                    View All Cards
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
