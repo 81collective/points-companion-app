@@ -5,6 +5,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { CreditCard, User, Menu } from 'lucide-react';
+import SmartNotifications from '@/components/ai/SmartNotifications';
 
 export default function Header() {
   const { user, signOut } = useAuth();
@@ -53,6 +54,12 @@ export default function Header() {
               Insights
             </Link>
             <Link 
+              href="/dashboard/analytics" 
+              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+            >
+              Analytics
+            </Link>
+            <Link 
               href="/dashboard/transactions" 
               className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
             >
@@ -62,6 +69,7 @@ export default function Header() {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
+            {user && <SmartNotifications />}
             {user ? (
               <div className="relative">
                 <button
@@ -94,6 +102,20 @@ export default function Header() {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       My Cards
+                    </Link>
+                    <Link
+                      href="/dashboard/insights"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Insights
+                    </Link>
+                    <Link
+                      href="/dashboard/analytics"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Analytics
                     </Link>
                     <hr className="my-2" />
                     <button

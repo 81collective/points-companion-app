@@ -3,7 +3,7 @@ import AIPerformanceMetrics from '@/components/analytics/AIPerformanceMetrics'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Header from '@/components/layout/Header'
-import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles } from 'lucide-react'
+import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles, PieChart, Target } from 'lucide-react'
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
 
@@ -73,6 +73,13 @@ export default function DashboardPage() {
                   <BarChart3 className="w-5 h-5 mr-2" />
                   View Insights
                 </Link>
+                <Link 
+                  href="/dashboard/analytics" 
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                >
+                  <PieChart className="w-5 h-5 mr-2" />
+                  Analytics
+                </Link>
               </div>
             </div>
             
@@ -91,6 +98,13 @@ export default function DashboardPage() {
               >
                 <BarChart3 className="w-5 h-5 mr-2" />
                 Insights
+              </Link>
+              <Link 
+                href="/dashboard/analytics" 
+                className="flex-1 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl transition-colors"
+              >
+                <PieChart className="w-5 h-5 mr-2" />
+                Analytics
               </Link>
             </div>
           </div>
@@ -162,7 +176,7 @@ export default function DashboardPage() {
           </div>
 
           {/* AI Performance & Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
             {/* AI Performance Metrics */}
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="flex items-center mb-6">
@@ -187,6 +201,71 @@ export default function DashboardPage() {
                 <p className="text-lg font-medium text-gray-900 mb-2">No recent activity</p>
                 <p className="text-sm text-center text-gray-500">Connect your accounts to see transaction history and recommendations</p>
               </div>
+            </div>
+          </div>
+
+          {/* Advanced Analytics Preview */}
+          <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-3xl p-8 border border-gray-100">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center">
+                <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mr-4">
+                  <PieChart className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900">Advanced Analytics</h2>
+                  <p className="text-gray-600">Deep insights into your spending and rewards optimization</p>
+                </div>
+              </div>
+              <Link 
+                href="/dashboard/analytics"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                <Target className="w-5 h-5 mr-2" />
+                View Full Analytics
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                {
+                  title: 'Optimization Score',
+                  value: '92%',
+                  description: 'Your rewards optimization efficiency',
+                  icon: Target,
+                  color: 'text-emerald-600',
+                  bgColor: 'bg-emerald-50'
+                },
+                {
+                  title: 'Monthly Trends',
+                  value: '+23%',
+                  description: 'Increase in points earned vs last month',
+                  icon: TrendingUp,
+                  color: 'text-blue-600',
+                  bgColor: 'bg-blue-50'
+                },
+                {
+                  title: 'Category Leader',
+                  value: 'Dining',
+                  description: 'Your top spending category this month',
+                  icon: PieChart,
+                  color: 'text-purple-600',
+                  bgColor: 'bg-purple-50'
+                }
+              ].map((metric, index) => {
+                const IconComponent = metric.icon;
+                return (
+                  <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`p-3 rounded-xl ${metric.bgColor}`}>
+                        <IconComponent className={`h-6 w-6 ${metric.color}`} />
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{metric.title}</h3>
+                    <p className="text-3xl font-bold text-gray-900 mb-2">{metric.value}</p>
+                    <p className="text-sm text-gray-600">{metric.description}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </main>
