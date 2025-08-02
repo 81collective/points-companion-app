@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     }).filter(business => business.distance <= radiusMeters)
       .sort((a, b) => a.distance - b.distance) || [];
 
-    // Also try to fetch from Google Places API if we have few results
+    // PRIORITIZE Google Places API for real-time data
     let googlePlaces = [];
     const hasGoogleApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     console.log('Google API check:', { 
@@ -110,7 +110,8 @@ export async function GET(request: NextRequest) {
       apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'
     });
 
-    if (businessesWithDistance.length < 10 && hasGoogleApiKey) {
+    // Always try Google Places API first for real-time data
+    if (hasGoogleApiKey) {
       try {
         console.log('Fetching from Google Places API...');
         googlePlaces = await fetchGooglePlaces(latitude, longitude, radiusMeters, category);
@@ -147,9 +148,9 @@ export async function GET(request: NextRequest) {
         console.warn('Google Places API error:', error);
       }
     } else if (!hasGoogleApiKey) {
-      console.log('No Google API key available, falling back to sample data');
+      console.log('No Google API key available, using database + sample data');
       
-      // If no Google API key and no local results, provide some sample businesses
+      // Only use sample data if no local database results AND no Google API
       if (businessesWithDistance.length === 0) {
         const sampleBusinesses = [
           {
