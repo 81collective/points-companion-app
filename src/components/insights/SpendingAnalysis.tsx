@@ -178,47 +178,31 @@ export default function SpendingAnalysis() {
             </div>
           </div>
 
-          {/* Card Recommendations (static for now) */}
+          {/* Card Recommendations */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Best Cards by Category</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Optimize Your Categories</h3>
             <div className="space-y-4">
-              {/* Replace with dynamic recommendations if available */}
-              <div className="p-4 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-gray-900 capitalize">Dining</p>
-                    <p className="text-sm text-gray-600">Chase Sapphire Preferred</p>
+              {categoryData.filter(cat => cat.value > 0).map((category) => (
+                <div key={category.name} className="p-4 rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium text-gray-900">{category.name}</p>
+                      <p className="text-sm text-gray-600">${Math.round(category.value).toLocaleString()} spent</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">Potential for</p>
+                      <span className="text-blue-600 font-semibold">Better rewards</span>
+                    </div>
                   </div>
-                  <span className="text-primary font-semibold">3x points</span>
                 </div>
-              </div>
-              <div className="p-4 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-gray-900 capitalize">Groceries</p>
-                    <p className="text-sm text-gray-600">Amex Gold Card</p>
-                  </div>
-                  <span className="text-primary font-semibold">4x points</span>
+              ))}
+              
+              {categoryData.filter(cat => cat.value > 0).length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-lg font-medium mb-2">No spending data yet</p>
+                  <p className="text-sm">Add transactions to see personalized recommendations</p>
                 </div>
-              </div>
-              <div className="p-4 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-gray-900 capitalize">Travel</p>
-                    <p className="text-sm text-gray-600">Capital One Venture</p>
-                  </div>
-                  <span className="text-primary font-semibold">2x miles</span>
-                </div>
-              </div>
-              <div className="p-4 rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-gray-900 capitalize">Gas</p>
-                    <p className="text-sm text-gray-600">Citi Premier</p>
-                  </div>
-                  <span className="text-primary font-semibold">3x points</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

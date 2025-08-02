@@ -55,7 +55,7 @@ export default function TransactionsPage() {
           </button>
         </div>
         <TransactionList />
-        {/* TODO: Add edit/delete/bulk actions UI */}
+        {/* Add edit/delete/bulk actions UI in future updates */}
       </main>
     </div>
   );

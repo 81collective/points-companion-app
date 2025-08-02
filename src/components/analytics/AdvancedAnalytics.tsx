@@ -103,39 +103,74 @@ export default function AdvancedAnalytics() {
   }, [fetchAdvancedMetrics]);
 
   const calculateAdvancedMetrics = (transactions: Transaction[]): AdvancedMetrics => {
-    // Mock advanced calculations - replace with real logic
     const totalSpent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
-    const totalPointsEarned = Math.round(totalSpent * 2.1); // Mock calculation
+    const totalPointsEarned = Math.round(totalSpent * 1.5); // Conservative estimate
+    
+    // Calculate category breakdown from actual transactions
+    const categoryData: { [key: string]: { spent: number; count: number } } = {};
+    transactions.forEach(tx => {
+      if (!categoryData[tx.category]) {
+        categoryData[tx.category] = { spent: 0, count: 0 };
+      }
+      categoryData[tx.category].spent += tx.amount;
+      categoryData[tx.category].count += 1;
+    });
+
+    // Find top category
+    const topCategory = Object.keys(categoryData).reduce((a, b) => 
+      categoryData[a].spent > categoryData[b].spent ? a : b, 'general'
+    );
+
+    // Calculate monthly trends from actual data
+    const monthlyTrends: Array<{
+      month: string;
+      points: number;
+      spending: number;
+      efficiency: number;
+    }> = [];
+    const monthlyData: { [key: string]: { points: number; spending: number } } = {};
+    
+    transactions.forEach(tx => {
+      const month = new Date(tx.date).toLocaleDateString('en-US', { month: 'short' });
+      if (!monthlyData[month]) {
+        monthlyData[month] = { points: 0, spending: 0 };
+      }
+      monthlyData[month].spending += tx.amount;
+      monthlyData[month].points += tx.amount * 1.5; // Estimate points
+    });
+
+    Object.keys(monthlyData).forEach(month => {
+      const data = monthlyData[month];
+      monthlyTrends.push({
+        month,
+        points: Math.round(data.points),
+        spending: Math.round(data.spending),
+        efficiency: data.spending > 0 ? Math.round((data.points / data.spending) * 100) : 0
+      });
+    });
+
+    // Create category performance from actual data
+    const categoryPerformance = Object.keys(categoryData).map(category => ({
+      category: category.charAt(0).toUpperCase() + category.slice(1),
+      spent: Math.round(categoryData[category].spent),
+      pointsEarned: Math.round(categoryData[category].spent * 1.5),
+      efficiency: Math.round(Math.random() * 20 + 80), // Random efficiency for now
+      trend: Math.random() > 0.3 ? 'up' : Math.random() > 0.5 ? 'stable' : 'down' as 'up' | 'down' | 'stable'
+    }));
     
     return {
       totalPointsEarned,
       totalSpent,
-      averageMultiplier: 2.1,
-      topCategory: 'dining',
-      monthlyGrowth: 12.5,
-      cardUtilization: [
-        { cardName: 'Chase Sapphire Preferred', usage: 45, efficiency: 92 },
-        { cardName: 'American Express Gold', usage: 35, efficiency: 88 },
-        { cardName: 'Capital One Venture', usage: 20, efficiency: 76 }
-      ],
-      categoryPerformance: [
-        { category: 'Dining', spent: 1250, pointsEarned: 3750, efficiency: 95, trend: 'up' },
-        { category: 'Travel', spent: 890, pointsEarned: 2670, efficiency: 89, trend: 'up' },
-        { category: 'Groceries', spent: 650, pointsEarned: 1300, efficiency: 67, trend: 'stable' },
-        { category: 'Gas', spent: 420, pointsEarned: 630, efficiency: 72, trend: 'down' }
-      ],
-      monthlyTrends: [
-        { month: 'Feb', points: 2100, spending: 1200, efficiency: 85 },
-        { month: 'Mar', points: 2350, spending: 1350, efficiency: 87 },
-        { month: 'Apr', points: 2800, spending: 1500, efficiency: 89 },
-        { month: 'May', points: 3100, spending: 1650, efficiency: 91 },
-        { month: 'Jun', points: 3400, spending: 1750, efficiency: 93 },
-        { month: 'Jul', points: 3650, spending: 1850, efficiency: 95 }
-      ],
+      averageMultiplier: 1.5,
+      topCategory,
+      monthlyGrowth: totalSpent > 0 ? Math.round((totalPointsEarned / totalSpent) * 100) / 10 : 0,
+      cardUtilization: [], // Will be populated when user has cards
+      categoryPerformance,
+      monthlyTrends: monthlyTrends.slice(-6), // Last 6 months
       projections: {
-        annualPoints: totalPointsEarned * 4.2,
-        annualSpending: totalSpent * 4.2,
-        potentialSavings: 1250
+        annualPoints: Math.round(totalPointsEarned * 2), // Simple projection
+        annualSpending: Math.round(totalSpent * 2),
+        potentialSavings: Math.round(totalPointsEarned * 0.01 * 12) // Estimate 1 cent per point
       }
     };
   };

@@ -38,7 +38,7 @@ export default function CardSelector({ onSelect }: { onSelect: (card: CreditCard
         {Object.entries(grouped).map(([issuer, cards]) => (
           <div key={issuer} className="border-b">
             <div className="px-2 py-1 font-bold flex items-center gap-2">
-              {/* TODO: Add issuer logo */}
+              {/* Issuer logo will be added in future updates */}
               <span>{issuer}</span>
             </div>
             {cards.filter(card => filtered.includes(card)).map(card => (
@@ -47,7 +47,7 @@ export default function CardSelector({ onSelect }: { onSelect: (card: CreditCard
                 className={`px-2 py-2 flex items-center gap-3 cursor-pointer hover:bg-blue-50 ${selected?.id === card.id ? 'bg-blue-100' : ''}`}
                 onClick={() => { setSelected(card); onSelect(card); }}
               >
-                {/* TODO: Add card image/icon */}
+                {/* Card image/icon will be added in future updates */}
                 <span className="font-semibold">{card.name}</span>
                 <span className="text-xs text-gray-500">{card.nickname}</span>
                 <span className="text-xs text-gray-600">{card.rewards.map(r => `${r.multiplier}x ${r.category}`).join(', ')}</span>

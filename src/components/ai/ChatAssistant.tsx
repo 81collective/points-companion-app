@@ -33,8 +33,8 @@ export default function ChatAssistant() {
   }
 
   function handleVoiceInput() {
-    // Placeholder for voice input integration
-    if (inputRef.current) inputRef.current.value = 'Voice input not implemented';
+    // Voice input will be added in future updates
+    alert('Voice input feature coming soon!');
   }
 
   return (

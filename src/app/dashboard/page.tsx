@@ -13,37 +13,67 @@ export default function DashboardPage() {
   const { profile, user } = useAuth()
   const [cardCount, setCardCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [totalPoints, setTotalPoints] = useState(0)
+  const [monthlyPoints, setMonthlyPoints] = useState(0)
 
   const supabase = createClient()
 
-  const fetchCardCount = useCallback(async () => {
+  const fetchDashboardData = useCallback(async () => {
     if (!user?.id) return
     
     try {
-      const { count, error } = await supabase
+      // Fetch card count
+      const { count: cardCountResult, error: cardError } = await supabase
         .from('credit_cards')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
 
-      if (error) throw error
-      setCardCount(count || 0)
+      if (cardError) throw cardError
+      setCardCount(cardCountResult || 0)
+
+      // Fetch transaction data for points calculation
+      const { data: transactions, error: txError } = await supabase
+        .from('transactions')
+        .select('amount, date, card_id')
+        .eq('user_id', user.id)
+
+      if (txError) throw txError
+
+      if (transactions) {
+        // Calculate total points (assuming 1 point per dollar as base)
+        const total = transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0)
+        setTotalPoints(Math.round(total))
+
+        // Calculate this month's points
+        const currentMonth = new Date().getMonth()
+        const currentYear = new Date().getFullYear()
+        const monthlyTotal = transactions
+          .filter(tx => {
+            const txDate = new Date(tx.date)
+            return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear
+          })
+          .reduce((sum, tx) => sum + (tx.amount || 0), 0)
+        setMonthlyPoints(Math.round(monthlyTotal))
+      }
     } catch (err) {
-      console.error('Error fetching card count:', err)
+      console.error('Error fetching dashboard data:', err)
       setCardCount(0)
+      setTotalPoints(0)
+      setMonthlyPoints(0)
     } finally {
       setLoading(false)
     }
   }, [supabase, user?.id])
 
   useEffect(() => {
-    fetchCardCount()
-  }, [fetchCardCount])
+    fetchDashboardData()
+  }, [fetchDashboardData])
 
   const stats = [
     {
       title: 'Total Points Earned',
-      value: '12,847',
-      change: '+2.5%',
+      value: loading ? '...' : totalPoints.toLocaleString(),
+      change: totalPoints > 0 ? '+' + Math.round((totalPoints / 12) * 100) / 100 + '%' : 'Start earning',
       trend: 'up',
       icon: TrendingUp,
       color: 'text-emerald-600',
@@ -51,8 +81,8 @@ export default function DashboardPage() {
     },
     {
       title: 'This Month',
-      value: '1,234',
-      change: '+12%',
+      value: loading ? '...' : monthlyPoints.toLocaleString(),
+      change: monthlyPoints > 0 ? 'Active' : 'No activity',
       trend: 'up',
       icon: DollarSign,
       color: 'text-blue-600',
@@ -61,7 +91,7 @@ export default function DashboardPage() {
     {
       title: 'Active Cards',
       value: loading ? '...' : cardCount.toString(),
-      change: cardCount === 0 ? 'Add your first card' : 'No change',
+      change: cardCount === 0 ? 'Add your first card' : `${cardCount} card${cardCount !== 1 ? 's' : ''}`,
       trend: 'neutral',
       icon: CreditCard,
       color: 'text-purple-600',
@@ -287,25 +317,25 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
-                  title: 'Optimization Score',
-                  value: '92%',
-                  description: 'Your rewards optimization efficiency',
+                  title: 'Total Points',
+                  value: loading ? '...' : totalPoints.toLocaleString(),
+                  description: 'Points earned from all transactions',
                   icon: Target,
                   color: 'text-emerald-600',
                   bgColor: 'bg-emerald-50'
                 },
                 {
-                  title: 'Monthly Trends',
-                  value: '+23%',
-                  description: 'Increase in points earned vs last month',
+                  title: 'Monthly Activity',
+                  value: loading ? '...' : monthlyPoints > 0 ? monthlyPoints.toLocaleString() : '0',
+                  description: 'Points earned this month',
                   icon: TrendingUp,
                   color: 'text-blue-600',
                   bgColor: 'bg-blue-50'
                 },
                 {
-                  title: 'Category Leader',
-                  value: 'Dining',
-                  description: 'Your top spending category this month',
+                  title: 'Active Cards',
+                  value: loading ? '...' : cardCount.toString(),
+                  description: cardCount === 0 ? 'Add cards to start tracking' : 'Cards in your wallet',
                   icon: PieChart,
                   color: 'text-purple-600',
                   bgColor: 'bg-purple-50'

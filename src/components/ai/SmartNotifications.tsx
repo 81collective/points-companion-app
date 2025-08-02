@@ -96,7 +96,7 @@ export default function SmartNotifications() {
         type: 'card_recommendation',
         priority: 'medium',
         title: 'Optimize Your Dining Rewards',
-        message: `You've made ${recentDining.length} dining purchases this week. Consider using your Chase Sapphire Preferred for 3x points on dining.`,
+        message: `You've made ${recentDining.length} dining purchases this week. Consider optimizing your card selection for dining rewards.`,
         actionText: 'View Best Cards',
         actionUrl: '/dashboard/cards',
         timestamp: new Date(),
@@ -127,33 +127,41 @@ export default function SmartNotifications() {
       });
     }
 
-    // 3. Bonus Opportunity Notifications
-    notifications.push({
-      id: 'bonus-q4-' + Date.now(),
-      type: 'bonus_opportunity',
-      priority: 'high',
-      title: 'Q4 Bonus Categories Active',
-      message: 'Discover and Chase Freedom are offering 5x points on online shopping this quarter. Perfect timing for holiday shopping!',
-      actionText: 'Learn More',
-      timestamp: new Date(),
-      read: false,
-      dismissible: true,
-      deadline: new Date('2025-12-31')
-    });
-
-    // 4. Achievement Notifications
-    const totalPoints = transactions.reduce((sum, tx) => sum + (tx.amount * 2), 0); // Mock calculation
-    if (totalPoints > 10000) {
+    // 3. Bonus Opportunity Notifications - only show seasonal/relevant ones
+    const currentDate = new Date();
+    const isHolidaySeason = currentDate.getMonth() >= 10; // Nov-Dec
+    
+    if (isHolidaySeason) {
       notifications.push({
-        id: 'achievement-10k-' + Date.now(),
-        type: 'achievement',
-        priority: 'medium',
-        title: 'Milestone Achieved! 🎉',
-        message: `Congratulations! You've earned over ${Math.round(totalPoints).toLocaleString()} points this year. You're in the top 10% of optimizers!`,
+        id: 'bonus-holiday-' + Date.now(),
+        type: 'bonus_opportunity',
+        priority: 'high',
+        title: 'Holiday Shopping Season',
+        message: 'Many credit cards offer bonus categories for online shopping during the holiday season. Check your card benefits!',
+        actionText: 'View Cards',
+        actionUrl: '/dashboard/cards',
         timestamp: new Date(),
         read: false,
-        dismissible: true
+        dismissible: true,
+        deadline: new Date(currentDate.getFullYear(), 11, 31) // End of year
       });
+    }
+
+    // 4. Achievement Notifications - only show if user has actual achievements
+    if (transactions.length > 50) {
+      const totalSpent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+      if (totalSpent > 5000) {
+        notifications.push({
+          id: 'achievement-spending-' + Date.now(),
+          type: 'achievement',
+          priority: 'medium',
+          title: 'Spending Milestone Achieved! 🎉',
+          message: `You've reached $${Math.round(totalSpent).toLocaleString()} in total spending. You're building great financial data!`,
+          timestamp: new Date(),
+          read: false,
+          dismissible: true
+        });
+      }
     }
 
     // 5. Smart Tips
@@ -169,24 +177,8 @@ export default function SmartNotifications() {
       dismissible: true
     });
 
-    // 6. Payment Reminders (Mock - would be based on real due dates)
-    const upcomingDue = new Date();
-    upcomingDue.setDate(upcomingDue.getDate() + 3);
-    
-    notifications.push({
-      id: 'payment-reminder-' + Date.now(),
-      type: 'payment_reminder',
-      priority: 'urgent',
-      title: 'Payment Due Soon',
-      message: 'Your Chase Sapphire Preferred payment of $1,247 is due in 3 days.',
-      actionText: 'Pay Now',
-      timestamp: new Date(),
-      read: false,
-      dismissible: false,
-      cardName: 'Chase Sapphire Preferred',
-      deadline: upcomingDue,
-      amount: 1247
-    });
+    // 6. Payment Reminders - remove mock payment reminder for now
+    // Real payment reminders would be based on actual card due dates from bank integrations
 
     return notifications.sort((a, b) => {
       const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
