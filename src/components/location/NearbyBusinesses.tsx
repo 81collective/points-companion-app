@@ -86,46 +86,50 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
   const currentCategory = categories.find(c => c.key === selectedCategory);
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Nearby Businesses</h2>
-          <p className="text-gray-600">
-            Discover local businesses in your area and optimize your rewards
-          </p>
-        </div>
-        
-        {/* View Toggle */}
-        <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1" role="tablist" aria-label="View mode selection">
-          <button
-            onClick={() => setViewMode('list')}
-            role="tab"
-            aria-selected={viewMode === 'list'}
-            aria-label="Switch to list view"
-            className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'list'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Grid className="h-4 w-4" />
-            <span>List</span>
-          </button>
-          <button
-            onClick={() => setViewMode('map')}
-            role="tab"
-            aria-selected={viewMode === 'map'}
-            aria-label="Switch to map view"
-            className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              viewMode === 'map'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Map className="h-4 w-4" />
-            <span>Map</span>
-          </button>
+    <div className={`space-y-8 ${className}`}>
+      {/* Modern Header with Gradient */}
+      <div className="relative">
+        <div className="card-gradient p-8 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-display text-4xl font-extrabold text-white mb-3">
+                Nearby Businesses
+              </h2>
+              <p className="text-lg text-white/90 font-medium">
+                Discover local businesses and maximize your rewards
+              </p>
+            </div>
+            
+            {/* Premium View Toggle */}
+            <div className="glass-card p-2 flex items-center space-x-1" role="tablist" aria-label="View mode selection">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                  viewMode === 'list' 
+                    ? 'bg-white text-primary-600 shadow-md' 
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+                role="tab"
+                aria-selected={viewMode === 'list'}
+              >
+                <Grid className="h-4 w-4" />
+                List View
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+                  viewMode === 'map' 
+                    ? 'bg-white text-primary-600 shadow-md' 
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+                role="tab"
+                aria-selected={viewMode === 'map'}
+              >
+                <Map className="h-4 w-4" />
+                Map View
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
