@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Star, Navigation, Grid, Map, Loader2 } from 'lucide-react';
+import { useDebounce } from 'use-debounce';
 import { useLocation } from '@/hooks/useLocation';
+import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
 import LocationPermission from '@/components/location/LocationPermission';
-import { fetchNearbyBusinesses as fetchNearbyBusinessesFromApi } from '@/services/locationService';
+import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
 import { Business } from '@/types/location.types';
 
 const BusinessMap = dynamic(() => import('@/components/maps/BusinessMap'), {
@@ -24,15 +27,24 @@ interface NearbyBusinessesProps {
 }
 
 export default function NearbyBusinesses({ initialCategory = 'dining', className = "" }: NearbyBusinessesProps) {
-  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [radius, setRadius] = useState(2000); // 2km default
   
+  // Debounce radius to prevent excessive API calls
+  const [debouncedRadius] = useDebounce(radius, 300);
+  
   const { location, permissionState } = useLocation();
+  
+  // Use React Query hook for data fetching
+  const { businesses, loading, error } = useNearbyBusinesses({
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+    category: selectedCategory,
+    radius: debouncedRadius,
+    enabled: permissionState.granted && !!location
+  });
 
   const categories = [
     { key: 'dining', label: 'Dining', icon: '🍽️', color: 'bg-orange-100 text-orange-800' },
@@ -42,39 +54,6 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
     { key: 'travel', label: 'Travel', icon: '✈️', color: 'bg-blue-100 text-blue-800' },
     { key: 'hotels', label: 'Hotels', icon: '🏨', color: 'bg-pink-100 text-pink-800' }
   ];
-
-  const fetchNearbyBusinesses = useCallback(async () => {
-    if (!location) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const result = await fetchNearbyBusinessesFromApi(
-        location.latitude,
-        location.longitude,
-        selectedCategory,
-        radius
-      );
-      
-      if (result.success) {
-        setBusinesses(result.data || []);
-      } else {
-        setError(result.error || 'Failed to fetch businesses');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [location, selectedCategory, radius]);
-
-  // Fetch businesses when location or filters change
-  useEffect(() => {
-    if (location && permissionState.granted) {
-      fetchNearbyBusinesses();
-    }
-  }, [location, permissionState.granted, fetchNearbyBusinesses]);
 
   const handleLocationGranted = () => {
     // Location will be handled by useLocation hook
@@ -98,9 +77,12 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
         </div>
         
         {/* View Toggle */}
-        <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1" role="tablist" aria-label="View mode selection">
           <button
             onClick={() => setViewMode('list')}
+            role="tab"
+            aria-selected={viewMode === 'list'}
+            aria-label="Switch to list view"
             className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
               viewMode === 'list'
                 ? 'bg-white text-gray-900 shadow-sm'
@@ -112,6 +94,9 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
           </button>
           <button
             onClick={() => setViewMode('map')}
+            role="tab"
+            aria-selected={viewMode === 'map'}
+            aria-label="Switch to map view"
             className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
               viewMode === 'map'
                 ? 'bg-white text-gray-900 shadow-sm'
@@ -166,6 +151,7 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
               <select
                 value={radius}
                 onChange={(e) => setRadius(Number(e.target.value))}
+                aria-label="Select search radius"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value={500}>500m</option>
@@ -191,26 +177,32 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
               <LocationPermission showInline onLocationGranted={handleLocationGranted} />
 
               {/* Loading State */}
-              {loading && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                  <span className="ml-2 text-gray-600">Finding nearby businesses...</span>
-                </div>
-              )}
+              {loading && <BusinessListSkeleton />}
 
               {/* Business List */}
               {!loading && businesses.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {businesses.map((business, index) => (
-                    <div
-                      key={business.id || index}
-                      onClick={() => handleBusinessSelect(business)}
-                      className={`bg-white rounded-xl p-4 border-2 transition-all duration-200 cursor-pointer hover:shadow-lg ${
-                        selectedBusiness?.id === business.id
-                          ? 'border-blue-500 shadow-lg'
-                          : 'border-gray-200 hover:border-blue-300'
-                      }`}
-                    >
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  <AnimatePresence>
+                    {businesses.map((business, index) => (
+                      <motion.div
+                        key={business.id || index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        onClick={() => handleBusinessSelect(business)}
+                        whileHover={{ y: -2, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`bg-white rounded-xl p-4 border-2 transition-all duration-200 cursor-pointer ${
+                          selectedBusiness?.id === business.id
+                            ? 'border-blue-500 shadow-lg'
+                            : 'border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900 truncate">{business.name}</h3>
@@ -245,13 +237,12 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                         </div>
                         
                         <Navigation className="h-4 w-4 text-gray-400" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Empty State */}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}              {/* Empty State */}
               {!loading && businesses.length === 0 && !error && (
                 <div className="text-center py-12">
                   <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />

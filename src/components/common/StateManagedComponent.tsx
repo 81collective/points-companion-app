@@ -4,7 +4,7 @@ import LoadingSpinner from './LoadingSpinner';
 interface StateManagedComponentProps {
   loading: boolean;
   error: string | null;
-  data: any[] | null | undefined;
+  data: unknown[] | null | undefined;
   emptyMessage: string;
   errorMessagePrefix?: string;
   children: React.ReactNode;

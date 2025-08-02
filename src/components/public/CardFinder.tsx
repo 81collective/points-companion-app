@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { CreditCard, MapPin, Search, Star, DollarSign, Sparkles, ArrowRight } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
+import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
+import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import LocationPermission from '@/components/location/LocationPermission';
-import { fetchRecommendations as fetchRecommendationsFromApi } from '@/services/cardService';
-import { fetchNearbyBusinesses as fetchNearbyBusinessesFromApi } from '@/services/locationService';
-import { Business, CardRecommendation } from '@/types/location.types';
+import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
 
 interface CardFinderProps {
   className?: string;
@@ -14,12 +14,23 @@ interface CardFinderProps {
 
 export default function CardFinder({ className = "" }: CardFinderProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('dining');
-  const [nearbyBusinesses, setNearbyBusinesses] = useState<Business[]>([]);
-  const [recommendations, setRecommendations] = useState<CardRecommendation[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
   const { location, permissionState } = useLocation();
+  
+  // Use React Query hooks for data fetching
+  const { recommendations, loading: recommendationsLoading } = useCardRecommendations({
+    category: selectedCategory,
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+  });
+  
+  const { businesses: nearbyBusinesses, loading: businessesLoading } = useNearbyBusinesses({
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+    category: selectedCategory,
+    radius: 5000,
+    enabled: permissionState.granted && !!location
+  });
 
   const categories = [
     { key: 'dining', label: 'Dining', icon: '🍽️' },
@@ -29,63 +40,6 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
     { key: 'travel', label: 'Travel', icon: '✈️' },
     { key: 'hotels', label: 'Hotels', icon: '🏨' }
   ];
-
-  const fetchNearbyBusinesses = useCallback(async () => {
-    if (!location) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const result = await fetchNearbyBusinessesFromApi(
-        location.latitude,
-        location.longitude,
-        selectedCategory,
-        5000 // radius
-      );
-      
-      if (result.success) {
-        setNearbyBusinesses(result.data || []);
-      } else {
-        setError(result.error || 'Failed to fetch businesses');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [location, selectedCategory]);
-
-  const fetchRecommendations = useCallback(async () => {
-    try {
-      const result = await fetchRecommendationsFromApi(
-        selectedCategory,
-        location?.latitude,
-        location?.longitude
-      );
-      
-      if (result.success) {
-        setRecommendations(result.data || []);
-      } else {
-        // Optionally set an error state for recommendations
-        console.error(result.error);
-      }
-    } catch (err) {
-      console.error('Failed to fetch recommendations:', err);
-    }
-  }, [selectedCategory, location]);
-
-  // Fetch nearby businesses when location changes
-  useEffect(() => {
-    if (location && permissionState.granted) {
-      fetchNearbyBusinesses();
-    }
-  }, [location, permissionState.granted, fetchNearbyBusinesses]);
-
-  // Fetch recommendations when category changes
-  useEffect(() => {
-    fetchRecommendations();
-  }, [fetchRecommendations]);
 
   const handleLocationGranted = () => {
     // Location will be handled by useLocation hook
@@ -140,11 +94,7 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
       )}
 
       {/* Error State */}
-      {error && (
-        <div className="max-w-md mx-auto p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-700 text-center">{error}</p>
-        </div>
-      )}
+      {/* Remove the single error state since we now have separate error handling per query */}
 
       {/* Recommendations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -155,7 +105,7 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
             Best Cards for {categories.find(c => c.key === selectedCategory)?.label}
           </h3>
           
-          {loading ? (
+          {recommendationsLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-gray-100 rounded-xl h-24 animate-pulse"></div>
@@ -209,12 +159,8 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
               <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-2" />
               <p className="text-gray-600">Enable location to see nearby businesses</p>
             </div>
-          ) : loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-gray-100 rounded-xl h-16 animate-pulse"></div>
-              ))}
-            </div>
+          ) : businessesLoading ? (
+            <BusinessListSkeleton count={3} />
           ) : nearbyBusinesses.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {nearbyBusinesses.slice(0, 10).map((business, index) => (

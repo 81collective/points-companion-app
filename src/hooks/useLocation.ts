@@ -86,27 +86,3 @@ export function useLocation() {
 
   return { location, permissionState, loading, error, requestLocation, clearLocation };
 }
-
-// Helper function for reverse geocoding
-async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
-    );
-    
-    if (!response.ok) {
-      throw new Error('Geocoding request failed');
-    }
-    
-    const data = await response.json();
-    
-    if (data.results && data.results.length > 0) {
-      return data.results[0].formatted_address;
-    }
-    
-    throw new Error('No address found');
-  } catch (error) {
-    console.error('Reverse geocoding error:', error);
-    throw error;
-  }
-}

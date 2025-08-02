@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,9 +26,11 @@ export default function RootLayout({
       <body
         className={`font-inter bg-white text-gray-900 antialiased selection:bg-rose-100 selection:text-rose-900`}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ReactQueryProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
