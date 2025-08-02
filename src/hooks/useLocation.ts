@@ -1,168 +1,90 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { Location, LocationPermissionState } from '@/types/location.types';
+import { useCallback, useEffect } from 'react';
+import { useLocationStore } from '@/stores/useLocationStore';
+import { Location } from '@/types/location.types';
 
 export function useLocation() {
-  const [location, setLocation] = useState<Location | null>(null);
-  const [permissionState, setPermissionState] = useState<LocationPermissionState>({
-    granted: false,
-    denied: false,
-    loading: false,
-    error: undefined
-  });
+  const { 
+    location, 
+    permissionState, 
+    loading, 
+    error,
+    setLocation, 
+    setPermissionState 
+  } = useLocationStore();
 
   const requestLocation = useCallback(async () => {
     if (!navigator.geolocation) {
       setPermissionState({
         granted: false,
         denied: true,
-        loading: false,
-        error: 'Geolocation is not supported by this browser'
       });
       return;
     }
 
-    setPermissionState(prev => ({ ...prev, loading: true, error: undefined }));
-
     try {
-      // Check if permission is already granted
       const permission = await navigator.permissions.query({ name: 'geolocation' });
       
       if (permission.state === 'denied') {
-        setPermissionState({
-          granted: false,
-          denied: true,
-          loading: false,
-          error: 'Location permission denied'
-        });
+        setPermissionState({ granted: false, denied: true });
         return;
       }
 
-      // Request current position
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const newLocation: Location = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
           };
-
-          // Try to get address from coordinates
-          try {
-            const address = await reverseGeocode(newLocation.latitude, newLocation.longitude);
-            newLocation.address = address;
-          } catch (error) {
-            console.warn('Failed to get address:', error);
-          }
-
           setLocation(newLocation);
-          setPermissionState({
-            granted: true,
-            denied: false,
-            loading: false,
-            error: undefined
-          });
+          setPermissionState({ granted: true, denied: false });
         },
         (error) => {
-          let errorMessage = 'Failed to get location';
-          
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location permission denied';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information unavailable';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timeout';
-              break;
-          }
-
-          setPermissionState({
-            granted: false,
-            denied: error.code === error.PERMISSION_DENIED,
-            loading: false,
-            error: errorMessage
-          });
+          console.error("Geolocation error:", error);
+          setPermissionState({ granted: false, denied: true });
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 60000 // 1 minute
+          maximumAge: 0
         }
       );
-    } catch {
-      setPermissionState({
-        granted: false,
-        denied: false,
-        loading: false,
-        error: 'Failed to request location permission'
-      });
+    } catch (error) {
+      console.error("Error requesting location permission:", error);
+      setPermissionState({ granted: false, denied: true });
     }
-  }, []);
+  }, [setLocation, setPermissionState]);
 
-  const watchLocation = useCallback(() => {
-    if (!navigator.geolocation || !permissionState.granted) {
-      return null;
-    }
-
-    const watchId = navigator.geolocation.watchPosition(
-      async (position) => {
-        const newLocation: Location = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: new Date().toISOString()
-        };
-
-        // Try to get address from coordinates
-        try {
-          const address = await reverseGeocode(newLocation.latitude, newLocation.longitude);
-          newLocation.address = address;
-        } catch (error) {
-          console.warn('Failed to get address:', error);
-        }
-
-        setLocation(newLocation);
-      },
-      (error) => {
-        console.error('Location watch error:', error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
+  useEffect(() => {
+    const handlePermissionChange = (permissionStatus: PermissionStatus) => {
+      if (permissionStatus.state === 'granted') {
+        requestLocation();
+      } else {
+        setLocation(null);
+        setPermissionState({ granted: false, denied: permissionStatus.state === 'denied' });
       }
-    );
+    };
 
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [permissionState.granted]);
+    navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
+      if (permissionStatus.state === 'granted') {
+        requestLocation();
+      }
+      permissionStatus.onchange = () => handlePermissionChange(permissionStatus);
+    });
 
-  const calculateDistance = useCallback((lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    return () => {
+      navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
+        permissionStatus.onchange = null;
+      });
+    };
+  }, [requestLocation, setLocation, setPermissionState]);
 
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const clearLocation = useCallback(() => setLocation(null), [setLocation]);
 
-    return R * c; // Distance in meters
-  }, []);
-
-  return {
-    location,
-    permissionState,
-    requestLocation,
-    watchLocation,
-    calculateDistance,
-    clearLocation: () => setLocation(null)
-  };
+  return { location, permissionState, loading, error, requestLocation, clearLocation };
 }
 
 // Helper function for reverse geocoding

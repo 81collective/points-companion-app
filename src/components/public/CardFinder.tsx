@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { CreditCard, MapPin, Search, Star, DollarSign, Sparkles, ArrowRight } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
 import LocationPermission from '@/components/location/LocationPermission';
+import { fetchRecommendations as fetchRecommendationsFromApi } from '@/services/cardService';
+import { fetchNearbyBusinesses as fetchNearbyBusinessesFromApi } from '@/services/locationService';
 import { Business, CardRecommendation } from '@/types/location.types';
 
 interface CardFinderProps {
@@ -33,23 +35,22 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/location/nearby?lat=${location.latitude}&lng=${location.longitude}&category=${selectedCategory}&radius=5000`
+      setError(null);
+      
+      const result = await fetchNearbyBusinessesFromApi(
+        location.latitude,
+        location.longitude,
+        selectedCategory,
+        5000 // radius
       );
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch nearby businesses');
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setNearbyBusinesses(data.businesses || []);
+      if (result.success) {
+        setNearbyBusinesses(result.data || []);
       } else {
-        setError(data.error || 'Failed to fetch businesses');
+        setError(result.error || 'Failed to fetch businesses');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch businesses');
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -57,22 +58,17 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
 
   const fetchRecommendations = useCallback(async () => {
     try {
-      const params = new URLSearchParams({ category: selectedCategory });
-      if (location) {
-        params.append('lat', location.latitude.toString());
-        params.append('lng', location.longitude.toString());
-      }
-
-      const response = await fetch(`/api/cards/recommendations?${params}`);
+      const result = await fetchRecommendationsFromApi(
+        selectedCategory,
+        location?.latitude,
+        location?.longitude
+      );
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch recommendations');
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setRecommendations(data.recommendations || []);
+      if (result.success) {
+        setRecommendations(result.data || []);
+      } else {
+        // Optionally set an error state for recommendations
+        console.error(result.error);
       }
     } catch (err) {
       console.error('Failed to fetch recommendations:', err);

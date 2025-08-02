@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MapPin, Shield, AlertCircle, CheckCircle, X } from 'lucide-react';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useLocation } from '@/hooks/useLocation';
 
 interface LocationPermissionProps {
@@ -10,12 +11,12 @@ interface LocationPermissionProps {
   className?: string;
 }
 
-export default function LocationPermission({ 
-  onLocationGranted, 
+export default function LocationPermission({
+  onLocationGranted,
   showInline = false,
   className = ""
 }: LocationPermissionProps) {
-  const { location, permissionState, requestLocation } = useLocation();
+  const { location, permissionState, requestLocation, loading, error } = useLocation();
 
   React.useEffect(() => {
     if (location && permissionState.granted && onLocationGranted) {
@@ -31,9 +32,6 @@ export default function LocationPermission({
       <div className={`flex items-center space-x-2 text-sm text-emerald-600 ${className}`}>
         <CheckCircle className="h-4 w-4" />
         <span>Location enabled</span>
-        {location.address && (
-          <span className="text-gray-500">• {location.address.split(',')[0]}</span>
-        )}
       </div>
     );
   }
@@ -58,12 +56,12 @@ export default function LocationPermission({
     return (
       <button
         onClick={requestLocation}
-        disabled={permissionState.loading}
+        disabled={loading}
         className={`inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm transition-colors ${className}`}
       >
-        {permissionState.loading ? (
+        {loading ? (
           <>
-            <div className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <LoadingSpinner size={4} />
             <span>Getting location...</span>
           </>
         ) : (
@@ -91,22 +89,22 @@ export default function LocationPermission({
           Allow location access to find nearby businesses and get personalized card recommendations based on where you shop.
         </p>
 
-        {permissionState.error && (
+        {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center space-x-2 text-red-700">
               <AlertCircle className="h-4 w-4" />
               <span className="text-sm font-medium">Error</span>
             </div>
-            <p className="text-sm text-red-600 mt-1">{permissionState.error}</p>
+            <p className="text-sm text-red-600 mt-1">{error}</p>
           </div>
         )}
 
         <button
           onClick={requestLocation}
-          disabled={permissionState.loading}
+          disabled={loading}
           className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-xl transition-colors"
         >
-          {permissionState.loading ? (
+          {loading ? (
             <>
               <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span>Getting Location...</span>

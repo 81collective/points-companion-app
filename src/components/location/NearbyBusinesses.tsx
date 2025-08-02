@@ -1,12 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { MapPin, Star, Navigation, Grid, Map, Loader2 } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
 import LocationPermission from '@/components/location/LocationPermission';
-import BusinessMap from '@/components/maps/BusinessMap';
 import { fetchNearbyBusinesses as fetchNearbyBusinessesFromApi } from '@/services/locationService';
 import { Business } from '@/types/location.types';
+
+const BusinessMap = dynamic(() => import('@/components/maps/BusinessMap'), {
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <span className="ml-2 text-gray-600">Loading map...</span>
+    </div>
+  ),
+  ssr: false,
+});
 
 interface NearbyBusinessesProps {
   initialCategory?: string;
