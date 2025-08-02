@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Shield, Zap, TrendingUp, CreditCard, Loader2 } from 'lucide-react';
 import Header from '@/components/layout/Header';
+import CardFinder from '@/components/public/CardFinder';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -115,8 +116,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Card Finder Demo Section */}
       <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <CardFinder />
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>

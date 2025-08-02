@@ -66,7 +66,7 @@ export default function SmartNotifications() {
         .select('*');
 
       if (transactions && cards) {
-        const smartNotifications = await analyzeAndGenerateNotifications(transactions, cards);
+        const smartNotifications = await analyzeAndGenerateNotifications(transactions);
         setNotifications(smartNotifications);
       }
     } catch (error) {
@@ -81,7 +81,7 @@ export default function SmartNotifications() {
     return () => clearInterval(interval);
   }, [generateSmartNotifications]);
 
-  const analyzeAndGenerateNotifications = async (transactions: Transaction[], _cards: CreditCard[]): Promise<SmartNotification[]> => {
+  const analyzeAndGenerateNotifications = async (transactions: Transaction[]): Promise<SmartNotification[]> => {
     const notifications: SmartNotification[] = [];
 
     // 1. Card Recommendation Notifications

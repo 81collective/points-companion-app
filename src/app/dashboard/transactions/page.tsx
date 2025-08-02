@@ -54,7 +54,7 @@ export default function TransactionsPage() {
             {importing ? 'Importing...' : 'Import CSV'}
           </button>
         </div>
-        <TransactionList userId={userId} />
+        <TransactionList />
         {/* TODO: Add edit/delete/bulk actions UI */}
       </main>
     </div>

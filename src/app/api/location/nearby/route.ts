@@ -1,0 +1,223 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase';
+
+interface GooglePlaceResult {
+  name: string;
+  vicinity?: string;
+  formatted_address?: string;
+  geometry: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+  place_id: string;
+  rating?: number;
+  price_level?: number;
+  category?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  phone_number?: string;
+  website?: string;
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const radius = searchParams.get('radius') || '5000'; // Default 5km radius
+    const category = searchParams.get('category');
+
+    if (!lat || !lng) {
+      return NextResponse.json(
+        { error: 'Latitude and longitude are required', success: false },
+        { status: 400 }
+      );
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const radiusMeters = parseInt(radius);
+
+    if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusMeters)) {
+      return NextResponse.json(
+        { error: 'Invalid coordinates or radius', success: false },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createClient();
+
+    // Build query to find nearby businesses
+    let query = supabase
+      .from('businesses')
+      .select('*')
+      .gte('latitude', latitude - (radiusMeters / 111000)) // Rough conversion: 1 degree ≈ 111km
+      .lte('latitude', latitude + (radiusMeters / 111000))
+      .gte('longitude', longitude - (radiusMeters / (111000 * Math.cos(latitude * Math.PI / 180))))
+      .lte('longitude', longitude + (radiusMeters / (111000 * Math.cos(latitude * Math.PI / 180))));
+
+    // Filter by category if provided
+    if (category && category !== 'all') {
+      query = query.eq('category', category);
+    }
+
+    const { data: businesses, error } = await query.limit(50);
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch businesses', success: false },
+        { status: 500 }
+      );
+    }
+
+    // Calculate exact distances and sort by distance
+    const businessesWithDistance = businesses?.map(business => {
+      const distance = calculateDistance(
+        latitude,
+        longitude,
+        business.latitude,
+        business.longitude
+      );
+      return {
+        ...business,
+        distance
+      };
+    }).filter(business => business.distance <= radiusMeters)
+      .sort((a, b) => a.distance - b.distance) || [];
+
+    // Also try to fetch from Google Places API if we have few results
+    let googlePlaces = [];
+    if (businessesWithDistance.length < 10 && process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+      try {
+        googlePlaces = await fetchGooglePlaces(latitude, longitude, radiusMeters, category);
+        
+        // Store new places in database for future use
+        if (googlePlaces.length > 0) {
+          const newBusinesses = googlePlaces.map((place: GooglePlaceResult) => ({
+            name: place.name,
+            category: place.category || 'general',
+            address: place.address,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            place_id: place.place_id,
+            rating: place.rating,
+            price_level: place.price_level,
+            phone_number: place.phone_number,
+            website: place.website
+          }));
+
+          // Insert new businesses (ignore conflicts)
+          await supabase
+            .from('businesses')
+            .upsert(newBusinesses, { onConflict: 'place_id', ignoreDuplicates: true });
+        }
+      } catch (error) {
+        console.warn('Google Places API error:', error);
+      }
+    }
+
+    // Combine and deduplicate results
+    const allBusinesses = [...businessesWithDistance];
+    
+    // Add Google Places that aren't already in our database
+    googlePlaces.forEach((googlePlace: GooglePlaceResult) => {
+      const exists = allBusinesses.some(b => 
+        b.place_id === googlePlace.place_id ||
+        (googlePlace.latitude && googlePlace.longitude &&
+         Math.abs(b.latitude - googlePlace.latitude) < 0.0001 && 
+         Math.abs(b.longitude - googlePlace.longitude) < 0.0001)
+      );
+      
+      if (!exists) {
+        allBusinesses.push({
+          ...googlePlace,
+          id: `google_${googlePlace.place_id}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    });
+
+    return NextResponse.json({
+      businesses: allBusinesses.slice(0, 50), // Limit to 50 results
+      user_location: { latitude, longitude },
+      success: true
+    });
+
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', success: false },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper function to calculate distance between two points
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c;
+}
+
+// Helper function to fetch from Google Places API
+async function fetchGooglePlaces(lat: number, lng: number, radius: number, category?: string | null) {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) return [];
+
+  // Map our categories to Google Places types
+  const categoryMap: { [key: string]: string } = {
+    'dining': 'restaurant',
+    'groceries': 'grocery_or_supermarket',
+    'gas': 'gas_station',
+    'shopping': 'shopping_mall',
+    'electronics': 'electronics_store',
+    'hotels': 'lodging',
+    'home_improvement': 'home_goods_store'
+  };
+
+  const type = category ? categoryMap[category] || 'establishment' : 'establishment';
+  
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Google Places API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.status !== 'OK') {
+      throw new Error(`Google Places API status: ${data.status}`);
+    }
+
+    return data.results.map((place: GooglePlaceResult) => ({
+      name: place.name,
+      category: category || 'general',
+      address: place.vicinity || place.formatted_address || '',
+      latitude: place.geometry.location.lat,
+      longitude: place.geometry.location.lng,
+      place_id: place.place_id,
+      rating: place.rating,
+      price_level: place.price_level,
+      distance: calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
+    }));
+  } catch (error) {
+    console.error('Google Places fetch error:', error);
+    return [];
+  }
+}

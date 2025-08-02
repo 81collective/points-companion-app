@@ -29,10 +29,7 @@ interface Transaction {
   card_id: string;
 }
 
-interface CreditCard {
-  id: string;
-  name: string;
-}
+
 
 interface AdvancedMetrics {
   totalPointsEarned: number;
@@ -80,18 +77,19 @@ export default function AdvancedAnalytics() {
       const months = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : 12;
       const startDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
 
-      // Fetch transactions and cards
+      // Fetch transactions
       const { data: transactions } = await supabase
         .from('transactions')
         .select('*')
         .gte('date', startDate.toISOString());
 
-      const { data: cards } = await supabase
+      // Note: cards data available for future features
+      await supabase
         .from('credit_cards')
         .select('*');
 
-      if (transactions && cards) {
-        setMetrics(calculateAdvancedMetrics(transactions, cards));
+      if (transactions) {
+        setMetrics(calculateAdvancedMetrics(transactions));
       }
     } catch (error) {
       console.error('Error fetching advanced metrics:', error);
@@ -104,7 +102,7 @@ export default function AdvancedAnalytics() {
     fetchAdvancedMetrics();
   }, [fetchAdvancedMetrics]);
 
-  const calculateAdvancedMetrics = (transactions: Transaction[], _cards: CreditCard[]): AdvancedMetrics => {
+  const calculateAdvancedMetrics = (transactions: Transaction[]): AdvancedMetrics => {
     // Mock advanced calculations - replace with real logic
     const totalSpent = transactions.reduce((sum, tx) => sum + tx.amount, 0);
     const totalPointsEarned = Math.round(totalSpent * 2.1); // Mock calculation
