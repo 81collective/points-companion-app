@@ -42,7 +42,8 @@ class ClientPlacesService {
     };
 
     const request = {
-      fields: ["displayName", "location", "businessStatus", "formattedAddress", "rating", "priceLevel", "id"],
+      // Use standard Places API fields
+      fields: ["name", "geometry", "vicinity", "formatted_address", "rating", "price_level", "place_id"],
       locationRestriction: {
         center: new window.google.maps.LatLng(latitude, longitude),
         radius: radius,
@@ -57,23 +58,23 @@ class ClientPlacesService {
     try {
       const response = await window.google.maps.places.Place.searchNearby(request);
       if (response && response.places) {
-        return response.places.map((place: any, index: number) => ({
-          id: place.id || `place_${index}`,
-          name: place.displayName?.text || 'Unknown Business',
-          category: category,
-          address: place.formattedAddress?.text || 'Address not available',
-          latitude: place.location?.latitude || latitude,
-          longitude: place.location?.longitude || longitude,
-          rating: place.rating,
-          price_level: place.priceLevel,
-          place_id: place.id,
-          distance: this.calculateDistance(
-            latitude,
-            longitude,
-            place.location?.latitude || latitude,
-            place.location?.longitude || longitude
-          )
-        }));
+        const places = response.places as unknown as google.maps.places.PlaceResult[];
+        return places.map((place, index: number) => {
+          const lat = place.geometry?.location?.lat?.() ?? latitude;
+          const lng = place.geometry?.location?.lng?.() ?? longitude;
+          return {
+            id: place.place_id || `place_${index}`,
+            name: place.name || 'Unknown Business',
+            category: category,
+            address: place.formatted_address || place.vicinity || 'Address not available',
+            latitude: lat,
+            longitude: lng,
+            rating: place.rating,
+            price_level: place.price_level,
+            place_id: place.place_id,
+            distance: this.calculateDistance(latitude, longitude, lat, lng)
+          };
+        });
       } else {
         console.warn('Place API search failed:', response);
         return [];
