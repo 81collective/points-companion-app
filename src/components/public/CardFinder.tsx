@@ -45,6 +45,14 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
     // Location will be handled by useLocation hook
   };
 
+  // Find the absolute best card from recommendations
+  const bestCardRec = recommendations.length > 0
+    ? recommendations.reduce((best, rec) => (rec.match_score > (best?.match_score ?? -1) ? rec : best), recommendations[0])
+    : null;
+
+  // Simulate user cards (for demo, in real app, fetch from user profile)
+  const userCardIds: string[] = [];
+
   return (
     <div className={`space-y-8 ${className}`}>
       {/* Header */}
@@ -77,6 +85,48 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
             <span>{category.label}</span>
           </button>
         ))}
+      </div>
+
+      {/* Absolute Best Card Recommendation */}
+      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200 mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-blue-600" />
+            Absolute Best Card
+          </h3>
+          {bestCardRec && !userCardIds.includes(bestCardRec.card.id) && (
+            <span className="text-xs text-blue-600 font-medium bg-blue-100 px-3 py-1 rounded-full animate-pulse">
+              You don't own this card yet
+            </span>
+          )}
+        </div>
+        {bestCardRec ? (
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <h4 className="text-xl font-bold text-blue-700 mb-1">{bestCardRec.card.card_name}</h4>
+              <p className="text-sm text-gray-600 mb-2">{bestCardRec.card.issuer}</p>
+              <div className="flex items-center space-x-4 text-sm mb-2">
+                <span className="text-green-600 font-semibold">{bestCardRec.card.reward_rate}x {bestCardRec.card.reward_type}</span>
+                <span className="text-blue-600 font-semibold">${bestCardRec.annual_value}/mo value</span>
+                <span className="text-gray-500">{bestCardRec.match_score}/100 match</span>
+              </div>
+              {bestCardRec.card.bonus_offer && (
+                <div className="mt-1 px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded-md">
+                  Bonus: {bestCardRec.card.bonus_offer}
+                </div>
+              )}
+              <div className="mt-2 text-sm text-gray-700">{bestCardRec.reasons?.join(', ')}</div>
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <span className="modern-badge modern-badge-success text-xs mb-2">BEST</span>
+              <button className="btn-primary-modern px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+                Learn More
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-gray-500">No recommendations available for this category.</div>
+        )}
       </div>
 
       {/* Location Permission */}
@@ -179,9 +229,9 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
                     <div className="text-right">
                       {business.distance && (
                         <div className="text-sm text-gray-500">
-                          {business.distance < 1000 
-                            ? `${Math.round(business.distance)}m`
-                            : `${(business.distance / 1000).toFixed(1)}km`
+                          {business.distance < 1609.34 
+                            ? `${Math.round(business.distance * 3.28084)}ft`
+                            : `${(business.distance * 0.000621371).toFixed(1)}mi`
                           }
                         </div>
                       )}

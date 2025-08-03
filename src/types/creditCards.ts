@@ -25,6 +25,25 @@ export enum RewardCategory {
   Rotating = 'rotating',
   EverythingElse = 'everything_else',
   Business = 'business',
+  // New 2025 categories
+  Streaming = 'streaming',
+  Fitness = 'fitness',
+  Healthcare = 'healthcare',
+  PublicTransportation = 'public_transportation',
+  RentalCars = 'rental_cars',
+  OnlineShoppingOthers = 'online_shopping_others',
+  HomeImprovement = 'home_improvement',
+  Entertainment = 'entertainment',
+  Utilities = 'utilities',
+  CellPhone = 'cell_phone',
+  Internet = 'internet',
+  Insurance = 'insurance',
+  Parking = 'parking',
+  Tolls = 'tolls',
+  ElectricVehicleCharging = 'ev_charging',
+  DigitalWallets = 'digital_wallets',
+  Subscription = 'subscription',
+  Department_stores = 'department_stores',
   Other = 'other',
 }
 
@@ -46,4 +65,6 @@ export interface CreditCardTemplate {
   popular?: boolean;
   business?: boolean;
   version?: string;
+  annualFee?: number;
+  bonusOffer?: string;
 }

@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "update-cards": "node scripts/update-cards.mjs",
+    "check-cards": "node scripts/check-cards.mjs"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",

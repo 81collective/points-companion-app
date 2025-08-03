@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
+import { creditCardDatabase } from '@/data/creditCardDatabase';
+import { RewardCategory } from '@/types/creditCards';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,26 +18,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('🎯 Recommendations API called with:', { category, businessId, lat, lng });
+
     const supabase = createClient();
 
-    // Get card rewards for the specified category
-    let cardQuery = supabase
-      .from('card_rewards')
-      .select('*');
+    // Map category names to our RewardCategory enum
+    const categoryMap: { [key: string]: RewardCategory } = {
+      'dining': RewardCategory.Dining,
+      'groceries': RewardCategory.Groceries,
+      'gas': RewardCategory.Gas,
+      'travel': RewardCategory.Travel,
+      'hotels': RewardCategory.Hotels,
+      'streaming': RewardCategory.Streaming,
+      'drugstores': RewardCategory.Drugstores,
+      'home_improvement': RewardCategory.HomeImprovement,
+      'entertainment': RewardCategory.Entertainment,
+      'general': RewardCategory.EverythingElse,
+      'shopping': RewardCategory.Department_stores
+    };
 
-    if (category) {
-      cardQuery = cardQuery.eq('category', category);
-    }
-
-    const { data: cardRewards, error: cardError } = await cardQuery;
-
-    if (cardError) {
-      console.error('Database error:', cardError);
-      return NextResponse.json(
-        { error: 'Failed to fetch card rewards', success: false },
-        { status: 500 }
-      );
-    }
+    const targetCategory = category ? categoryMap[category] || RewardCategory.EverythingElse : RewardCategory.EverythingElse;
+    console.log('🎯 Target category mapped to:', targetCategory);
 
     // Get business details if businessId provided
     let business = null;
@@ -51,79 +54,69 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Calculate recommendations based on card rewards
-    const recommendations = cardRewards?.map(card => {
-      // Base calculation
-      const estimatedPoints = 100 * card.reward_rate; // Assume $100 spending
+    // Calculate recommendations based on our credit card database
+    const recommendations = creditCardDatabase.map(card => {
+      // Find the best reward multiplier for the target category
+      const categoryReward = card.rewards.find(r => r.category === targetCategory);
+      const everythingElseReward = card.rewards.find(r => r.category === RewardCategory.EverythingElse);
+      
+      const rewardMultiplier = categoryReward?.multiplier || everythingElseReward?.multiplier || 1;
+      const rewardCategory = categoryReward?.category || RewardCategory.EverythingElse;
+      
+      // Base calculation - assume $100 spending
+      const estimatedPoints = 100 * rewardMultiplier;
       let annualValue = 0;
       let matchScore = 0;
       const reasons: string[] = [];
 
-      // Calculate annual value based on reward type
-      switch (card.reward_type) {
-        case 'cashback':
-          annualValue = estimatedPoints; // Direct cash value
-          break;
-        case 'points':
-          annualValue = estimatedPoints * 0.01; // Assume 1¢ per point
-          break;
-        case 'miles':
-          annualValue = estimatedPoints * 0.015; // Assume 1.5¢ per mile
-          break;
+      // Calculate annual value (assume points worth 1¢ each for simplicity)
+      annualValue = estimatedPoints * 0.01;
+
+      // Subtract annual fee impact (monthly)
+      if (card.annualFee) {
+        annualValue -= card.annualFee / 12;
       }
 
-      // Subtract annual fee
-      annualValue -= card.annual_fee / 12; // Monthly impact
-
       // Calculate match score (0-100)
-      if (card.reward_rate >= 5.0) {
+      if (rewardMultiplier >= 5.0) {
         matchScore += 40;
-        reasons.push(`Excellent ${card.reward_rate}x ${card.reward_type} rate`);
-      } else if (card.reward_rate >= 3.0) {
+        reasons.push(`Excellent ${rewardMultiplier}x points rate`);
+      } else if (rewardMultiplier >= 3.0) {
         matchScore += 30;
-        reasons.push(`Great ${card.reward_rate}x ${card.reward_type} rate`);
-      } else if (card.reward_rate >= 2.0) {
+        reasons.push(`Great ${rewardMultiplier}x points rate`);
+      } else if (rewardMultiplier >= 2.0) {
         matchScore += 20;
-        reasons.push(`Good ${card.reward_rate}x ${card.reward_type} rate`);
+        reasons.push(`Good ${rewardMultiplier}x points rate`);
       } else {
         matchScore += 10;
-        reasons.push(`Standard ${card.reward_rate}x ${card.reward_type} rate`);
+        reasons.push(`Standard ${rewardMultiplier}x points rate`);
       }
 
       // Bonus for no annual fee
-      if (card.annual_fee === 0) {
+      if (!card.annualFee || card.annualFee === 0) {
         matchScore += 20;
         reasons.push('No annual fee');
-      } else if (card.annual_fee <= 100) {
+      } else if (card.annualFee <= 100) {
         matchScore += 10;
         reasons.push('Low annual fee');
       }
 
       // Bonus offer consideration
-      if (card.bonus_offer) {
+      if (card.bonusOffer) {
         matchScore += 15;
-        reasons.push(`Sign-up bonus: ${card.bonus_offer}`);
+        reasons.push(`Sign-up bonus: ${card.bonusOffer}`);
       }
 
       // Category-specific bonuses
-      if (category === 'dining' && card.reward_rate >= 3.0) {
-        matchScore += 10;
-        reasons.push('Perfect for dining out');
-      }
-      
-      if (category === 'groceries' && card.reward_rate >= 3.0) {
-        matchScore += 10;
-        reasons.push('Great for grocery shopping');
-      }
-
-      if (category === 'gas' && card.reward_rate >= 3.0) {
-        matchScore += 10;
-        reasons.push('Excellent for gas purchases');
-      }
-
-      if (category === 'travel' && card.reward_rate >= 2.0) {
+      if (categoryReward) {
         matchScore += 15;
-        reasons.push('Ideal for travel expenses');
+        reasons.push(`Perfect for ${category} category`);
+      }
+
+      // Popular card bonus
+      if (card.popular) {
+        matchScore += 5;
+        reasons.push('Popular choice');
       }
 
       // Distance bonus if business location provided
@@ -135,21 +128,31 @@ export async function GET(request: NextRequest) {
           business.longitude
         );
         
-        if (distance <= 1000) { // Within 1km
+        if (distance <= 1609.34) { // Within 1 mile (converted to meters)
           matchScore += 5;
           reasons.push('Available nearby');
         }
       }
 
       return {
-        card,
+        card: {
+          card_name: card.name,
+          issuer: card.issuer,
+          annual_fee: card.annualFee || 0,
+          bonus_offer: card.bonusOffer,
+          image: card.image,
+          nickname: card.nickname,
+          popular: card.popular
+        },
         business,
         estimated_points: Math.round(estimatedPoints),
         annual_value: Math.round(annualValue * 100) / 100,
         match_score: Math.min(matchScore, 100),
-        reasons
+        reasons,
+        reward_multiplier: rewardMultiplier,
+        target_category: rewardCategory
       };
-    }) || [];
+    });
 
     // Sort by match score and annual value
     recommendations.sort((a, b) => {
@@ -158,6 +161,9 @@ export async function GET(request: NextRequest) {
       }
       return b.match_score - a.match_score;
     });
+
+    console.log('✅ Generated', recommendations.length, 'recommendations');
+    console.log('🥇 Top recommendation:', recommendations[0]?.card.card_name, 'with score:', recommendations[0]?.match_score);
 
     return NextResponse.json({
       recommendations: recommendations.slice(0, 10), // Top 10 recommendations
@@ -175,7 +181,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Helper function to calculate distance between two points
+// Helper function to calculate distance between two points (returns meters)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3; // Earth's radius in meters
   const φ1 = lat1 * Math.PI / 180;

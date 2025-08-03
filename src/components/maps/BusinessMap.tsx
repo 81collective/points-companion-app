@@ -132,9 +132,9 @@ export default function BusinessMap({
             ` : ''}
             ${business.distance ? `
               <p class="text-xs text-gray-500">
-                ${business.distance < 1000 
-                  ? `${Math.round(business.distance)}m away`
-                  : `${(business.distance / 1000).toFixed(1)}km away`
+                ${business.distance < 1609.34 
+                  ? `${Math.round(business.distance * 3.28084)}ft away`
+                  : `${(business.distance * 0.000621371).toFixed(1)}mi away`
                 }
               </p>
             ` : ''}
