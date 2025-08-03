@@ -96,7 +96,7 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
           </h3>
           {bestCardRec && !userCardIds.includes(bestCardRec.card.id) && (
             <span className="text-xs text-blue-600 font-medium bg-blue-100 px-3 py-1 rounded-full animate-pulse">
-              You don't own this card yet
+              You don&apos;t own this card yet
             </span>
           )}
         </div>

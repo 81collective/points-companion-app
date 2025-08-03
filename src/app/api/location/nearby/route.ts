@@ -25,8 +25,9 @@ interface GooglePlaceResult {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const lat = searchParams.get('lat');
-    const lng = searchParams.get('lng');
+    // Accept both formats: lat/lng and latitude/longitude
+    const lat = searchParams.get('lat') || searchParams.get('latitude');
+    const lng = searchParams.get('lng') || searchParams.get('longitude');
     const radius = searchParams.get('radius') || '5000'; // Default 5km radius
     const category = searchParams.get('category');
 

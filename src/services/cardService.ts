@@ -9,7 +9,9 @@ interface ApiResponse<T> {
 export async function fetchRecommendations(
   category: string,
   lat?: number,
-  lng?: number
+  lng?: number,
+  businessId?: string,
+  businessName?: string
 ): Promise<ApiResponse<CardRecommendation[]>> {
   try {
     const params = new URLSearchParams({ category });
@@ -17,8 +19,18 @@ export async function fetchRecommendations(
       params.append('lat', lat.toString());
       params.append('lng', lng.toString());
     }
+    if (businessId) {
+      params.append('businessId', businessId);
+    }
+    if (businessName) {
+      params.append('businessName', businessName);
+    }
 
-    const response = await fetch(`/api/cards/recommendations?${params}`);
+    const url = `/api/cards/recommendations?${params}`;
+    console.log('🌐 Calling recommendations API:', url);
+    console.log('🌐 Parameters:', { category, lat, lng, businessId, businessName });
+
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error('Failed to fetch recommendations');

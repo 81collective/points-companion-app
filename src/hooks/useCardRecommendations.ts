@@ -6,6 +6,8 @@ interface UseCardRecommendationsParams {
   category: string;
   latitude?: number;
   longitude?: number;
+  businessId?: string;
+  businessName?: string;
   enabled?: boolean;
 }
 
@@ -19,16 +21,27 @@ export function useCardRecommendations({
   category,
   latitude,
   longitude,
+  businessId,
+  businessName,
   enabled = true
 }: UseCardRecommendationsParams) {
   const query = useQuery<CardRecommendationsResult, Error>({
-    queryKey: ['cardRecommendations', category, latitude, longitude],
+    queryKey: ['cardRecommendations', category, latitude, longitude, businessId, businessName],
     queryFn: async () => {
-      return await fetchRecommendationsFromApi(category, latitude, longitude);
+      console.log('🎯 useCardRecommendations API call:', { 
+        category, 
+        businessId, 
+        businessName, 
+        latitude, 
+        longitude,
+        enabled 
+      });
+      console.log('🎯 businessName type:', typeof businessName, 'value:', businessName);
+      return await fetchRecommendationsFromApi(category, latitude, longitude, businessId, businessName);
     },
     enabled: enabled,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 0, // No caching for debugging
+    gcTime: 1000, // 1 second for debugging
     retry: 2,
   });
 

@@ -49,9 +49,11 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
 
   // Get credit card recommendations for selected business
   const { recommendations, loading: recommendationsLoading } = useCardRecommendations({
-    category: selectedBusiness?.category || selectedCategory,
+    category: selectedCategory, // Use selected category instead of business category for consistency
     latitude: location?.latitude,
     longitude: location?.longitude,
+    businessId: selectedBusiness?.id,
+    businessName: selectedBusiness?.name,
     enabled: !!selectedBusiness && permissionState.granted && !!location
   });
 
@@ -59,9 +61,11 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
   useEffect(() => {
     if (selectedBusiness) {
       console.log('🎯 Selected business for recommendations:', {
+        id: selectedBusiness.id,
         name: selectedBusiness.name,
         category: selectedBusiness.category,
-        location: `${location?.latitude}, ${location?.longitude}`
+        location: `${location?.latitude}, ${location?.longitude}`,
+        fullBusiness: selectedBusiness
       });
     }
   }, [selectedBusiness, location]);
@@ -80,7 +84,29 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
   };
 
   const handleBusinessSelect = (business: Business) => {
+    console.log('🏢 Business selected - BEFORE setSelectedBusiness:', {
+      businessName: business.name,
+      businessId: business.id,
+      businessCategory: business.category,
+      selectedCategory: selectedCategory,
+      willUseCategory: selectedCategory
+    });
     setSelectedBusiness(business);
+    console.log('🏢 Business selected - AFTER setSelectedBusiness');
+  };
+
+  // Test function to verify click handling works
+  const testClick = () => {
+    console.log('🧪 TEST: Click handler is working!');
+    const testBusiness = {
+      id: 'test-marriott',
+      name: 'Test Marriott Hotel',
+      category: 'hotels',
+      address: 'Test Address',
+      latitude: 33.6330752,
+      longitude: -111.9158272
+    };
+    handleBusinessSelect(testBusiness as Business);
   };
 
   const currentCategory = categories.find(c => c.key === selectedCategory);
@@ -129,6 +155,19 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Test Button - Always Visible for Debugging */}
+      <div className="mb-4">
+        <button 
+          onClick={testClick}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          🧪 Test Business Selection (Check Console)
+        </button>
+        <p className="text-xs text-gray-500 mt-1">
+          This test button works regardless of location permission
+        </p>
       </div>
 
       {/* Location Permission Check */}
@@ -205,63 +244,70 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
 
               {/* Business List */}
               {!loading && businesses.length > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                >
-                  <AnimatePresence>
-                    {businesses.map((business, index) => (
-                      <motion.div
-                        key={business.id || index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        onClick={() => handleBusinessSelect(business)}
-                        className={`business-card ${
-                          selectedBusiness?.id === business.id ? 'selected' : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 text-lg truncate">{business.name}</h3>
-                            <p className="text-sm text-gray-600 mt-1">{business.address}</p>
-                          </div>
-                          {currentCategory && (
-                            <div className={`px-3 py-1 rounded-full text-xs font-medium ${currentCategory.color}`}>
-                              {currentCategory.icon}
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    📍 Found {businesses.length} businesses - Click any business below to test selection
+                  </p>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    <AnimatePresence>
+                      {businesses.map((business, index) => (
+                        <motion.div
+                          key={business.id || index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
+                          onClick={() => handleBusinessSelect(business)}
+                          className={`cursor-pointer bg-white rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-lg hover:border-blue-300 ${
+                            selectedBusiness?.id === business.id 
+                              ? 'border-blue-500 bg-blue-50 shadow-md' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 text-lg truncate">{business.name}</h3>
+                              <p className="text-sm text-gray-600 mt-1">{business.address}</p>
                             </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            {business.rating && (
-                              <div className="flex items-center space-x-1">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                <span className="text-gray-600 font-medium">{business.rating}</span>
-                              </div>
-                            )}
-                            {business.distance && (
-                              <div className="flex items-center space-x-1 text-gray-500">
-                                <MapPin className="h-4 w-4" />
-                                <span className="font-medium">
-                                  {business.distance < 1609.34 
-                                    ? `${Math.round(business.distance * 3.28084)}ft`
-                                    : `${(business.distance * 0.000621371).toFixed(1)}mi`
-                                  }
-                                </span>
+                            {currentCategory && (
+                              <div className={`px-3 py-1 rounded-full text-xs font-medium ${currentCategory.color}`}>
+                                {currentCategory.icon}
                               </div>
                             )}
                           </div>
-                          
-                          <Navigation className="h-5 w-5 text-gray-400" />
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              {business.rating && (
+                                <div className="flex items-center space-x-1">
+                                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                  <span className="text-gray-600 font-medium">{business.rating}</span>
+                                </div>
+                              )}
+                              {business.distance && (
+                                <div className="flex items-center space-x-1 text-gray-500">
+                                  <MapPin className="h-4 w-4" />
+                                  <span className="font-medium">
+                                    {business.distance < 1609.34 
+                                      ? `${Math.round(business.distance * 3.28084)}ft`
+                                      : `${(business.distance * 0.000621371).toFixed(1)}mi`
+                                    }
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <Navigation className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
               )}              {/* Empty State */}
               {!loading && businesses.length === 0 && !error && (
                 <div className="text-center py-12">
