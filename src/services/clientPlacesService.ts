@@ -16,28 +16,14 @@ interface PlaceSearchResult {
 
 class ClientPlacesService {
   private map: google.maps.Map | null = null;
-  private service: google.maps.places.PlacesService | null = null;
 
   constructor() {
     // Initialize once Google Maps is loaded
     if (typeof window !== 'undefined' && window.google) {
-      this.initializeService();
     }
   }
 
-  private initializeService() {
-    // Create a hidden map element for the Places service
-    const mapElement = document.createElement('div');
-    mapElement.style.display = 'none';
-    document.body.appendChild(mapElement);
-
-    this.map = new google.maps.Map(mapElement, {
-      center: { lat: 0, lng: 0 },
-      zoom: 10
-    });
-
-    this.service = new google.maps.places.PlacesService(this.map);
-  }
+  // No longer needed: PlaceClass initialization
 
   public async searchNearby(
     latitude: number,
@@ -45,60 +31,57 @@ class ClientPlacesService {
     category: string = 'restaurant',
     radius: number = 2000
   ): Promise<PlaceSearchResult[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.service) {
-        // Try to initialize if not already done
-        if (window.google) {
-          this.initializeService();
-        } else {
-          reject(new Error('Google Maps not loaded'));
-          return;
-        }
-      }
+    const categoryMap: { [key: string]: string } = {
+      'dining': 'restaurant',
+      'groceries': 'grocery_or_supermarket',
+      'gas': 'gas_station',
+      'shopping': 'shopping_mall',
+      'electronics': 'electronics_store',
+      'hotels': 'lodging',
+      'travel': 'travel_agency'
+    };
 
-      const categoryMap: { [key: string]: string } = {
-        'dining': 'restaurant',
-        'groceries': 'grocery_or_supermarket',
-        'gas': 'gas_station',
-        'shopping': 'shopping_mall',
-        'electronics': 'electronics_store',
-        'hotels': 'lodging',
-        'travel': 'travel_agency'
-      };
-
-      const request: google.maps.places.PlaceSearchRequest = {
-        location: new google.maps.LatLng(latitude, longitude),
+    const request = {
+      fields: ["displayName", "location", "businessStatus", "formattedAddress", "rating", "priceLevel", "id"],
+      locationRestriction: {
+        center: new window.google.maps.LatLng(latitude, longitude),
         radius: radius,
-        type: categoryMap[category] || 'establishment'
-      };
+      },
+      includedPrimaryTypes: [categoryMap[category] || 'establishment'],
+      maxResultCount: 20,
+      rankPreference: window.google.maps.places.SearchNearbyRankPreference.POPULARITY,
+      language: "en-US",
+      region: "us",
+    };
 
-      this.service!.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          const businesses = results.map((place, index) => ({
-            id: place.place_id || `place_${index}`,
-            name: place.name || 'Unknown Business',
-            category: category,
-            address: place.vicinity || place.formatted_address || 'Address not available',
-            latitude: place.geometry?.location?.lat() || latitude,
-            longitude: place.geometry?.location?.lng() || longitude,
-            rating: place.rating,
-            price_level: place.price_level,
-            place_id: place.place_id,
-            distance: this.calculateDistance(
-              latitude,
-              longitude,
-              place.geometry?.location?.lat() || latitude,
-              place.geometry?.location?.lng() || longitude
-            )
-          }));
-
-          resolve(businesses);
-        } else {
-          console.warn('Places service failed:', status);
-          resolve([]); // Return empty array instead of rejecting
-        }
-      });
-    });
+    try {
+      const response = await window.google.maps.places.Place.searchNearby(request);
+      if (response && response.places) {
+        return response.places.map((place: any, index: number) => ({
+          id: place.id || `place_${index}`,
+          name: place.displayName?.text || 'Unknown Business',
+          category: category,
+          address: place.formattedAddress?.text || 'Address not available',
+          latitude: place.location?.latitude || latitude,
+          longitude: place.location?.longitude || longitude,
+          rating: place.rating,
+          price_level: place.priceLevel,
+          place_id: place.id,
+          distance: this.calculateDistance(
+            latitude,
+            longitude,
+            place.location?.latitude || latitude,
+            place.location?.longitude || longitude
+          )
+        }));
+      } else {
+        console.warn('Place API search failed:', response);
+        return [];
+      }
+    } catch (err) {
+      console.warn('Place API error:', err);
+      return [];
+    }
   }
 
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

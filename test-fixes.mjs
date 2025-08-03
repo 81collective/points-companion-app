@@ -48,7 +48,7 @@ const testHotelsCategory = async () => {
     const lat = 40.7128;
     const lng = -74.0060;
     
-    const response = await fetch(`http://localhost:3000/api/location/nearby?latitude=${lat}&longitude=${lng}&radius=5000&category=hotels`);
+    const response = await fetch(`http://localhost:3000/api/location/nearby?lat=${lat}&lng=${lng}&radius=5000&category=hotels`);
     const data = await response.json();
     
     console.log('🏩 Hotels API Response:', {
@@ -90,7 +90,7 @@ const testProductionFallback = async () => {
     const lat = 40.7580;
     const lng = -73.9855; // Times Square
     
-    const response = await fetch(`http://localhost:3000/api/location/nearby?latitude=${lat}&longitude=${lng}&radius=2000&category=dining`);
+    const response = await fetch(`http://localhost:3000/api/location/nearby?lat=${lat}&lng=${lng}&radius=2000&category=dining`);
     const data = await response.json();
     
     console.log('🔄 Production Fallback Test:', {
