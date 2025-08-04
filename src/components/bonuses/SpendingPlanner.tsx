@@ -42,7 +42,6 @@ export const SpendingPlanner: React.FC<SpendingPlannerProps> = ({
 }) => {
   const [selectedBonusId, setSelectedBonusId] = useState<string>('');
   const [planningMode, setPlanningMode] = useState<'single' | 'multi'>('single');
-  const [timeframe, setTimeframe] = useState<'week' | 'month' | 'quarter'>('month');
 
   // Calculate active bonuses and their urgency
   const activeBonuses = useMemo(() => {

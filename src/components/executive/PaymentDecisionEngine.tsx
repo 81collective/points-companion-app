@@ -4,10 +4,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Smartphone, MapPin, Clock, TrendingUp, Star, CreditCard } from 'lucide-react';
-import { useLocation } from '@/hooks/useLocation';
-import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
-import { useCardRecommendations } from '@/hooks/useCardRecommendations';
+import { Smartphone, MapPin, CreditCard } from 'lucide-react';
 
 interface PaymentRecommendation {
   cardName: string;
@@ -26,7 +23,6 @@ interface MerchantContext {
 }
 
 export default function PaymentDecisionEngine() {
-  const { location, loading: locationLoading } = useLocation();
   const [currentMerchant, setCurrentMerchant] = useState<MerchantContext | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<number>(150);
   

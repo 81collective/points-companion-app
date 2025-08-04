@@ -28,7 +28,7 @@ interface BonusDashboardProps {
 
 export const BonusDashboard: React.FC<BonusDashboardProps> = ({
   bonuses,
-  analytics,
+  analytics, // eslint-disable-line @typescript-eslint/no-unused-vars
   onAddBonus,
   onUpdateSpending,
   onViewDetails,

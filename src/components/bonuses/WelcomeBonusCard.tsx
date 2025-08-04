@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { WelcomeBonusTracker, SpendingVelocity } from '@/types/welcomeBonus';
+import { WelcomeBonusTracker } from '@/types/welcomeBonus';
 import { BonusCalculator } from '@/lib/bonusCalculator';
 import { format, parseISO, differenceInDays } from '@/lib/dateUtils';
 import { motion, AnimatePresence } from 'framer-motion';

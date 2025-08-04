@@ -4,25 +4,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Crown, TrendingUp, MapPin, Calendar } from 'lucide-react';
-import { useCardRecommendations } from '@/hooks/useCardRecommendations';
-
-interface ExecutiveCard {
-  id: string;
-  name: string;
-  type: 'travel' | 'dining' | 'premium' | 'business' | 'cashback';
-  annualFee: number;
-  currentValue: number;
-  optimalUsage: string[];
-  statusBenefits: string[];
-}
-
-interface SpendingScenario {
-  category: string;
-  amount: number;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  location?: string;
-}
+import { Crown, TrendingUp, MapPin } from 'lucide-react';
 
 export default function ExecutivePortfolioOptimizer() {
   const [selectedScenario, setSelectedScenario] = useState<'business_travel' | 'fine_dining' | 'luxury_shopping'>('business_travel');

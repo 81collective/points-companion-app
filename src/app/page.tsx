@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowRight, Shield, Zap, TrendingUp, CreditCard, Loader2, MapPin } from 'lucide-react';
+import { ArrowRight, Zap, TrendingUp, CreditCard, Loader2, MapPin } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import HomepageBusinessDemo from '@/components/public/HomepageBusinessDemo';
 
