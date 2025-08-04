@@ -7,7 +7,7 @@ import {
   SpendingPlan 
 } from '@/types/welcomeBonus';
 import { BonusCalculator } from '@/lib/bonusCalculator';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Calendar,
   Target,
@@ -15,13 +15,11 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  DollarSign,
   CreditCard,
   Lightbulb,
   Users,
   Zap,
   ShoppingCart,
-  MapPin,
   Gift
 } from 'lucide-react';
 

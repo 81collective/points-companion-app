@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MapPin, Star, CreditCard, Loader2, Navigation, ArrowRight } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
@@ -103,7 +103,7 @@ export default function HomepageBusinessDemo() {
                 Try Interactive Demo
               </button>
               <p className="text-sm text-gray-500 mt-3">
-                We'll find businesses near you and show personalized card recommendations
+                We&apos;ll find businesses near you and show personalized card recommendations
               </p>
             </div>
           ) : (

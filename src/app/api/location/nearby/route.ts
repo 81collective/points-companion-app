@@ -107,7 +107,6 @@ export async function GET(request: NextRequest) {
     let googlePlaces = [];
     const serverApiKey = process.env.GOOGLE_MAPS_API_KEY; // Server-side key (without NEXT_PUBLIC_)
     const clientApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Client-side key
-    const hasGoogleApiKey = !!(serverApiKey || clientApiKey);
     
     console.log('Google API check:', { 
       hasServerKey: !!serverApiKey,

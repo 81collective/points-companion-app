@@ -7,6 +7,7 @@ import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
 import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import LocationPermission from '@/components/location/LocationPermission';
 import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
+import { Business } from '@/types/location.types';
 
 interface CardFinderProps {
   className?: string;
@@ -14,7 +15,7 @@ interface CardFinderProps {
 
 export default function CardFinder({ className = "" }: CardFinderProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('dining');
-  const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   
   const { location, permissionState } = useLocation();
   
@@ -63,7 +64,7 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
   };
 
   // Business selection handler - same as dashboard
-  const handleBusinessSelect = (business: any) => {
+  const handleBusinessSelect = (business: Business) => {
     console.log('🏢 HOMEPAGE: Business selected - BEFORE setSelectedBusiness:', {
       businessName: business.name,
       businessId: business.id,

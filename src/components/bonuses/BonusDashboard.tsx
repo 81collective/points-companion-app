@@ -10,14 +10,10 @@ import {
   Search, 
   TrendingUp, 
   Award, 
-  Calendar, 
   DollarSign,
-  Clock,
   Target,
   AlertTriangle,
-  CheckCircle2,
-  BarChart3,
-  Settings
+  CheckCircle2
 } from 'lucide-react';
 
 interface BonusDashboardProps {
@@ -50,7 +46,7 @@ export const BonusDashboard: React.FC<BonusDashboardProps> = ({
 
   // Filter and sort bonuses
   const filteredBonuses = useMemo(() => {
-    let filtered = bonuses.filter(bonus => {
+    const filtered = bonuses.filter(bonus => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -291,7 +287,7 @@ export const BonusDashboard: React.FC<BonusDashboardProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select
                   value={activeFilter.status?.[0] || 'active'}
-                  onChange={(e) => handleFilterChange({ status: [e.target.value as any] })}
+                  onChange={(e) => handleFilterChange({ status: [e.target.value as 'active' | 'completed' | 'expired' | 'paused'] })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="active">Active</option>
@@ -306,7 +302,7 @@ export const BonusDashboard: React.FC<BonusDashboardProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
                 <select
                   value={activeFilter.sortBy || 'deadline'}
-                  onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
+                  onChange={(e) => handleFilterChange({ sortBy: e.target.value as 'deadline' | 'progress' | 'value' | 'priority' | 'name' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="deadline">Deadline</option>
@@ -323,7 +319,7 @@ export const BonusDashboard: React.FC<BonusDashboardProps> = ({
                 <select
                   value={activeFilter.priority?.[0] || ''}
                   onChange={(e) => handleFilterChange({ 
-                    priority: e.target.value ? [e.target.value as any] : undefined 
+                    priority: e.target.value ? [e.target.value as 'urgent' | 'high' | 'medium' | 'low'] : undefined 
                   })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >

@@ -2,7 +2,7 @@
 // Points Companion - Welcome Bonus Management
 
 import { NextRequest, NextResponse } from 'next/server';
-import { WelcomeBonusTracker, BonusFilter } from '@/types/welcomeBonus';
+import { WelcomeBonusTracker } from '@/types/welcomeBonus';
 
 // Mock data for development - replace with Supabase queries
 const mockBonuses: WelcomeBonusTracker[] = [
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
 
     // Filter bonuses
-    let filteredBonuses = mockBonuses.filter(bonus => {
+    const filteredBonuses = mockBonuses.filter(bonus => {
       // Status filter
       if (!status.includes(bonus.status)) return false;
       

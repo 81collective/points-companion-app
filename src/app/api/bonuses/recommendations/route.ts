@@ -172,10 +172,10 @@ export async function POST(request: NextRequest) {
     // Add category-specific recommendations based on user patterns
     if (userSpendingPatterns) {
       const topCategories = userSpendingPatterns
-        .sort((a: any, b: any) => b.monthlyAverage - a.monthlyAverage)
+        .sort((a: { monthlyAverage: number }, b: { monthlyAverage: number }) => b.monthlyAverage - a.monthlyAverage)
         .slice(0, 2);
 
-      topCategories.forEach((pattern: any, index: number) => {
+      topCategories.forEach((pattern: { category: string; monthlyAverage: number }, index: number) => {
         recommendations.push({
           id: `rec-${pattern.category.toLowerCase()}-${Date.now()}-${index}`,
           category: pattern.category,

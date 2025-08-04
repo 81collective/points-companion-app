@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { CardDataUpdater } from '@/lib/cardDataUpdater';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Get latest card data
     const latestCards = await CardDataUpdater.fetchLatestCards();
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get latest card data without updating
     const latestCards = await CardDataUpdater.fetchLatestCards();

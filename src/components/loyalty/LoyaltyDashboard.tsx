@@ -34,13 +34,13 @@ export default function LoyaltyDashboard({ className = "" }: LoyaltyDashboardPro
 
   // Build filters for React Query
   const filters: LoyaltyFilter = {
-    category: filterCategory !== 'all' ? [filterCategory as any] : undefined,
+    category: filterCategory !== 'all' ? [filterCategory as 'airline' | 'hotel' | 'credit_card' | 'dining' | 'shopping' | 'other'] : undefined,
     sortBy,
     sortOrder: 'desc'
   };
 
   // Use React Query hooks
-  const { data: accountsResponse, isLoading: accountsLoading, error: accountsError } = useLoyaltyAccounts(filters);
+  const { data: accountsResponse, isLoading: accountsLoading } = useLoyaltyAccounts(filters);
   const { data: analyticsResponse, isLoading: analyticsLoading } = useLoyaltyAnalytics();
   const { data: insightsResponse, isLoading: insightsLoading } = useLoyaltyInsights();
 
@@ -60,7 +60,7 @@ export default function LoyaltyDashboard({ className = "" }: LoyaltyDashboardPro
     if (Object.keys(visibility).length > 0) {
       setBalanceVisibility(prev => ({ ...prev, ...visibility }));
     }
-  }, [accounts]);
+  }, [accounts, balanceVisibility]);
 
   const toggleBalanceVisibility = (accountId: string) => {
     setBalanceVisibility(prev => ({
@@ -268,7 +268,7 @@ export default function LoyaltyDashboard({ className = "" }: LoyaltyDashboardPro
           </div>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as 'balance' | 'name' | 'expiration' | 'value')}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="balance">Sort by Balance</option>

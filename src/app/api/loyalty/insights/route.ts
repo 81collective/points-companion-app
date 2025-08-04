@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { LoyaltyInsight, LoyaltyInsightsResponse } from '@/types/loyalty';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     // For now, return mock insights data
     // TODO: Replace with real Supabase queries once auth is implemented
     
@@ -66,11 +60,6 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
     const { searchParams } = new URL(request.url);
     const insightId = searchParams.get('id');
     const body = await request.json();

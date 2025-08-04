@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Get all programs or filter by category
     let programs = category && category !== 'all' 
-      ? getProgramsByCategory(category as any)
+      ? getProgramsByCategory(category as 'airline' | 'hotel' | 'credit_card' | 'dining' | 'shopping' | 'other')
       : getAllPrograms();
 
     // Apply search filter if provided

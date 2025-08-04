@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { LoyaltyAccount, LoyaltyAccountsResponse } from '@/types/loyalty';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    
     const { searchParams } = new URL(request.url);
     
     // Get query parameters
-    const category = searchParams.get('category');
-    const syncStatus = searchParams.get('syncStatus');
-    const hasExpiringPoints = searchParams.get('hasExpiringPoints') === 'true';
-    const hasCertificates = searchParams.get('hasCertificates') === 'true';
-    const sortBy = searchParams.get('sortBy') || 'updated_at';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
 
@@ -83,7 +71,38 @@ export async function GET(request: NextRequest) {
     ];
 
     // Transform data to match frontend types
-    const transformedAccounts: LoyaltyAccount[] = mockAccounts.map((account: any) => ({
+    const transformedAccounts: LoyaltyAccount[] = mockAccounts.map((account: {
+      id: string;
+      user_id: string;
+      program_id: string;
+      account_number: string;
+      account_name?: string;
+      balance_current: number;
+      balance_pending?: number;
+      balance_lifetime?: number | null;
+      expiration_date?: string | null;
+      expiring_points?: Array<{ amount: number; expirationDate: string }>;
+      elite_status?: {
+        currentTier: string;
+        qualifyingActivity: number;
+        nextTierRequirement?: number;
+        yearEndDate: string;
+      } | null;
+      loyalty_certificates?: Array<{
+        id: string;
+        certificate_type: string;
+        name: string;
+        description: string;
+        expiration_date: string;
+        estimated_value: number;
+      }>;
+      updated_at: string;
+      sync_enabled: boolean;
+      sync_frequency: string;
+      credentials_encrypted?: boolean | null;
+      last_sync?: string;
+      sync_status: string;
+    }) => ({
       id: account.id,
       userId: account.user_id,
       programId: account.program_id,
@@ -92,14 +111,21 @@ export async function GET(request: NextRequest) {
       balance: {
         current: account.balance_current,
         pending: account.balance_pending,
-        lifetime: account.balance_lifetime
+        lifetime: account.balance_lifetime || undefined
       },
-      expirationDate: account.expiration_date,
+      expirationDate: account.expiration_date || undefined,
       expiringPoints: account.expiring_points || [],
-      eliteStatus: account.elite_status,
-      certificates: account.loyalty_certificates?.map((cert: any) => ({
+      eliteStatus: account.elite_status || undefined,
+      certificates: account.loyalty_certificates?.map((cert: {
+        id: string;
+        certificate_type: string;
+        name: string;
+        description: string;
+        expiration_date: string;
+        estimated_value: number;
+      }) => ({
         id: cert.id,
-        type: cert.certificate_type,
+        type: cert.certificate_type as 'free-night' | 'companion' | 'upgrade' | 'lounge-access' | 'other',
         name: cert.name,
         description: cert.description,
         expirationDate: cert.expiration_date,
@@ -109,11 +135,11 @@ export async function GET(request: NextRequest) {
       })) || [],
       lastUpdated: account.updated_at,
       syncEnabled: account.sync_enabled,
-      syncFrequency: account.sync_frequency,
+      syncFrequency: account.sync_frequency as 'manual' | 'daily' | 'weekly' | 'monthly',
       credentials: {
         encrypted: !!account.credentials_encrypted,
         lastSync: account.last_sync,
-        syncStatus: account.sync_status
+        syncStatus: account.sync_status as 'connected' | 'error' | 'pending' | 'disconnected'
       }
     }));
 
@@ -140,11 +166,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-    
     const body = await request.json();
 
     // Validate required fields
