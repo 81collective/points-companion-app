@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, MapPin, Search, Star, DollarSign, Sparkles, ArrowRight } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
@@ -14,6 +14,7 @@ interface CardFinderProps {
 
 export default function CardFinder({ className = "" }: CardFinderProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('dining');
+  const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
   
   const { location, permissionState } = useLocation();
   
@@ -22,6 +23,9 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
     category: selectedCategory,
     latitude: location?.latitude,
     longitude: location?.longitude,
+    businessId: selectedBusiness?.id,
+    businessName: selectedBusiness?.name,
+    enabled: !!location
   });
   
   const { businesses: nearbyBusinesses, loading: businessesLoading } = useNearbyBusinesses({
@@ -31,6 +35,19 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
     radius: 5000,
     enabled: permissionState.granted && !!location
   });
+
+  // Add real-time effect when business is selected - same as dashboard
+  useEffect(() => {
+    if (selectedBusiness) {
+      console.log('🎯 HOMEPAGE: Selected business for recommendations:', {
+        id: selectedBusiness.id,
+        name: selectedBusiness.name,
+        category: selectedBusiness.category,
+        location: `${location?.latitude}, ${location?.longitude}`,
+        fullBusiness: selectedBusiness
+      });
+    }
+  }, [selectedBusiness, location]);
 
   const categories = [
     { key: 'dining', label: 'Dining', icon: '🍽️' },
@@ -43,6 +60,33 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
 
   const handleLocationGranted = () => {
     // Location will be handled by useLocation hook
+  };
+
+  // Business selection handler - same as dashboard
+  const handleBusinessSelect = (business: any) => {
+    console.log('🏢 HOMEPAGE: Business selected - BEFORE setSelectedBusiness:', {
+      businessName: business.name,
+      businessId: business.id,
+      businessCategory: business.category,
+      selectedCategory: selectedCategory,
+      willUseCategory: selectedCategory
+    });
+    setSelectedBusiness(business);
+    console.log('🏢 HOMEPAGE: Business selected - AFTER setSelectedBusiness');
+  };
+
+  // Test function to verify click handling works
+  const testClick = () => {
+    console.log('🧪 HOMEPAGE TEST: Click handler is working!');
+    const testBusiness = {
+      id: 'homepage-test-marriott',
+      name: 'Homepage Test Marriott Hotel',
+      category: 'hotels',
+      address: 'Test Address for Homepage',
+      latitude: 33.6330752,
+      longitude: -111.9158272
+    };
+    handleBusinessSelect(testBusiness);
   };
 
   // Find the absolute best card from recommendations
@@ -69,6 +113,16 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
         </p>
       </div>
 
+      {/* Test Button for Homepage */}
+      <div className="text-center">
+        <button 
+          onClick={testClick}
+          className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 mb-6"
+        >
+          🧪 Test Homepage Business Selection (Check Console)
+        </button>
+      </div>
+
       {/* Category Selection */}
       <div className="flex flex-wrap justify-center gap-3">
         {categories.map((category) => (
@@ -92,8 +146,13 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-blue-600" />
-            Absolute Best Card
+            {selectedBusiness ? `Best Card for ${selectedBusiness.name}` : 'Absolute Best Card'}
           </h3>
+          {selectedBusiness && (
+            <span className="text-sm text-blue-600 font-medium bg-blue-100 px-3 py-1 rounded-full">
+              Selected Business
+            </span>
+          )}
           {bestCardRec && !userCardIds.includes(bestCardRec.card.id) && (
             <span className="text-xs text-blue-600 font-medium bg-blue-100 px-3 py-1 rounded-full animate-pulse">
               You don&apos;t own this card yet
@@ -214,7 +273,15 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
           ) : nearbyBusinesses.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {nearbyBusinesses.slice(0, 10).map((business, index) => (
-                <div key={business.id || index} className="bg-white rounded-xl p-3 border border-gray-200 hover:border-green-300 hover:shadow-md transition-all duration-200">
+                <div 
+                  key={business.id || index} 
+                  onClick={() => handleBusinessSelect(business)}
+                  className={`cursor-pointer bg-white rounded-xl p-3 border-2 transition-all duration-200 hover:shadow-lg hover:border-blue-300 ${
+                    selectedBusiness?.id === business.id 
+                      ? 'border-blue-500 bg-blue-50 shadow-md' 
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-gray-900">{business.name}</h4>
@@ -249,6 +316,46 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
           )}
         </div>
       </div>
+
+      {/* Selected Business Details - Same as Dashboard */}
+      {selectedBusiness && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <h4 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Selected Business on Homepage
+          </h4>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <p className="font-medium text-gray-900 mb-1">{selectedBusiness.name}</p>
+              <p className="text-sm text-gray-600 mb-3">{selectedBusiness.address}</p>
+              <div className="flex items-center space-x-4 text-sm">
+                {selectedBusiness.rating && (
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span>{selectedBusiness.rating}</span>
+                  </div>
+                )}
+                {selectedBusiness.distance && (
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <span>
+                      {selectedBusiness.distance < 1609.34 
+                        ? `${Math.round(selectedBusiness.distance * 3.28084)}ft`
+                        : `${(selectedBusiness.distance * 0.000621371).toFixed(1)}mi`
+                      }
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              <p className="mb-1">✅ Business selected successfully</p>
+              <p className="mb-1">🎯 Card recommendations updated</p>
+              <p>💳 Best cards shown above</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Call to Action */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 text-center text-white">
