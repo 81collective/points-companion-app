@@ -33,39 +33,53 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              href="/dashboard" 
-              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link 
-              href="/dashboard/cards" 
-              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-            >
-              My Cards
-            </Link>
-            <Link 
-              href="/dashboard/insights" 
-              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-            >
-              Insights
-            </Link>
-            <Link 
-              href="/dashboard/analytics" 
-              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-            >
-              Analytics
-            </Link>
-            <Link 
-              href="/dashboard/transactions" 
-              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-            >
-              Transactions
-            </Link>
-          </nav>
+          {/* Navigation - Only show when user is logged in */}
+          {user && (
+            <nav className="hidden md:flex items-center space-x-8">
+              <Link 
+                href="/dashboard" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link 
+                href="/dashboard/cards" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                My Cards
+              </Link>
+              <Link 
+                href="/loyalty" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Loyalty
+              </Link>
+              <Link 
+                href="/bonuses" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Welcome Bonuses
+              </Link>
+              <Link 
+                href="/dashboard/insights" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Insights
+              </Link>
+              <Link 
+                href="/dashboard/analytics" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Analytics
+              </Link>
+              <Link 
+                href="/dashboard/transactions" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Transactions
+              </Link>
+            </nav>
+          )}
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">

@@ -95,20 +95,6 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
     console.log('🏢 Business selected - AFTER setSelectedBusiness');
   };
 
-  // Test function to verify click handling works
-  const testClick = () => {
-    console.log('🧪 TEST: Click handler is working!');
-    const testBusiness = {
-      id: 'test-marriott',
-      name: 'Test Marriott Hotel',
-      category: 'hotels',
-      address: 'Test Address',
-      latitude: 33.6330752,
-      longitude: -111.9158272
-    };
-    handleBusinessSelect(testBusiness as Business);
-  };
-
   const currentCategory = categories.find(c => c.key === selectedCategory);
 
   return (
@@ -155,19 +141,6 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Test Button - Always Visible for Debugging */}
-      <div className="mb-4">
-        <button 
-          onClick={testClick}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-        >
-          🧪 Test Business Selection (Check Console)
-        </button>
-        <p className="text-xs text-gray-500 mt-1">
-          This test button works regardless of location permission
-        </p>
       </div>
 
       {/* Location Permission Check */}
@@ -245,9 +218,18 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
               {/* Business List */}
               {!loading && businesses.length > 0 && (
                 <div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    📍 Found {businesses.length} businesses - Click any business below to test selection
-                  </p>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm text-gray-600">
+                      📍 Found {businesses.length} businesses
+                    </p>
+                    {!selectedBusiness && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-1">
+                        <p className="text-xs text-blue-700 font-medium">
+                          👆 Select a business to see credit card recommendations
+                        </p>
+                      </div>
+                    )}
+                  </div>
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -332,9 +314,17 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
           )}
 
           {/* Selected Business Details */}
-          {selectedBusiness && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-              <h4 className="font-semibold text-blue-900 mb-4">Selected Business</h4>
+          {selectedBusiness ? (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold text-blue-900 text-lg">✨ Selected Business</h4>
+                <button
+                  onClick={() => setSelectedBusiness(null)}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-100 transition-colors"
+                >
+                  Clear Selection
+                </button>
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Business Details */}
                 <div>
@@ -382,29 +372,41 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                     </div>
                   ) : recommendations.length > 0 ? (
                     <div className="space-y-3">
-                      {recommendations.slice(0, 3).map((rec, index) => (
-                        <div key={index} className="modern-card p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold text-gray-900 text-base">{rec.card.card_name}</span>
-                            <div className="flex items-center space-x-2">
-                              {index === 0 && (
-                                <span className="modern-badge modern-badge-success text-xs">
-                                  BEST
+                      {recommendations.slice(0, 3).map((rec, index) => {
+                        const isBrandMatch = rec.reasons?.some(reason => 
+                          reason.includes('brand card') || 
+                          reason.includes('Perfect for')
+                        );
+                        
+                        return (
+                          <div key={index} className={`modern-card p-4 ${isBrandMatch ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200' : ''}`}>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="font-semibold text-gray-900 text-base">{rec.card.card_name}</span>
+                              <div className="flex items-center space-x-2">
+                                {isBrandMatch && (
+                                  <span className="modern-badge bg-blue-600 text-white text-xs">
+                                    🎯 BRAND MATCH
+                                  </span>
+                                )}
+                                {index === 0 && (
+                                  <span className="modern-badge modern-badge-success text-xs">
+                                    BEST
+                                  </span>
+                                )}
+                                <span className="modern-badge modern-badge-primary text-xs">
+                                  {rec.annual_value > 0 ? `$${rec.annual_value.toFixed(0)}/year` : `${rec.match_score}% match`}
                                 </span>
-                              )}
-                              <span className="modern-badge modern-badge-primary text-xs">
-                                {rec.annual_value > 0 ? `$${rec.annual_value.toFixed(0)}/year` : `${rec.match_score}% match`}
-                              </span>
+                              </div>
                             </div>
+                            <p className="text-sm text-gray-600 mb-2">{rec.reasons?.join(', ') || 'Great rewards for this category'}</p>
+                            {rec.estimated_points && (
+                              <div className="text-xs text-emerald-700 font-medium">
+                                Estimated: {rec.estimated_points} points per $100 spent
+                              </div>
+                            )}
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">{rec.reasons?.join(', ') || 'Great rewards for this category'}</p>
-                          {rec.estimated_points && (
-                            <div className="text-xs text-emerald-700 font-medium">
-                              Estimated: {rec.estimated_points} points per $100 spent
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                       {recommendations.length > 3 && (
                         <div className="text-center pt-2">
                           <span className="text-sm text-emerald-600 font-medium">+ {recommendations.length - 3} more card options</span>
@@ -420,6 +422,27 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                 </div>
               </div>
             </div>
+          ) : (
+            /* No Business Selected State */
+            !loading && businesses.length > 0 && (
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CreditCard className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Ready to Find the Best Credit Cards?
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Select any business above to get personalized credit card recommendations with the highest rewards for that specific merchant.
+                  </p>
+                  <div className="flex items-center justify-center space-x-2 text-sm text-blue-600">
+                    <span>👆</span>
+                    <span className="font-medium">Click a business to see card recommendations</span>
+                  </div>
+                </div>
+              </div>
+            )
           )}
         </>
       )}

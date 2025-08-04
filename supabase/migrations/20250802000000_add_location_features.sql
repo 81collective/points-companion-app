@@ -133,13 +133,4 @@ INSERT INTO card_rewards (card_name, issuer, category, reward_rate, reward_type,
 ('Hotel Credit Cards', 'Various', 'hotels', 5.00, 'points', 95, 'Hotel status'),
 ('Airline Credit Cards', 'Various', 'airlines', 3.00, 'miles', 99, 'Airline status');
 
--- Insert sample businesses (you can add more based on your area)
-INSERT INTO businesses (name, category, address, latitude, longitude, rating, price_level) VALUES
-('Starbucks', 'dining', '123 Main St, Anytown, USA', 40.7128, -74.0060, 4.2, 2),
-('Whole Foods Market', 'groceries', '456 Oak Ave, Anytown, USA', 40.7138, -74.0070, 4.5, 3),
-('Shell Gas Station', 'gas', '789 Pine Rd, Anytown, USA', 40.7118, -74.0050, 3.8, 2),
-('Best Buy', 'electronics', '321 Elm St, Anytown, USA', 40.7148, -74.0080, 4.1, 2),
-('Target', 'shopping', '654 Maple Dr, Anytown, USA', 40.7108, -74.0040, 4.3, 2),
-('Hilton Hotel', 'hotels', '987 Broadway, Anytown, USA', 40.7158, -74.0090, 4.4, 4),
-('American Airlines', 'airlines', 'Airport Terminal 1, Anytown, USA', 40.6892, -74.1745, 4.0, 3),
-('Home Depot', 'home_improvement', '159 Commerce St, Anytown, USA', 40.7098, -74.0030, 4.2, 2);
+-- Sample businesses removed - using real business data from Google Places API

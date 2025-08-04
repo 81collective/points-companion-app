@@ -178,58 +178,8 @@ export async function GET(request: NextRequest) {
     } else {
       console.log('No Google API key available, using database + sample data only');
       
-      // Only use sample data if no local database results AND no Google API
-      if (businessesWithDistance.length === 0) {
-        const sampleBusinesses = [
-          {
-            id: 'sample_1',
-            name: 'Local Coffee Shop',
-            category: 'dining',
-            address: 'Near your location',
-            latitude: latitude + 0.001,
-            longitude: longitude + 0.001,
-            rating: 4.2,
-            price_level: 2,
-            distance: 492, // ~500 feet
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 'sample_2',
-            name: 'Neighborhood Grocery',
-            category: 'groceries',
-            address: 'Near your location',
-            latitude: latitude - 0.001,
-            longitude: longitude - 0.001,
-            rating: 4.0,
-            price_level: 2,
-            distance: 656, // ~650 feet
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 'sample_3',
-            name: 'Gas Station',
-            category: 'gas',
-            address: 'Near your location',
-            latitude: latitude + 0.002,
-            longitude: longitude - 0.002,
-            rating: 3.8,
-            price_level: 1,
-            distance: 984, // ~1000 feet
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-        
-        // Filter by category if specified
-        const filteredSamples = category && category !== 'all' 
-          ? sampleBusinesses.filter(b => b.category === category)
-          : sampleBusinesses;
-        
-        businessesWithDistance.push(...filteredSamples);
-        console.log('Added sample businesses:', filteredSamples.length);
-      }
+      // Sample businesses removed - using real data from Google Places API and database
+      // If no businesses are found, the app will show appropriate messaging
     }
 
     // Combine and deduplicate results

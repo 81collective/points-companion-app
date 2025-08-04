@@ -75,20 +75,6 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
     console.log('🏢 HOMEPAGE: Business selected - AFTER setSelectedBusiness');
   };
 
-  // Test function to verify click handling works
-  const testClick = () => {
-    console.log('🧪 HOMEPAGE TEST: Click handler is working!');
-    const testBusiness = {
-      id: 'homepage-test-marriott',
-      name: 'Homepage Test Marriott Hotel',
-      category: 'hotels',
-      address: 'Test Address for Homepage',
-      latitude: 33.6330752,
-      longitude: -111.9158272
-    };
-    handleBusinessSelect(testBusiness);
-  };
-
   // Find the absolute best card from recommendations
   const bestCardRec = recommendations.length > 0
     ? recommendations.reduce((best, rec) => (rec.match_score > (best?.match_score ?? -1) ? rec : best), recommendations[0])
@@ -111,16 +97,6 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           Get personalized card recommendations based on nearby businesses and your spending category.
         </p>
-      </div>
-
-      {/* Test Button for Homepage */}
-      <div className="text-center">
-        <button 
-          onClick={testClick}
-          className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 mb-6"
-        >
-          🧪 Test Homepage Business Selection (Check Console)
-        </button>
       </div>
 
       {/* Category Selection */}

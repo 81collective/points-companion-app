@@ -6,10 +6,10 @@ import Header from '@/components/layout/Header'
 import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles, PieChart, Target } from 'lucide-react'
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
-import NearbyBusinesses from '@/components/location/NearbyBusinesses'
 import PortfolioOptimizer from '@/components/executive/PortfolioOptimizer'
 import PaymentDecisionEngine from '@/components/executive/PaymentDecisionEngine'
 import TravelStatusTracker from '@/components/executive/TravelStatusTracker'
+import NearbyBusinesses from '@/components/location/NearbyBusinesses'
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 
@@ -297,11 +297,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Nearby Businesses */}
-          <div className="mb-12">
-            <NearbyBusinesses />
-          </div>
-
           {/* Advanced Analytics Preview */}
           <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-3xl p-8 border border-gray-100">
             <div className="flex items-center justify-between mb-8">
@@ -365,6 +360,11 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Nearby Businesses Section */}
+          <div className="mb-12">
+            <NearbyBusinesses className="w-full" />
           </div>
 
           {/* Executive Features */}

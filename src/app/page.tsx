@@ -4,9 +4,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowRight, Shield, Zap, TrendingUp, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowRight, Shield, Zap, TrendingUp, CreditCard, Loader2, MapPin } from 'lucide-react';
 import Header from '@/components/layout/Header';
-import CardFinder from '@/components/public/CardFinder';
+import HomepageBusinessDemo from '@/components/public/HomepageBusinessDemo';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -67,12 +67,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Card Finder Demo Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <CardFinder />
-        </div>
-      </section>
+      {/* Interactive Demo Section */}
+      <HomepageBusinessDemo />
 
       {/* Features Section */}
       <section className="py-20 bg-white">
@@ -110,13 +106,13 @@ export default function HomePage() {
             </div>
 
             <div className="text-center p-8 rounded-2xl hover:shadow-lg transition-shadow">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Shield className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <MapPin className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Secure & Private</h3>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Location-Based Recommendations</h3>
               <p className="text-gray-600 leading-relaxed">
-                Your financial data is encrypted and secure. We never store your full credit card 
-                numbers or sensitive information.
+                Discover nearby businesses and get instant credit card recommendations 
+                for each specific merchant to maximize your rewards.
               </p>
             </div>
           </div>
