@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { CreditCard, User, Menu } from 'lucide-react';
 import SmartNotifications from '@/components/ai/SmartNotifications';
+import RealTimeSystemClean from '@/components/realtime/RealTimeSystemClean';
+import NotificationCenter from '@/components/realtime/NotificationCenter';
 
 export default function Header() {
   const { user, signOut } = useAuth();
@@ -49,6 +51,18 @@ export default function Header() {
                 My Cards
               </Link>
               <Link 
+                href="/security" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Security
+              </Link>
+              <Link 
+                href="/realtime" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Real-Time
+              </Link>
+              <Link 
                 href="/loyalty" 
                 className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
               >
@@ -67,7 +81,7 @@ export default function Header() {
                 Insights
               </Link>
               <Link 
-                href="/dashboard/analytics" 
+                href="/analytics" 
                 className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
               >
                 Analytics
@@ -84,6 +98,8 @@ export default function Header() {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {user && <SmartNotifications />}
+            {user && <NotificationCenter />}
+            {user && <RealTimeSystemClean />}
             {user ? (
               <div className="relative">
                 <button

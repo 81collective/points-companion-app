@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorProvider } from "@/contexts/ErrorContext";
+import ErrorBoundary from "@/components/error/ErrorBoundary";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import Script from "next/script";
 
@@ -30,11 +32,15 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ReactQueryProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ReactQueryProvider>
+        <ErrorBoundary>
+          <ErrorProvider>
+            <ReactQueryProvider>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </ReactQueryProvider>
+          </ErrorProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

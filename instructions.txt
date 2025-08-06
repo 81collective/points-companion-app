@@ -1,686 +1,310 @@
-# VS Code Agent Implementation Prompts for Points Companion
+# Points Companion App - VSCode Agent Improvement Prompts
 
-## Phase 1: Core Parity Features (Weeks 1-4)
+## 🎯 Overview
+These prompts are designed to be used with your VSCode agent to systematically improve your Points Companion app. Each prompt is self-contained and can be executed independently.
 
-### Prompt 1: Enhanced Loyalty Program Tracking System
-```
-Create a comprehensive loyalty program tracking system for Points Companion app. 
+---
 
-Requirements:
-1. Create `src/types/loyalty.ts` with interfaces for:
-   - LoyaltyAccount (programId, accountNumber, balance, expirationDate, eliteStatus, certificates)
-   - Certificate (type: free-night/companion/upgrade, expirationDate, restrictions, value)
-   - LoyaltyProgram (name, category, pointsName, expirationRules)
+## 1. Fix All Compilation Errors and Warnings
 
-2. Create `src/lib/loyaltyPrograms.ts` with database of 100+ major programs:
-   - Airlines: American, Delta, United, Southwest, JetBlue, Alaska, etc.
-   - Hotels: Marriott, Hilton, Hyatt, IHG, Choice, Wyndham, etc.
-   - Credit Cards: Chase UR, Amex MR, Citi TY, Capital One, etc.
-   - Dining: OpenTable, Resy, restaurant loyalty programs
-   - Shopping: Amazon, Target, Walmart, grocery store programs
+```prompt
+Review all TypeScript and ESLint errors in the Points Companion app and fix them:
 
-3. Create `src/components/loyalty/LoyaltyDashboard.tsx` component with:
-   - Grid layout showing all tracked programs
-   - Balance displays with trend indicators
-   - Expiration warnings with countdown timers
-   - Certificate tracking with alert badges
-   - Quick actions for manual balance updates
+1. Remove all unused imports and variables
+2. Fix React Hook dependency warnings by adding missing dependencies or using useCallback
+3. Replace all 'any' types with proper TypeScript types
+4. Fix unescaped entities in JSX (apostrophes, quotes)
+5. Ensure all async functions have proper error handling
+6. Update deprecated Supabase methods to use @supabase/ssr
 
-4. Create `src/components/loyalty/AddLoyaltyAccount.tsx` modal:
-   - Search/filter programs by category
-   - Secure credential input with encryption
-   - Auto-sync toggle and frequency settings
-   - Connection testing and validation
-
-5. Implement secure credential storage using Supabase vault
-6. Add RLS policies for user data protection
-7. Create database migration for loyalty_accounts table
-8. Style with modern glassmorphism design and smooth animations
-
-Use TypeScript, React Query for data management, Framer Motion for animations, and ensure mobile-responsive design.
+Run 'npm run build' after fixes to verify compilation success.
 ```
 
-### Prompt 2: Advanced Merchant Optimization Engine
-```
-Build an intelligent merchant optimization engine for Points Companion.
+---
 
-Requirements:
-1. Create `src/lib/merchantEngine.ts` with:
-   - Comprehensive merchant database (10,000+ merchants)
-   - Category mapping (dining, groceries, gas, travel, etc.)
-   - Real-time bonus category tracking
-   - Card multiplier calculations
-   - GPS-based merchant discovery
+## 2. Implement Advanced Error Handling System
 
-2. Create `src/types/merchant.ts` with interfaces:
-   - Merchant (name, category, mcc codes, coordinates, chains)
-   - MerchantRecommendation (merchant, optimalCard, pointsEarned, cashValue, confidence)
-   - BonusCategory (category, multiplier, startDate, endDate, spendLimit)
+```prompt
+Create a comprehensive error handling system for the Points Companion app:
 
-3. Create `src/components/merchant/MerchantLookup.tsx`:
-   - Search bar with autocomplete
-   - GPS-based nearby merchant discovery
-   - Card recommendation cards with visual comparison
-   - Points/cash value calculations
-   - Alternative card suggestions
+1. Create a custom ErrorBoundary component in src/components/error/ErrorBoundary.tsx
+2. Add a global error context in src/contexts/ErrorContext.tsx with toast notifications
+3. Create error logging service that sends errors to console (and later to monitoring service)
+4. Add try-catch blocks to all async operations with user-friendly error messages
+5. Implement retry logic for failed API calls
+6. Create a fallback UI for error states
+7. Add loading skeletons for all data-fetching components
 
-4. Create `src/components/merchant/OptimalCardWidget.tsx`:
-   - Floating widget for quick merchant lookup
-   - One-tap card recommendations
-   - GPS integration for automatic suggestions
-   - Swipe gestures for card comparison
-
-5. Implement Google Places API integration:
-   - Nearby business discovery
-   - Merchant categorization
-   - Real-time location updates
-   - Offline caching for frequent locations
-
-6. Create `src/lib/cardMultipliers.ts`:
-   - Current bonus categories for all major cards
-   - Rotating category calendars
-   - Limited-time offer tracking
-   - Spending cap calculations
-
-7. Add database tables:
-   - merchants (name, category, mcc_codes, coordinates)
-   - card_multipliers (card_id, category, multiplier, start_date, end_date)
-   - user_merchant_history (user_id, merchant_id, frequency, last_visit)
-
-8. Implement caching strategy with React Query
-9. Add error handling and fallback mechanisms
-10. Style with modern card-based design and micro-interactions
-
-Ensure real-time performance, offline capabilities, and accurate recommendations.
+Use React Error Boundaries, custom hooks, and Tailwind CSS for styling.
 ```
 
-### Prompt 3: Welcome Bonus Management System
-```
-Create a sophisticated welcome bonus tracking system for Points Companion.
+---
 
-Requirements:
-1. Create `src/types/welcomeBonus.ts` with interfaces:
-   - WelcomeBonusTracker (cardId, requiredSpend, currentSpend, deadline, bonusAmount, progress)
-   - SpendingRecommendation (category, amount, suggestedMerchants, pointsImpact)
-   - BonusMilestone (threshold, reward, achieved, achievedDate)
+## 3. Add Real-Time Features with Supabase
 
-2. Create `src/components/bonuses/WelcomeBonusCard.tsx`:
-   - Visual progress bar with percentage completion
-   - Days remaining countdown with urgency indicators
-   - Spending velocity calculator
-   - Projected completion date
-   - Quick spending suggestions
+```prompt
+Implement real-time features using Supabase realtime subscriptions:
 
-3. Create `src/components/bonuses/BonusDashboard.tsx`:
-   - Grid of active bonus trackers
-   - Priority sorting by deadline urgency
-   - Completed bonuses history
-   - Total bonus value earned metrics
-   - Monthly/yearly bonus calendar
+1. Create real-time notifications when new recommendations are available
+2. Add live updates to dashboard when transactions are imported
+3. Implement real-time collaboration for shared household accounts
+4. Create a notification bell icon in header with unread count
+5. Add WebSocket connection status indicator
+6. Implement optimistic UI updates for better UX
 
-4. Create `src/components/bonuses/SpendingPlanner.tsx`:
-   - AI-powered spending recommendations
-   - Category optimization suggestions
-   - Multi-card coordination for multiple bonuses
-   - Bill payment timing optimization
-   - Large purchase timing recommendations
-
-5. Create `src/lib/bonusCalculator.ts`:
-   - Spending requirement calculations
-   - Timeline optimization algorithms
-   - Multi-bonus coordination logic
-   - Risk assessment for meeting deadlines
-   - Opportunity cost analysis
-
-6. Implement notification system:
-   - Push notifications for milestone achievements
-   - Email reminders for deadline approaches
-   - SMS alerts for urgent spending needs
-   - In-app notification center
-
-7. Create database schema:
-   - welcome_bonuses (card_id, required_spend, deadline, bonus_amount, bonus_type)
-   - bonus_progress (user_id, bonus_id, current_spend, last_updated)
-   - spending_recommendations (user_id, category, amount, priority)
-
-8. Add analytics tracking:
-   - Bonus completion rates
-   - Average time to complete
-   - Most effective spending categories
-   - User success patterns
-
-9. Implement smart spending suggestions:
-   - Bill prepayment opportunities
-   - Gift card purchase timing
-   - Large purchase coordination
-   - Category spending optimization
-
-10. Style with progress-focused design, achievement animations, and gamification elements
-
-Use React Query for state management, implement real-time updates, and ensure accurate spending calculations.
+Use Supabase Realtime channels and presence features.
 ```
 
-## Phase 2: AI-Driven Features (Weeks 5-8)
+---
 
-### Prompt 4: Advanced AI Personalization Engine
-```
-Build a sophisticated AI personalization engine for Points Companion that learns user behavior and optimizes recommendations.
+## 4. Create Advanced Analytics Dashboard
 
-Requirements:
-1. Create `src/lib/ai/personalizationEngine.ts` with:
-   - Machine learning models for spending pattern analysis
-   - Seasonal spending prediction algorithms
-   - Behavioral pattern recognition
-   - Goal-based optimization planning
-   - Risk tolerance assessment
+```prompt
+Build a comprehensive analytics dashboard at /dashboard/analytics:
 
-2. Create `src/types/ai.ts` with interfaces:
-   - UserProfile (spendingPatterns, preferences, goals, riskTolerance)
-   - SpendingPattern (category, amount, frequency, seasonality, trends)
-   - PredictiveInsight (prediction, confidence, timeframe, impact)
-   - OptimizationStrategy (goal, timeline, recommendations, expectedValue)
+1. Create monthly/yearly spending trends charts using Recharts
+2. Add category-wise spending breakdown with pie charts
+3. Implement rewards earned vs potential rewards comparison
+4. Create predictive analytics for future rewards based on spending patterns
+5. Add export functionality for reports (PDF/CSV)
+6. Implement date range filters and comparison tools
+7. Create mobile-responsive chart components
 
-3. Create `src/components/ai/PersonalizedDashboard.tsx`:
-   - Adaptive layout based on user preferences
-   - Personalized metric priorities
-   - AI-generated insights cards
-   - Goal progress with intelligent forecasting
-   - Contextual recommendations
-
-4. Create `src/components/ai/SmartInsights.tsx`:
-   - Spending trend analysis with predictions
-   - Anomaly detection and alerts
-   - Optimization opportunities identification
-   - Seasonal spending recommendations
-   - Goal achievement probability scores
-
-5. Implement OpenAI integration:
-   - Natural language insight generation
-   - Conversational recommendation explanations
-   - Query processing for user questions
-   - Context-aware response generation
-   - Multi-modal AI interactions
-
-6. Create `src/lib/ai/spendingAnalyzer.ts`:
-   - Transaction categorization and analysis
-   - Pattern recognition algorithms
-   - Trend prediction models
-   - Comparative analysis against optimal strategies
-   - ROI calculations for card usage
-
-7. Create `src/lib/ai/goalOptimizer.ts`:
-   - Goal-based card recommendations
-   - Timeline optimization for rewards earning
-   - Multi-objective optimization algorithms
-   - Risk-adjusted strategy planning
-   - Scenario modeling and simulation
-
-8. Implement data collection and processing:
-   - User interaction tracking
-   - Spending behavior analysis
-   - Preference learning algorithms
-   - Feedback loop implementation
-   - Privacy-preserving analytics
-
-9. Create database schema:
-   - user_profiles (user_id, spending_patterns, preferences, goals)
-   - ai_insights (user_id, insight_type, content, confidence, created_at)
-   - learning_data (user_id, interaction_type, data, timestamp)
-
-10. Add privacy controls:
-    - Data usage transparency
-    - Opt-out mechanisms
-    - Local processing options
-    - Anonymization techniques
-
-Style with AI-focused design language, featuring neural network visualizations, confidence indicators, and progressive disclosure of insights.
+Use Recharts library, Tailwind CSS, and TypeScript interfaces for data types.
 ```
 
-### Prompt 5: Intelligent Automation System
-```
-Create an advanced automation system for Points Companion that handles offer activation, payment optimization, and spending alerts.
+---
 
-Requirements:
-1. Create `src/lib/automation/automationEngine.ts` with:
-   - Automatic offer activation across all supported cards
-   - Smart payment scheduling optimization
-   - Bonus category enrollment automation
-   - Real-time spending optimization alerts
-   - Missed opportunity prevention system
+## 5. Implement AI-Powered Smart Recommendations
 
-2. Create `src/types/automation.ts` with interfaces:
-   - AutomationRule (trigger, condition, action, frequency, enabled)
-   - OfferActivation (cardId, offerId, activatedDate, expirationDate, value)
-   - PaymentPlan (cardId, amount, dueDate, optimizationReason)
-   - Alert (type, priority, message, actionRequired, dismissible)
+```prompt
+Enhance the AI recommendation system with OpenAI integration:
 
-3. Create `src/components/automation/AutomationCenter.tsx`:
-   - Dashboard showing all active automations
-   - Rule configuration interface
-   - Automation performance metrics
-   - Manual override controls
-   - Automation history and logs
+1. Create an intelligent spending analyzer that learns from user patterns
+2. Build a recommendation engine that suggests optimal card usage for upcoming purchases
+3. Implement natural language queries for card recommendations ("What card should I use for dining tonight?")
+4. Add contextual recommendations based on location and time
+5. Create a recommendation confidence score system
+6. Implement A/B testing for recommendation algorithms
+7. Add feedback mechanism to improve recommendations
 
-4. Create `src/components/automation/OfferManager.tsx`:
-   - Auto-discovered offers from all cards
-   - Bulk activation with smart filtering
-   - Offer value calculations and prioritization
-   - Expiration tracking and reminders
-   - Usage progress monitoring
-
-5. Implement payment optimization:
-   - Credit utilization ratio optimization
-   - Payment timing for maximum credit score benefit
-   - Multi-card balance coordination
-   - Interest avoidance strategies
-   - Cash flow optimization
-
-6. Create `src/lib/automation/offerScraper.ts`:
-   - API integration with major card issuers
-   - Automated offer discovery and parsing
-   - Offer categorization and value assessment
-   - Duplicate detection and filtering
-   - Real-time offer monitoring
-
-7. Create `src/lib/automation/paymentScheduler.ts`:
-   - Optimal payment date calculations
-   - Credit utilization impact modeling
-   - Cash flow analysis and planning
-   - Payment reminder system
-   - Emergency payment protocols
-
-8. Implement real-time monitoring:
-   - Spending threshold alerts
-   - Bonus category activation reminders
-   - Offer expiration warnings
-   - Payment due date notifications
-   - Optimization opportunity alerts
-
-9. Create database schema:
-   - automation_rules (user_id, rule_type, configuration, enabled)
-   - offer_activations (user_id, card_id, offer_id, activation_date)
-   - payment_schedules (user_id, card_id, amount, due_date, status)
-   - automation_logs (user_id, action_type, result, timestamp)
-
-10. Add safety mechanisms:
-    - User approval for high-value actions
-    - Spending limit protections
-    - Rollback capabilities
-    - Audit trails for all actions
-    - Override mechanisms for emergencies
-
-11. Implement notification systems:
-    - Push notifications for critical actions
-    - Email summaries of automation activities
-    - In-app notification center
-    - SMS alerts for urgent situations
-
-Style with automation-focused UI patterns, featuring progress indicators, status badges, and clear action hierarchies.
+Use OpenAI API with GPT-4, implement caching, and create TypeScript interfaces.
 ```
 
-## Phase 3: Unique Differentiators (Weeks 9-12)
+---
 
-### Prompt 6: Social & Gamification Platform
-```
-Build a comprehensive social and gamification system for Points Companion that creates community engagement and motivates optimization behavior.
+## 6. Add Progressive Web App (PWA) Features
 
-Requirements:
-1. Create `src/lib/social/gamificationEngine.ts` with:
-   - Achievement system with unlock progression
-   - Leaderboard calculations and rankings
-   - Community challenge mechanics
-   - Progress tracking and milestone rewards
-   - Social comparison algorithms
+```prompt
+Convert the Points Companion app to a Progressive Web App:
 
-2. Create `src/types/social.ts` with interfaces:
-   - Achievement (id, name, description, criteria, badge, rarity, points)
-   - Leaderboard (category, timeframe, users, scores, ranks)
-   - Challenge (id, name, goal, duration, participants, rewards)
-   - UserStats (totalPoints, achievementsCount, rank, streaks)
-   - CommunityTip (author, content, upvotes, category, verified)
+1. Create a manifest.json with app icons and metadata
+2. Implement service worker for offline functionality
+3. Add install prompt for desktop/mobile
+4. Create offline fallback pages
+5. Implement background sync for data updates
+6. Add push notifications support
+7. Create app shortcuts for quick actions
 
-3. Create `src/components/social/AchievementCenter.tsx`:
-   - Achievement gallery with unlock progress
-   - Badge collection display
-   - Progress bars for active achievements
-   - Achievement notifications and celebrations
-   - Rarity indicators and special effects
-
-4. Create `src/components/social/Leaderboards.tsx`:
-   - Multiple leaderboard categories (savings, optimization, streaks)
-   - Time-based filtering (weekly, monthly, yearly)
-   - Anonymous ranking with privacy controls
-   - Achievement-based scoring system
-   - Friend comparisons and challenges
-
-5. Create `src/components/social/CommunityHub.tsx`:
-   - User-generated optimization tips
-   - Expert-curated educational content
-   - Q&A forum with voting system
-   - Success story sharing
-   - Card review and rating system
-
-6. Create `src/components/social/ChallengeCenter.tsx`:
-   - Seasonal optimization challenges
-   - Community-wide goals and objectives
-   - Individual challenge participation
-   - Progress tracking and celebration
-   - Reward distribution system
-
-7. Implement achievement system:
-   - First card optimization
-   - Spending streaks and consistency
-   - Bonus category mastery
-   - Welcome bonus completions
-   - Community participation rewards
-
-8. Create social features:
-   - Anonymous benchmarking against similar users
-   - Opt-in friend connections and comparisons
-   - Privacy-first social interactions
-   - Content moderation and reporting
-   - Expert verification system
-
-9. Create database schema:
-   - achievements (id, name, description, criteria, badge_url, points)
-   - user_achievements (user_id, achievement_id, unlocked_date, progress)
-   - leaderboards (category, user_id, score, rank, timestamp)
-   - community_tips (author_id, content, upvotes, category, verified)
-   - challenges (id, name, description, start_date, end_date, rewards)
-
-10. Add gamification mechanics:
-    - Points system for various activities
-    - Streak tracking for consistent usage
-    - Level progression with unlockable features
-    - Badge collection and display
-    - Special event participation
-
-11. Implement privacy controls:
-    - Granular sharing preferences
-    - Anonymous participation options
-    - Data usage transparency
-    - Opt-out mechanisms
-    - Content filtering controls
-
-Style with modern gamification design patterns, featuring achievement animations, progress celebrations, and community-focused layouts.
+Use Next.js PWA plugin and configure Workbox strategies.
 ```
 
-### Prompt 7: Voice & Conversational AI System
-```
-Create an advanced voice and conversational AI system for Points Companion that enables natural language interactions and voice-controlled optimization.
+---
 
-Requirements:
-1. Create `src/lib/ai/conversationalAI.ts` with:
-   - Natural language processing for credit card queries
-   - Voice command recognition and processing
-   - Context-aware conversation management
-   - Multi-turn dialogue handling
-   - Intent recognition and entity extraction
+## 7. Implement Gamification System
 
-2. Create `src/types/conversational.ts` with interfaces:
-   - Conversation (id, messages, context, userId, timestamp)
-   - Message (role, content, timestamp, metadata, attachments)
-   - VoiceCommand (command, intent, entities, confidence)
-   - AIResponse (content, suggestions, actions, confidence)
-   - ConversationContext (currentTopic, userPreferences, sessionData)
+```prompt
+Add gamification features to increase user engagement:
 
-3. Create `src/components/ai/ChatInterface.tsx`:
-   - Modern chat interface with bubbles and animations
-   - Voice input button with waveform visualization
-   - Quick action buttons for common queries
-   - Conversation history with search
-   - Context-aware suggestions
+1. Create a points/XP system for app usage
+2. Add achievement badges for milestones (e.g., "Saved $100", "Used optimal card 10 times")
+3. Implement streak counters for daily app usage
+4. Create leaderboards for rewards optimization (privacy-respecting)
+5. Add progress bars for goals
+6. Implement level system with unlockable features
+7. Create celebration animations for achievements
 
-4. Create `src/components/ai/VoiceAssistant.tsx`:
-   - Voice activation with wake word detection
-   - Real-time speech-to-text processing
-   - Visual feedback during voice interactions
-   - Hands-free navigation capabilities
-   - Voice response playback
-
-5. Implement conversational capabilities:
-   - "What's my best card for Target?" queries
-   - "How much have I saved this month?" questions
-   - "Activate all my quarterly bonuses" commands
-   - "Plan my spending for this welcome bonus" requests
-   - "Show me my credit utilization" inquiries
-
-6. Create `src/lib/ai/intentRecognition.ts`:
-   - Intent classification algorithms
-   - Entity extraction for cards, merchants, amounts
-   - Context preservation across conversations
-   - Ambiguity resolution strategies
-   - Fallback handling for unclear queries
-
-7. Create `src/lib/ai/responseGeneration.ts`:
-   - Dynamic response templates
-   - Personalized recommendation formatting
-   - Data visualization suggestions
-   - Action item generation
-   - Follow-up question suggestions
-
-8. Implement voice processing:
-   - Web Speech API integration
-   - Real-time transcription
-   - Noise cancellation and audio processing
-   - Voice command shortcuts
-   - Multi-language support preparation
-
-9. Create conversation management:
-   - Session state management
-   - Context switching between topics
-   - Conversation summarization
-   - Important information extraction
-   - Follow-up scheduling
-
-10. Create database schema:
-    - conversations (id, user_id, title, created_at, updated_at)
-    - messages (id, conversation_id, role, content, timestamp)
-    - voice_commands (id, user_id, command, intent, timestamp)
-    - conversation_context (conversation_id, context_data)
-
-11. Add intelligent features:
-    - Proactive suggestions based on spending patterns
-    - Calendar integration for travel optimization
-    - Location-aware recommendations
-    - Time-sensitive offer alerts
-    - Educational content delivery
-
-12. Implement accessibility features:
-    - Screen reader compatibility
-    - Voice-only navigation
-    - Large text support
-    - High contrast mode
-    - Keyboard navigation
-
-Style with conversational UI patterns, featuring chat bubbles, voice visualizations, and accessibility-focused design.
+Use Framer Motion for animations, Zustand for state management, and PostgreSQL for persistence.
 ```
 
-## Phase 4: Advanced Integration & Polish (Weeks 13-16)
+---
 
-### Prompt 8: Calendar & Travel Integration System
-```
-Build a comprehensive calendar and travel integration system for Points Companion that optimizes card usage based on upcoming events and travel plans.
+## 8. Build Transaction Import System
 
-Requirements:
-1. Create `src/lib/integrations/calendarEngine.ts` with:
-   - Google Calendar and Outlook integration
-   - Travel event detection and parsing
-   - Spending forecast based on calendar events
-   - Optimal card selection for upcoming purchases
-   - Travel-specific optimization strategies
+```prompt
+Create a robust transaction import system:
 
-2. Create `src/types/calendar.ts` with interfaces:
-   - CalendarEvent (id, title, start, end, location, type, spendingForecast)
-   - TravelPlan (destination, dates, transportation, accommodation, estimatedSpend)
-   - EventOptimization (event, recommendedCards, strategy, expectedValue)
-   - SpendingForecast (category, amount, confidence, recommendedCard)
+1. Add Plaid integration for automatic bank transaction import
+2. Create CSV upload functionality with parsing and validation
+3. Implement transaction categorization using AI
+4. Add manual transaction entry form
+5. Create duplicate detection and merging logic
+6. Implement bulk editing capabilities
+7. Add transaction search and filtering
 
-3. Create `src/components/calendar/CalendarDashboard.tsx`:
-   - Calendar view with spending optimization overlay
-   - Travel event highlighting and recommendations
-   - Upcoming optimization opportunities
-   - Event-based card recommendations
-   - Spending forecast visualization
-
-4. Create `src/components/travel/TravelOptimizer.tsx`:
-   - Travel planning with optimal card selection
-   - Airport lounge access tracking
-   - Travel insurance benefit utilization
-   - Foreign transaction fee avoidance
-   - Travel credit optimization
-
-5. Implement travel detection:
-   - Flight booking confirmation parsing
-   - Hotel reservation identification
-   - Car rental optimization
-   - Restaurant reservation tracking
-   - Activity booking analysis
-
-6. Create spending forecasting:
-   - Event-based spending predictions
-   - Seasonal adjustment algorithms
-   - Category-specific forecasting models
-   - Confidence interval calculations
-   - Scenario planning capabilities
-
-7. Create `src/lib/travel/benefitsTracker.ts`:
-   - Travel credit monitoring and alerts
-   - Lounge access eligibility checking
-   - Travel insurance coverage verification
-   - Baggage fee reimbursement tracking
-   - Car rental benefit optimization
-
-8. Implement real-time optimization:
-   - Pre-travel card activation reminders
-   - During-travel spending optimization
-   - Post-travel benefit claim assistance
-   - Travel spending analysis and reporting
-   - Future travel planning recommendations
-
-9. Create database schema:
-   - calendar_events (id, user_id, title, start_date, end_date, location)
-   - travel_plans (id, user_id, destination, dates, estimated_spend)
-   - event_optimizations (event_id, recommended_cards, strategy)
-   - travel_benefits (user_id, card_id, benefit_type, usage_date)
-
-10. Add notification system:
-    - Pre-travel optimization reminders
-    - Travel benefit activation alerts
-    - Spending opportunity notifications
-    - Post-travel analysis summaries
-
-Style with travel-focused design elements, calendar visualizations, and location-based UI patterns.
+Use Plaid API, Papa Parse for CSV, and create proper TypeScript types.
 ```
 
-### Prompt 9: Advanced Security & Compliance System
-```
-Implement enterprise-grade security and compliance features for Points Companion to ensure data protection and regulatory compliance.
+---
 
-Requirements:
-1. Create `src/lib/security/securityEngine.ts` with:
-   - Zero-knowledge encryption architecture
-   - Biometric authentication integration
-   - Advanced fraud detection algorithms
-   - Comprehensive audit logging
-   - PCI DSS compliance framework
+## 9. Optimize Performance and SEO
 
-2. Create `src/types/security.ts` with interfaces:
-   - SecurityEvent (type, severity, timestamp, details, resolved)
-   - AuditLog (action, userId, timestamp, ipAddress, result)
-   - EncryptionKey (id, algorithm, created, rotated, status)
-   - BiometricAuth (type, enabled, lastUsed, failureCount)
-   - ComplianceStatus (standard, status, lastAudit, nextReview)
+```prompt
+Implement performance optimizations and SEO improvements:
 
-3. Create `src/components/security/SecurityDashboard.tsx`:
-   - Security status overview with health indicators
-   - Recent security events and alerts
-   - Authentication method management
-   - Privacy settings and data controls
-   - Compliance status reporting
+1. Add React.memo to prevent unnecessary re-renders
+2. Implement code splitting with dynamic imports
+3. Optimize images with Next.js Image component
+4. Add proper meta tags and Open Graph data
+5. Implement sitemap.xml generation
+6. Add robots.txt configuration
+7. Optimize bundle size by analyzing and removing unused dependencies
+8. Implement lazy loading for components below the fold
+9. Add performance monitoring with Web Vitals
 
-4. Create `src/components/security/BiometricAuth.tsx`:
-   - Face ID and Touch ID integration
-   - Windows Hello compatibility
-   - Fallback authentication methods
-   - Security preference configuration
-   - Device registration management
-
-5. Implement encryption system:
-   - End-to-end encryption for sensitive data
-   - Key rotation and management
-   - Zero-knowledge architecture
-   - Local encryption for offline data
-   - Secure key derivation
-
-6. Create fraud detection:
-   - Unusual spending pattern detection
-   - Account access anomaly identification
-   - Device fingerprinting and verification
-   - Location-based security alerts
-   - Machine learning threat detection
-
-7. Create `src/lib/security/auditSystem.ts`:
-   - Comprehensive action logging
-   - Data access tracking
-   - User behavior monitoring
-   - Security event correlation
-   - Compliance reporting automation
-
-8. Implement privacy controls:
-   - Granular data sharing preferences
-   - Right to be forgotten implementation
-   - Data portability features
-   - Consent management system
-   - Privacy dashboard
-
-9. Create compliance framework:
-   - GDPR compliance features
-   - CCPA privacy rights implementation
-   - SOX financial data protection
-   - PCI DSS card data security
-   - Regular compliance auditing
-
-10. Create database schema:
-    - security_events (id, type, severity, details, timestamp)
-    - audit_logs (id, user_id, action, details, timestamp)
-    - encryption_keys (id, algorithm, created_at, status)
-    - compliance_reports (id, standard, status, audit_date)
-
-11. Add security monitoring:
-    - Real-time threat detection
-    - Automated incident response
-    - Security alert escalation
-    - Breach detection and notification
-    - Recovery procedures
-
-12. Implement secure communication:
-    - TLS 1.3 for all connections
-    - Certificate pinning
-    - API security headers
-    - Rate limiting and DDoS protection
-    - Secure session management
-
-Style with security-focused design patterns, featuring trust indicators, security badges, and clear privacy controls.
+Use Next.js built-in optimizations, lighthouse for testing.
 ```
 
-## Testing & Quality Assurance Prompts
+---
 
-### Prompt 10: Comprehensive Testing Suite
+## 10. Create Comprehensive Testing Suite
+
+```prompt
+Set up testing infrastructure for the Points Companion app:
+
+1. Configure Jest and React Testing Library
+2. Write unit tests for all utility functions
+3. Create integration tests for API routes
+4. Add component tests for critical UI components
+5. Implement E2E tests with Playwright
+6. Add test coverage reporting
+7. Create GitHub Actions workflow for CI/CD
+8. Add pre-commit hooks with Husky
+
+Aim for 80% code coverage minimum.
 ```
-Create a comprehensive testing suite for Points Companion covering unit tests, integration tests, and end-to-end testing.
 
-Requirements:
-1. Set up testing infrastructure with Jest, React Testing Library, and Playwright
-2. Create unit tests for all utility functions and business logic
-3. Implement integration tests for API endpoints and database operations
-4. Build end-to-end tests for critical user journeys
-5. Add performance testing for key components
-6. Implement accessibility testing with axe-core
-7. Create visual regression testing setup
-8. Add security testing for authentication and data protection
-9. Implement load testing for scalability validation
-10. Set up continuous integration with automated testing
+---
 
-Include test coverage reporting, automated test running on commits, and quality gates for deployments.
+## 11. Implement Advanced Security Features
+
+```prompt
+Enhance security across the application:
+
+1. Implement rate limiting on API routes
+2. Add CSRF protection
+3. Implement proper input sanitization
+4. Add content security policy headers
+5. Implement secure session management
+6. Add two-factor authentication option
+7. Create audit logs for sensitive actions
+8. Implement data encryption for sensitive information
+
+Use Next.js middleware, helmet.js, and Supabase RLS policies.
 ```
+
+---
+
+## 12. Build Mobile-First Responsive Design
+
+```prompt
+Optimize the entire app for mobile devices:
+
+1. Implement touch-friendly interfaces with larger tap targets
+2. Add swipe gestures for navigation
+3. Create bottom navigation bar for mobile
+4. Optimize forms for mobile input
+5. Implement pull-to-refresh functionality
+6. Add haptic feedback for interactions (where supported)
+7. Create responsive tables that work on small screens
+8. Optimize loading performance for mobile networks
+
+Use Tailwind CSS responsive utilities and touch event handlers.
+```
+
+---
+
+## 13. Create Data Export and Backup System
+
+```prompt
+Implement comprehensive data management features:
+
+1. Add "Export All Data" functionality in user settings
+2. Create scheduled backup system
+3. Implement data import from competitors' apps
+4. Add API for third-party integrations
+5. Create webhook system for external services
+6. Implement GDPR-compliant data deletion
+7. Add data portability features
+
+Use Node.js streams for large data exports, implement proper authentication.
+```
+
+---
+
+## 14. Build Social and Sharing Features
+
+```prompt
+Add social elements to increase engagement:
+
+1. Create referral system with rewards
+2. Add ability to share optimal card recommendations
+3. Implement family/household account linking
+4. Create public profiles with privacy controls
+5. Add social proof elements (testimonials, success stories)
+6. Implement card recommendation voting system
+7. Create community forums for tips and tricks
+
+Ensure privacy-first approach with opt-in features.
+```
+
+---
+
+## 15. Implement Multi-Language Support
+
+```prompt
+Add internationalization to the app:
+
+1. Set up next-i18next for translations
+2. Create language switcher component
+3. Translate all static text to at least 3 languages
+4. Implement currency conversion for international users
+5. Add locale-specific date and number formatting
+6. Create RTL support for Arabic/Hebrew
+7. Implement language detection based on browser settings
+
+Use next-i18next, create translation files in JSON format.
+```
+
+---
+
+## 📋 Usage Instructions
+
+1. **Copy any prompt** from above
+2. **Paste into VSCode** with your agent active
+3. **Review the generated code** before committing
+4. **Test thoroughly** after each implementation
+5. **Commit changes** with descriptive messages
+
+## 🎯 Recommended Implementation Order
+
+1. Start with **Error Handling** (foundational)
+2. Fix **Compilation Errors** (stability)
+3. Add **Analytics Dashboard** (user value)
+4. Implement **AI Recommendations** (differentiation)
+5. Add **Real-Time Features** (engagement)
+6. Build **Transaction Import** (core functionality)
+7. Add **PWA Features** (mobile experience)
+8. Implement **Testing** (quality assurance)
+
+## 💡 Pro Tips
+
+- Test each feature in development before deploying
+- Keep your Supabase and API keys secure
+- Monitor performance after each major change
+- Get user feedback early and often
+- Document new features as you build them
+
+---
+
+*These prompts will transform your Points Companion app into a world-class financial optimization platform!*
