@@ -5,6 +5,11 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorProvider } from "@/contexts/ErrorContext";
 import ErrorBoundary from "@/components/error/ErrorBoundary";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
+import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
+import OfflineIndicator from "@/components/pwa/OfflineIndicator";
+import ServiceWorkerRegistration from "@/components/pwa/ServiceWorkerRegistration";
+import AchievementToast from "@/components/gamification/AchievementToast";
+import GamificationTracker from "@/components/gamification/GamificationTracker";
 import Script from "next/script";
 
 const inter = Inter({
@@ -15,6 +20,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Points Companion - Maximize Your Credit Card Rewards",
   description: "Smart credit card recommendations and points optimization",
+  manifest: "/manifest.json",
+  themeColor: "#0f172a",
+  viewport: "minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Points Companion",
+  },
 };
 
 export default function RootLayout({
@@ -36,6 +49,11 @@ export default function RootLayout({
           <ErrorProvider>
             <ReactQueryProvider>
               <AuthProvider>
+                <ServiceWorkerRegistration />
+                <PWAInstallPrompt />
+                <OfflineIndicator />
+                <AchievementToast />
+                <GamificationTracker />
                 {children}
               </AuthProvider>
             </ReactQueryProvider>

@@ -452,7 +452,7 @@ const AIRecommendationEngine: React.FC = () => {
                 onClick={() => setQuery(suggestion)}
                 className="text-sm bg-gray-100 hover:bg-gray-200 rounded-full px-3 py-1 transition-colors"
               >
-                "                {suggestion}"
+                {suggestion}
               </button>
             ))}
           </div>

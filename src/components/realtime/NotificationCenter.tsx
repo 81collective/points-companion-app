@@ -130,9 +130,9 @@ const NotificationCenter: React.FC = () => {
     generateDemoNotifications();
   }, [user]);
 
-  const handleTransactionEvent = (payload: any) => {
-    if (payload.eventType === 'INSERT') {
-      const transaction = payload.new;
+  const handleTransactionEvent = (payload: RealtimeEvent) => {
+    if (payload.eventType === 'INSERT' && payload.new) {
+      const transaction = payload.new as { amount: number; merchant_name: string };
       addNotification({
         type: 'spending',
         title: 'New Transaction Added',

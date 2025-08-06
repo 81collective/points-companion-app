@@ -51,6 +51,12 @@ export default function Header() {
                 My Cards
               </Link>
               <Link 
+                href="/gamification" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                Gamification
+              </Link>
+              <Link 
                 href="/security" 
                 className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
               >
