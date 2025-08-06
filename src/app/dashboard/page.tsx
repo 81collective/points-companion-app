@@ -3,6 +3,7 @@ import AIPerformanceMetrics from '@/components/analytics/AIPerformanceMetrics'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import Header from '@/components/layout/Header'
+import AISystemHeader from '@/components/ai/AISystemHeader'
 import { CreditCard, TrendingUp, DollarSign, Plus, BarChart3, ArrowUpRight, Sparkles, PieChart, Target } from 'lucide-react'
 import Link from 'next/link'
 import RecommendationForm from '@/components/recommendations/RecommendationForm'
@@ -144,6 +145,11 @@ export default function DashboardPage() {
                   Analytics
                 </Link>
               </div>
+            </div>
+            
+            {/* AI System Header */}
+            <div className="mt-8">
+              <AISystemHeader />
             </div>
             
             {/* Mobile buttons */}

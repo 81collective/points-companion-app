@@ -87,6 +87,12 @@ export default function Header() {
                 Analytics
               </Link>
               <Link 
+                href="/ai" 
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                AI Assistant
+              </Link>
+              <Link 
                 href="/dashboard/transactions" 
                 className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
               >
