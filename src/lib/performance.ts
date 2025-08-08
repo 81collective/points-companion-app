@@ -66,8 +66,8 @@ export function performanceMeasure(name: string, startMark: string, endMark?: st
 // Bundle size analyzer
 export function analyzeBundleSize() {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    const scripts = Array.from(document.scripts || [] as any);
-    const styles = Array.from(document.styleSheets || [] as any);
+    const scripts = Array.from(document.scripts);
+    const styles = Array.from(document.styleSheets);
 
     console.group('Bundle Analysis');
     console.log('Scripts loaded:', scripts.length);
@@ -79,9 +79,16 @@ export function analyzeBundleSize() {
 
 // Memory usage monitoring
 export function monitorMemoryUsage() {
-  if (typeof window !== 'undefined' && window.performance && 'memory' in (window.performance as any)) {
-    const perf: any = window.performance as any;
-    const memory = perf.memory as MemoryInfo | undefined;
+  if (typeof window !== 'undefined' && 'performance' in window) {
+    type MemoryInfo = {
+      usedJSHeapSize: number;
+      totalJSHeapSize: number;
+      jsHeapSizeLimit: number;
+    };
+    type PerformanceWithMemory = Performance & { memory?: MemoryInfo };
+
+    const perf = window.performance as PerformanceWithMemory;
+    const memory = perf.memory;
     if (memory) {
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
@@ -92,12 +99,6 @@ export function monitorMemoryUsage() {
     }
   }
   return null;
-}
-
-interface MemoryInfo {
-  usedJSHeapSize: number;
-  totalJSHeapSize: number;
-  jsHeapSizeLimit: number;
 }
 
 // Image loading optimization

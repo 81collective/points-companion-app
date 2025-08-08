@@ -34,15 +34,6 @@ export const imageConfig = {
 // Compression configuration
 export const compressionConfig = {
   compress: true,
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-icons',
-      'recharts',
-      'framer-motion'
-    ],
-  },
 };
 
 // SEO headers configuration
@@ -87,10 +78,6 @@ export const securityHeaders = [
 
 // Performance monitoring configuration
 export const performanceConfig = {
-  webVitalsAttribution: true,
-  optimizeFonts: true,
-  optimizeImages: true,
-  swcMinify: true,
   reactStrictMode: true,
 };
 
@@ -154,5 +141,11 @@ export const cacheHeaders = [
 
 // Experimental features for performance
 export const experimentalConfig = {
-  optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+  // optimizeCss: true, // disabled to avoid requiring optional 'critters' dependency
+  optimizePackageImports: [
+    '@radix-ui/react-icons',
+    'lucide-react',
+    'recharts',
+    'framer-motion',
+  ],
 };
