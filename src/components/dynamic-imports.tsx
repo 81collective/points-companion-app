@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic';
-import { Skeleton, CardSkeleton } from '@/components/ui/lazy-load';
+import { Skeleton, CardSkeleton, ChartSkeleton } from '@/components/ui/lazy-load';
 
-// Transaction components (using existing components)
+// Transaction components (existing)
 export const TransactionList = dynamic(
   () => import('@/components/transactions/TransactionList'),
   {
@@ -37,7 +37,7 @@ export const ManualTransactionEntry = dynamic(
   }
 );
 
-// Real-time components (using existing)
+// Realtime components (existing)
 export const NotificationCenter = dynamic(
   () => import('@/components/realtime/NotificationCenter'),
   {
@@ -46,7 +46,28 @@ export const NotificationCenter = dynamic(
   }
 );
 
-// Card components (using existing)
+// Analytics components (existing)
+export const EnhancedAnalyticsDashboard = dynamic(
+  () => import('@/components/analytics/EnhancedAnalyticsDashboard'),
+  { loading: () => <ChartSkeleton />, ssr: false }
+);
+
+export const AdvancedAnalytics = dynamic(
+  () => import('@/components/analytics/AdvancedAnalytics'),
+  { loading: () => <ChartSkeleton />, ssr: false }
+);
+
+export const AIPerformanceMetrics = dynamic(
+  () => import('@/components/analytics/AIPerformanceMetrics'),
+  { loading: () => <ChartSkeleton />, ssr: false }
+);
+
+export const RecommendationHistory = dynamic(
+  () => import('@/components/analytics/RecommendationHistory'),
+  { loading: () => <ChartSkeleton />, ssr: false }
+);
+
+// Card components (existing)
 export const CardList = dynamic(
   () => import('@/components/cards/CardList'),
   {
@@ -58,6 +79,34 @@ export const CardList = dynamic(
       </div>
     )
   }
+);
+
+// AI components (existing)
+export const SmartInsights = dynamic(
+  () => import('@/components/ai/SmartInsights'),
+  { loading: () => <Skeleton className="h-48 w-full" /> }
+);
+
+// Maps (existing)
+export const BusinessMap = dynamic(
+  () => import('@/components/maps/BusinessMap'),
+  { loading: () => <Skeleton className="h-64 w-full rounded-lg" />, ssr: false }
+);
+
+// Charts (external lib)
+export const PieChart = dynamic(
+  () => import('recharts').then(mod => ({ default: mod.PieChart })),
+  { loading: () => <ChartSkeleton />, ssr: false }
+);
+
+export const LineChart = dynamic(
+  () => import('recharts').then(mod => ({ default: mod.LineChart })),
+  { loading: () => <ChartSkeleton />, ssr: false }
+);
+
+export const BarChart = dynamic(
+  () => import('recharts').then(mod => ({ default: mod.BarChart })),
+  { loading: () => <ChartSkeleton />, ssr: false }
 );
 
 // Performance optimization utilities
@@ -88,11 +137,13 @@ export const performanceAnalytics = {
   analyzeBundleComponents: () => {
     const dynamicComponents = [
       'TransactionList',
-      'CSVUpload', 
+      'CSVUpload',
       'NotificationCenter',
-      'CardList'
+      'CardList',
+      'EnhancedAnalyticsDashboard',
+      'BusinessMap'
     ];
-    
+
     console.group('Dynamic Components Analysis');
     console.log('Total dynamic components:', dynamicComponents.length);
     console.log('Components:', dynamicComponents);

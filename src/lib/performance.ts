@@ -36,24 +36,26 @@ export function initWebVitals() {
 
 // Performance mark utility
 export function performanceMark(name: string) {
-  if (typeof window !== 'undefined' && 'performance' in window) {
-    performance.mark(name);
+  if (typeof window !== 'undefined' && window.performance && typeof window.performance.mark === 'function') {
+    window.performance.mark(name);
   }
 }
 
 // Performance measure utility
 export function performanceMeasure(name: string, startMark: string, endMark?: string) {
-  if (typeof window !== 'undefined' && 'performance' in window) {
+  if (typeof window !== 'undefined' && window.performance && typeof window.performance.measure === 'function') {
     try {
       if (endMark) {
-        performance.measure(name, startMark, endMark);
+        window.performance.measure(name, startMark, endMark);
       } else {
-        performance.measure(name, startMark);
+        window.performance.measure(name, startMark);
       }
-      
-      const measure = performance.getEntriesByName(name, 'measure')[0];
-      console.log(`Performance: ${name} took ${measure.duration.toFixed(2)}ms`);
-      return measure.duration;
+      const measureEntries = window.performance.getEntriesByName(name, 'measure') as PerformanceEntry[];
+      const measure = measureEntries[0];
+      if (measure && typeof measure.duration === 'number') {
+        console.log(`Performance: ${name} took ${measure.duration.toFixed(2)}ms`);
+        return measure.duration;
+      }
     } catch (error) {
       console.warn('Performance measurement failed:', error);
     }
@@ -63,10 +65,10 @@ export function performanceMeasure(name: string, startMark: string, endMark?: st
 
 // Bundle size analyzer
 export function analyzeBundleSize() {
-  if (typeof window !== 'undefined') {
-    const scripts = Array.from(document.scripts);
-    const styles = Array.from(document.styleSheets);
-    
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    const scripts = Array.from(document.scripts || [] as any);
+    const styles = Array.from(document.styleSheets || [] as any);
+
     console.group('Bundle Analysis');
     console.log('Scripts loaded:', scripts.length);
     console.log('Stylesheets loaded:', styles.length);
@@ -77,8 +79,9 @@ export function analyzeBundleSize() {
 
 // Memory usage monitoring
 export function monitorMemoryUsage() {
-  if (typeof window !== 'undefined' && 'performance' in window && 'memory' in performance) {
-    const memory = (performance as Performance & { memory?: MemoryInfo }).memory;
+  if (typeof window !== 'undefined' && window.performance && 'memory' in (window.performance as any)) {
+    const perf: any = window.performance as any;
+    const memory = perf.memory as MemoryInfo | undefined;
     if (memory) {
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
@@ -99,7 +102,7 @@ interface MemoryInfo {
 
 // Image loading optimization
 export function preloadCriticalImages(imageUrls: string[]) {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     imageUrls.forEach(url => {
       const link = document.createElement('link');
       link.rel = 'preload';
@@ -112,7 +115,7 @@ export function preloadCriticalImages(imageUrls: string[]) {
 
 // Resource hints
 export function addResourceHints(domains: string[]) {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     domains.forEach(domain => {
       const link = document.createElement('link');
       link.rel = 'dns-prefetch';
