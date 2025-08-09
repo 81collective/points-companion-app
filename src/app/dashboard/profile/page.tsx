@@ -1,15 +1,19 @@
 "use client"
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
+import { useDashboardPreferences, type DashboardPreferences } from '@/hooks/useDashboardPreferences'
 import ProfileLayout from '@/components/layout/ProfileLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import AvatarUploader from '@/components/profile/AvatarUploader'
+import TwoFactorSetup from '@/components/profile/TwoFactorSetup'
+import type { } from '@/contexts/AuthContext' // ensure module resolution for types
+
+// Bring in Profile type from AuthContext via re-declaration (cannot import directly if not exported)
+interface ProfileShape { id: string; email: string; first_name: string | null; last_name: string | null; avatar_url: string | null; created_at: string; updated_at: string }
 
 export default function ProfileSettingsPage() {
   const { preferences, setPreferences, save, loading, defaultPreferences } = useDashboardPreferences()
-  const { user, updateProfile, profile } = useAuth()
+  const { updateProfile, profile } = useAuth()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -20,12 +24,13 @@ export default function ProfileSettingsPage() {
     }
   }, [saving, saved])
 
-  const onToggle = (key: keyof typeof defaultPreferences) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPreferences({ ...preferences, [key]: e.target.checked } as any)
+  const onToggle = <K extends keyof DashboardPreferences>(key: K) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPreferences({ ...preferences, [key]: e.target.checked })
   }
 
-  const onSelect = (key: keyof typeof defaultPreferences) => (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPreferences({ ...preferences, [key]: e.target.value } as any)
+  const onSelect = <K extends keyof DashboardPreferences>(key: K) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+    // Cast ensured by generic K mapping to valid key
+    setPreferences({ ...preferences, [key]: e.target.value as DashboardPreferences[K] })
   }
 
   const onSave = async () => {
@@ -55,7 +60,7 @@ export default function ProfileSettingsPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Personal information</h2>
             <div className="mb-6"><AvatarUploader /></div>
-            <PersonalInfoForm profile={profile} updateProfile={updateProfile} />
+            <PersonalInfoForm profile={profile as ProfileShape | null} updateProfile={updateProfile as (u: Partial<ProfileShape>) => Promise<{ error?: string }>} />
           </div>
         </section>
 
@@ -133,8 +138,8 @@ export default function ProfileSettingsPage() {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6" id="privacy">
               <h3 className="font-medium text-gray-900 mb-3">Privacy & Security</h3>
-              <ul className="space-y-3 text-sm text-gray-600 mb-4">
-                <li className="flex items-start gap-2"><span className="w-1.5 h-1.5 mt-1 rounded-full bg-emerald-500" />Two-factor auth (coming soon)</li>
+              <TwoFactorSetup />
+              <ul className="space-y-3 text-sm text-gray-600 mb-4 mt-6">
                 <li className="flex items-start gap-2"><span className="w-1.5 h-1.5 mt-1 rounded-full bg-emerald-500" />Device/session management (planned)</li>
                 <li className="flex items-start gap-2"><span className="w-1.5 h-1.5 mt-1 rounded-full bg-emerald-500" />Export / delete data self-service (roadmap)</li>
                 <li className="flex items-start gap-2"><span className="w-1.5 h-1.5 mt-1 rounded-full bg-emerald-500" />Granular notification categories (planned)</li>
@@ -201,7 +206,7 @@ function SelectItem({ label, value, onChange, options }: { label: string; value:
   )
 }
 
-function PersonalInfoForm({ profile, updateProfile }: { profile: any; updateProfile: (u: any) => Promise<{ error?: string }> }) {
+function PersonalInfoForm({ profile, updateProfile }: { profile: ProfileShape | null; updateProfile: (u: Partial<ProfileShape>) => Promise<{ error?: string }> }) {
   const [firstName, setFirstName] = useState(profile?.first_name || '')
   const [lastName, setLastName] = useState(profile?.last_name || '')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')

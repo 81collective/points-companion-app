@@ -6,18 +6,8 @@ import {
   Brain,
   MessageSquare,
   Send,
-  Sparkles,
-  CreditCard,
-  TrendingUp,
-  MapPin,
-  Clock,
   Star,
-  Target,
-  Zap,
-  ArrowRight,
-  ThumbsUp,
-  ThumbsDown,
-  RotateCcw
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -72,7 +62,7 @@ const AIRecommendationEngine: React.FC = () => {
     getCurrentLocation();
   }, [user]);
 
-  const initializeAIEngine = () => {
+  const initializeAIEngine = useCallback(() => {
     // Generate some contextual recommendations based on current context
     generateContextualRecommendations();
     
@@ -85,9 +75,9 @@ const AIRecommendationEngine: React.FC = () => {
         // Ignore parsing errors
       }
     }
-  };
+  }, [generateContextualRecommendations]);
 
-  const loadSpendingPatterns = () => {
+  const loadSpendingPatterns = useCallback(() => {
     // Mock spending patterns - in real app this would come from AI analysis
     setSpendingPatterns([
       {
@@ -123,14 +113,14 @@ const AIRecommendationEngine: React.FC = () => {
         improvement: 105
       }
     ]);
-  };
+  }, []);
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = useCallback(() => {
     // Mock location - in real app this would use geolocation API
     setCurrentLocation('Downtown Seattle, WA');
-  };
+  }, []);
 
-  const generateContextualRecommendations = () => {
+  const generateContextualRecommendations = useCallback(() => {
     const currentHour = new Date().getHours();
     const timeContext = currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening';
     
@@ -191,7 +181,7 @@ const AIRecommendationEngine: React.FC = () => {
     ];
 
     setContextualRecommendations(recommendations);
-  };
+  }, [currentLocation]);
 
   const processNaturalLanguageQuery = async (userQuery: string): Promise<AIRecommendation[]> => {
     // Mock AI processing - in real app this would call OpenAI API
@@ -388,7 +378,7 @@ const AIRecommendationEngine: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white bg-opacity-10 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <Sparkles className="w-5 h-5" />
+              <Star className="w-5 h-5" />
               <span className="font-medium">Smart Analysis</span>
             </div>
             <p className="text-sm text-purple-100">Learns from your spending patterns and preferences</p>
@@ -396,7 +386,7 @@ const AIRecommendationEngine: React.FC = () => {
           
           <div className="bg-white bg-opacity-10 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <MapPin className="w-5 h-5" />
+              <Star className="w-5 h-5" />
               <span className="font-medium">Context Aware</span>
             </div>
             <p className="text-sm text-purple-100">Considers location, time, and merchant type</p>
@@ -404,7 +394,7 @@ const AIRecommendationEngine: React.FC = () => {
           
           <div className="bg-white bg-opacity-10 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <Target className="w-5 h-5" />
+              <Star className="w-5 h-5" />
               <span className="font-medium">Optimized Rewards</span>
             </div>
             <p className="text-sm text-purple-100">Maximizes points and cashback potential</p>
@@ -436,7 +426,7 @@ const AIRecommendationEngine: React.FC = () => {
               className="absolute bottom-3 right-3 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               {isProcessing ? (
-                <RotateCcw className="w-4 h-4 animate-spin" />
+                <Star className="w-4 h-4 animate-spin" />
               ) : (
                 <Send className="w-4 h-4" />
               )}
@@ -474,7 +464,7 @@ const AIRecommendationEngine: React.FC = () => {
 
                 {chat.processing ? (
                   <div className="flex items-center space-x-2 text-blue-600">
-                    <RotateCcw className="w-4 h-4 animate-spin" />
+                    <Star className="w-4 h-4 animate-spin" />
                     <span className="text-sm">AI is thinking...</span>
                   </div>
                 ) : chat.response && (
@@ -499,11 +489,11 @@ const AIRecommendationEngine: React.FC = () => {
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <Zap className="w-6 h-6 text-orange-600" />
+            <Star className="w-6 h-6 text-orange-600" />
             <h3 className="text-xl font-semibold text-gray-900">Smart Recommendations</h3>
           </div>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Clock className="w-4 h-4" />
+            <Star className="w-4 h-4" />
             <span>Updated based on current context</span>
           </div>
         </div>
@@ -641,7 +631,7 @@ const RecommendationCard: React.FC<{
               }}
               className="p-1 text-gray-400 hover:text-green-600 transition-colors"
             >
-              <ThumbsUp className="w-4 h-4" />
+              <Star className="w-4 h-4" />
             </button>
             <button
               onClick={(e) => {
@@ -650,13 +640,13 @@ const RecommendationCard: React.FC<{
               }}
               className="p-1 text-gray-400 hover:text-red-600 transition-colors"
             >
-              <ThumbsDown className="w-4 h-4" />
+              <Star className="w-4 h-4" />
             </button>
           </div>
           
           <div className="flex items-center space-x-1 text-blue-600">
             <span className="text-sm">View details</span>
-            <ArrowRight className="w-4 h-4" />
+            <Star className="w-4 h-4" />
           </div>
         </div>
       )}
@@ -702,7 +692,7 @@ const RecommendationDetails: React.FC<{
           
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <Target className="w-5 h-5 text-blue-600" />
+              <Star className="w-5 h-5 text-blue-600" />
               <span className="font-medium text-blue-900">Confidence</span>
             </div>
             <p className="text-2xl font-bold text-blue-600">{recommendation.confidence}%</p>
@@ -714,7 +704,7 @@ const RecommendationDetails: React.FC<{
           <div className="space-y-2">
             {recommendation.insights.map((insight, index) => (
               <div key={index} className="flex items-start space-x-2">
-                <Sparkles className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
+                <Star className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
                 <p className="text-sm text-gray-700">{insight}</p>
               </div>
             ))}
@@ -729,14 +719,14 @@ const RecommendationDetails: React.FC<{
                 onClick={() => onFeedback(recommendation.id, true)}
                 className="flex items-center space-x-1 px-3 py-1 text-sm text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
               >
-                <ThumbsUp className="w-4 h-4" />
+                <Star className="w-4 h-4" />
                 <span>Yes</span>
               </button>
               <button
                 onClick={() => onFeedback(recommendation.id, false)}
                 className="flex items-center space-x-1 px-3 py-1 text-sm text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
               >
-                <ThumbsDown className="w-4 h-4" />
+                <Star className="w-4 h-4" />
                 <span>No</span>
               </button>
             </div>

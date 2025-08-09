@@ -1,28 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
-  MessageCircle,
   Bot,
   User,
   Send,
   RotateCcw,
-  Sparkles,
-  Clock,
-  MapPin,
   CreditCard,
+  MapPin,
   DollarSign,
   TrendingUp,
+  Star,
   Target,
-  Mic,
-  MicOff,
-  Volume2,
+  AlertTriangle,
   Copy,
   ThumbsUp,
   ThumbsDown,
-  Star,
-  AlertTriangle
+  MicOff,
+  Mic,
+  Volume2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -65,14 +62,13 @@ const NaturalLanguageChat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  const [isListening] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(true);
   const { user } = useAuth();
 
   // Speech recognition states (disabled for TypeScript compliance)
   const [speechRecognition] = useState<null>(null);
-  const [speechSupported] = useState(false);
 
   useEffect(() => {
     initializeChat();
@@ -101,10 +97,6 @@ const NaturalLanguageChat: React.FC = () => {
       };
       setMessages([welcomeMessage]);
     }
-  };
-
-  const setupSpeechRecognition = () => {
-    // Speech recognition disabled for TypeScript compatibility
   };
 
   const getCurrentLocation = () => {
@@ -491,7 +483,7 @@ const NaturalLanguageChat: React.FC = () => {
 
         {/* Messages */}
         <div className="space-y-4">
-          {messages.map((message) => (
+          {messages.map((message: ChatMessage) => (
             <motion.div
               key={message.id}
               initial={{ opacity: 0, y: 20 }}
@@ -545,8 +537,8 @@ const NaturalLanguageChat: React.FC = () => {
                     {/* Card Recommendations */}
                     {message.recommendations && message.recommendations.length > 0 && (
                       <div className="space-y-3 mt-3">
-                        {message.recommendations.map((rec, index) => (
-                          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                        {message.recommendations.map((rec: CardRecommendation, index: number) => (
+                          <div key={rec.cardName + index} className="bg-white border border-gray-200 rounded-lg p-4">
                             <div className="flex items-start justify-between mb-3">
                               <div>
                                 <h4 className="font-semibold text-gray-900">{rec.cardName}</h4>
@@ -639,19 +631,7 @@ const NaturalLanguageChat: React.FC = () => {
               disabled={isProcessing}
             />
             
-            {false && speechSupported && (
-              <button
-                onClick={handleVoiceInput}
-                className={`absolute right-12 top-2 p-1 rounded transition-colors ${
-                  isListening 
-                    ? 'text-red-600 hover:text-red-700' 
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-                title={isListening ? 'Stop listening' : 'Voice input'}
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
-            )}
+            {/* Removed unused speechSupported control */}
           </div>
 
           <button

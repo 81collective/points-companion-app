@@ -12,9 +12,7 @@ import {
   CheckCircle,
   X,
   Trash2,
-  Settings,
-  Wifi,
-  WifiOff
+  Settings
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
@@ -50,29 +48,6 @@ const NotificationCenter: React.FC = () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-
-  // Load notifications from localStorage on mount
-  useEffect(() => {
-    const savedNotifications = localStorage.getItem('app_notifications');
-    if (savedNotifications) {
-      try {
-        const parsed = JSON.parse(savedNotifications);
-        setNotifications(parsed);
-        setUnreadCount(parsed.filter((n: Notification) => !n.read).length);
-      } catch {
-        // Ignore parsing errors
-      }
-    }
-
-    // Set up real-time subscription for new notifications
-    setupRealtimeSubscription();
-  }, []);
-
-  // Save notifications to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('app_notifications', JSON.stringify(notifications));
-    setUnreadCount(notifications.filter(n => !n.read).length);
-  }, [notifications]);
 
   const setupRealtimeSubscription = useCallback(() => {
     if (!user) return;
@@ -128,7 +103,27 @@ const NotificationCenter: React.FC = () => {
 
     // Generate some demo notifications for testing
     generateDemoNotifications();
-  }, [user]);
+  }, [user, supabase]);
+
+  // Load notifications from localStorage on mount
+  useEffect(() => {
+    const savedNotifications = localStorage.getItem('app_notifications');
+    if (savedNotifications) {
+      try {
+        const parsed = JSON.parse(savedNotifications);
+        setNotifications(parsed);
+        setUnreadCount(parsed.filter((n: Notification) => !n.read).length);
+      } catch { /* ignore */ }
+    }
+
+    setupRealtimeSubscription();
+  }, [setupRealtimeSubscription]);
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('app_notifications', JSON.stringify(notifications));
+    setUnreadCount(notifications.filter(n => !n.read).length);
+  }, [notifications]);
 
   const handleTransactionEvent = (payload: RealtimeEvent) => {
     if (payload.eventType === 'INSERT' && payload.new) {
@@ -281,151 +276,153 @@ const NotificationCenter: React.FC = () => {
   };
 
   return (
-    <div className="relative">
-      {/* Notification Bell */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-        aria-label="Notifications"
-      >
-        {unreadCount > 0 ? (
-          <BellRing className="w-6 h-6" />
-        ) : (
-          <Bell className="w-6 h-6" />
-        )}
-        
-        {unreadCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
-          >
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </motion.span>
-        )}
-      </button>
-
-      {/* Notification Panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop */}
-            <div 
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
-            
-            {/* Panel */}
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="absolute right-0 top-12 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden"
+    <>
+      <div className="relative">
+        {/* Notification Bell */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+          aria-label="Notifications"
+        >
+          {unreadCount > 0 ? (
+            <BellRing className="w-6 h-6" />
+          ) : (
+            <Bell className="w-6 h-6" />
+          )}
+          
+          {unreadCount > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
             >
-              {/* Header */}
-              <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Notifications
-                </h3>
-                <div className="flex items-center space-x-2">
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-sm text-blue-600 hover:text-blue-700"
-                    >
-                      Mark all read
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </motion.span>
+          )}
+        </button>
 
-              {/* Notifications List */}
-              <div className="max-h-80 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No notifications yet</p>
-                    <p className="text-sm">We will notify you about new recommendations and activities</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-gray-100">
-                    {notifications.map((notification) => (
-                      <motion.div
-                        key={notification.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className={`p-4 border-l-4 ${getPriorityColor(notification.priority)} ${
-                          !notification.read ? 'bg-blue-50 border-l-blue-500' : 'bg-white border-l-gray-200'
-                        } hover:bg-gray-50 transition-colors cursor-pointer`}
-                        onClick={() => markAsRead(notification.id)}
+        {/* Notification Panel */}
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              {/* Backdrop */}
+              <div 
+                className="fixed inset-0 z-40"
+                onClick={() => setIsOpen(false)}
+              />
+              
+              {/* Panel */}
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                className="absolute right-0 top-12 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden"
+              >
+                {/* Header */}
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Notifications
+                  </h3>
+                  <div className="flex items-center space-x-2">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-sm text-blue-600 hover:text-blue-700"
                       >
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 mt-1">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className={`text-sm font-medium ${
-                                  !notification.read ? 'text-gray-900' : 'text-gray-700'
-                                }`}>
-                                  {notification.title}
-                                </p>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  {notification.message}
-                                </p>
-                                <p className="text-xs text-gray-400 mt-2">
-                                  {formatTimestamp(notification.timestamp)}
-                                </p>
+                        Mark all read
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Notifications List */}
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                      <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No notifications yet</p>
+                      <p className="text-sm">We will notify you about new recommendations and activities</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {notifications.map((notification) => (
+                        <motion.div
+                          key={notification.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className={`p-4 border-l-4 ${getPriorityColor(notification.priority)} ${
+                            !notification.read ? 'bg-blue-50 border-l-blue-500' : 'bg-white border-l-gray-200'
+                          } hover:bg-gray-50 transition-colors cursor-pointer`}
+                          onClick={() => markAsRead(notification.id)}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div className="flex-shrink-0 mt-1">
+                              {getNotificationIcon(notification.type)}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <p className={`text-sm font-medium ${
+                                    !notification.read ? 'text-gray-900' : 'text-gray-700'
+                                  }`}>
+                                    {notification.title}
+                                  </p>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {notification.message}
+                                  </p>
+                                  <p className="text-xs text-gray-400 mt-2">
+                                    {formatTimestamp(notification.timestamp)}
+                                  </p>
+                                </div>
+                                
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(notification.id);
+                                  }}
+                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
                               </div>
-                              
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteNotification(notification.id);
-                                }}
-                                className="text-gray-400 hover:text-red-500 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
                             </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                {notifications.length > 0 && (
+                  <div className="p-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <button
+                      onClick={clearAll}
+                      className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Clear all</span>
+                    </button>
+                    
+                    <button className="text-sm text-gray-600 hover:text-gray-700 flex items-center space-x-1">
+                      <Settings className="w-4 h-4" />
+                      <span>Settings</span>
+                    </button>
                   </div>
                 )}
-              </div>
-
-              {/* Footer */}
-              {notifications.length > 0 && (
-                <div className="p-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-                  <button
-                    onClick={clearAll}
-                    className="text-sm text-red-600 hover:text-red-700 flex items-center space-x-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Clear all</span>
-                  </button>
-                  
-                  <button className="text-sm text-gray-600 hover:text-gray-700 flex items-center space-x-1">
-                    <Settings className="w-4 h-4" />
-                    <span>Settings</span>
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </>
   );
 };
 

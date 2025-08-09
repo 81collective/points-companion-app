@@ -21,9 +21,7 @@ import {
   ComposedChart
 } from 'recharts';
 import {
-  Calendar,
   Download,
-  Filter,
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -32,11 +30,7 @@ import {
   Award,
   AlertTriangle,
   Info,
-  ChevronRight,
-  Zap,
-  BarChart3,
-  PieChart as PieChartIcon,
-  LineChart as LineChartIcon
+  Zap
 } from 'lucide-react';
 import { useEnhancedAnalytics } from '@/hooks/useEnhancedAnalytics';
 import { AnalyticsExporter } from '@/lib/analyticsExporter';
@@ -287,9 +281,9 @@ export default function EnhancedAnalyticsDashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <div className="flex flex-wrap gap-2 mb-4 sm:mb-0">
             {[
-              { key: 'trends', label: 'Spending Trends', icon: LineChartIcon },
-              { key: 'categories', label: 'Categories', icon: PieChartIcon },
-              { key: 'cards', label: 'Card Performance', icon: BarChart3 },
+              { key: 'trends', label: 'Spending Trends', icon: LineChart },
+              { key: 'categories', label: 'Categories', icon: PieChart },
+              { key: 'cards', label: 'Card Performance', icon: BarChart },
               { key: 'optimization', label: 'Opportunities', icon: Zap }
             ].map((tab) => {
               const Icon = tab.icon;

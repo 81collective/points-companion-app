@@ -51,17 +51,6 @@ const LiveDashboard: React.FC = () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  useEffect(() => {
-    if (user) {
-      setupRealtimeConnection();
-      initializeLiveMetrics();
-    }
-
-    return () => {
-      supabase.removeAllChannels();
-    };
-  }, [user]);
-
   const setupRealtimeConnection = useCallback(() => {
     if (!user) return;
 
@@ -130,7 +119,18 @@ const LiveDashboard: React.FC = () => {
 
     // Simulate some live activity for demo
     simulateLiveActivity();
-  }, [user]);
+  }, [user, supabase]);
+
+  useEffect(() => {
+    if (user) {
+      setupRealtimeConnection();
+      initializeLiveMetrics();
+    }
+
+    return () => {
+      supabase.removeAllChannels();
+    };
+  }, [user, setupRealtimeConnection]);
 
   const handleTransactionUpdate = (payload: Record<string, unknown>) => {
     if (payload.eventType === 'INSERT') {
