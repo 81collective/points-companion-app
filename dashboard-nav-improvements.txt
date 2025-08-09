@@ -1,0 +1,374 @@
+# VS Code Agent Prompt: Points Companion Navigation & UX Enhancement
+
+## 🎯 **Primary Objective**
+You are a world-class UI/UX designer and frontend engineer working on the **Points Companion** application. Your task is to completely redesign and enhance the top navigation system, implement a unified dashboard navigation pattern, and create a comprehensive user profile management area.
+
+## 📋 **Current Application Context**
+
+### **Project Structure**
+```
+points-companion-app/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx              # Landing page with CardFinder
+│   │   ├── layout.tsx            # Root layout with AuthProvider
+│   │   ├── auth/page.tsx         # Authentication page
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx          # Main dashboard
+│   │   │   ├── cards/page.tsx    # Credit card management
+│   │   │   └── analytics/page.tsx # Analytics dashboard
+│   │   └── globals.css           # Airbnb-inspired styling
+│   ├── components/
+│   │   ├── layout/Header.tsx     # Current navigation header
+│   │   ├── cards/               # Card management components
+│   │   ├── ai/                  # AI insights & notifications
+│   │   └── analytics/           # Advanced analytics
+│   ├── contexts/AuthContext.tsx  # Authentication state
+│   └── lib/                     # Utilities & database
+```
+
+### **Current Features & Capabilities**
+- ✅ **Authentication System**: Supabase auth with protected routes
+- ✅ **Credit Card Management**: Add, edit, delete cards with rewards structure
+- ✅ **AI-Powered Insights**: Smart spending recommendations and notifications
+- ✅ **Advanced Analytics**: Multi-tab dashboard with interactive charts
+- ✅ **Location Services**: GPS-based business discovery and card recommendations
+- ✅ **Real-time Notifications**: Smart notification system with priority filtering
+- ✅ **Responsive Design**: Airbnb-inspired UI with mobile-first approach
+
+### **Current Navigation Issues**
+1. **Fragmented Navigation**: No unified navigation pattern across dashboards
+2. **Missing Breadcrumbs**: Users lose context when navigating between sections
+3. **No Back-to-Dashboard**: Subpages lack clear path back to main dashboard
+4. **Limited User Controls**: No centralized profile/settings management
+5. **Mobile Navigation**: Inconsistent mobile navigation experience
+
+## 🎨 **Design Requirements & Specifications**
+
+### **1. Navigation System Overhaul**
+
+#### **Top Navigation Header** (`src/components/layout/Header.tsx`)
+**Requirements:**
+- Clean, modern design following Airbnb's design system
+- Persistent logo/brand that always links to main dashboard
+- Horizontal navigation for primary sections (Dashboard, My Cards, Analytics, Insights)
+- Smart notifications bell with unread count badge
+- User profile dropdown with avatar, settings, and logout
+- Mobile-responsive with hamburger menu for smaller screens
+- Active state indicators for current page
+- Search functionality for finding cards, transactions, or insights
+
+**Implementation Details:**
+```tsx
+// Navigation structure should include:
+const navigationItems = [
+  { label: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { label: 'My Cards', href: '/dashboard/cards', icon: CreditCardIcon },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
+  { label: 'Insights', href: '/dashboard/insights', icon: LightBulbIcon },
+]
+
+// Mobile navigation should collapse into hamburger menu
+// Profile dropdown should include: Profile Settings, Preferences, Help, Logout
+```
+
+#### **Breadcrumb Navigation** (`src/components/layout/Breadcrumbs.tsx`)
+**Create a new component with:**
+- Dynamic breadcrumb generation based on current route
+- Clickable breadcrumb items for easy navigation
+- Home icon for dashboard root
+- Proper spacing and typography
+- Mobile-friendly design
+
+### **2. Dashboard Navigation Pattern**
+
+#### **Unified Dashboard Layout** (`src/components/layout/DashboardLayout.tsx`)
+**Create a consistent layout wrapper:**
+- Sidebar navigation for desktop (collapsible)
+- Bottom tab bar for mobile
+- Consistent padding and spacing
+- Loading states and transitions
+- Breadcrumb integration
+
+#### **Dashboard Routing Enhancement**
+**Update all dashboard pages to use consistent patterns:**
+- Clear page headers with titles and descriptions
+- Action buttons (Add Card, Create Report, etc.) in consistent positions
+- Grid layout for cards and components
+- Proper loading and error states
+
+### **3. User Profile Management Area**
+
+#### **Profile Settings Page** (`src/app/dashboard/profile/page.tsx`)
+**Create comprehensive user profile management:**
+
+**Personal Information Section:**
+- Edit name, email, phone number
+- Profile avatar upload and management
+- Timezone and language preferences
+- Account verification status
+
+**Dashboard Preferences:**
+```tsx
+// User should be able to toggle these dashboard sections:
+interface DashboardPreferences {
+  showCreditCards: boolean;
+  showAnalytics: boolean;
+  showAIInsights: boolean;
+  showTransactions: boolean;
+  showNotifications: boolean;
+  showLocationServices: boolean;
+  defaultDashboardView: 'overview' | 'cards' | 'analytics';
+  cardDisplayMode: 'grid' | 'list';
+  analyticsTimeRange: '30d' | '90d' | '1y';
+}
+```
+
+**Privacy & Security Settings:**
+- Two-factor authentication setup
+- Login history and device management
+- Data export and deletion options
+- Marketing and notification preferences
+
+**Integration Settings:**
+- Connected accounts (banks, credit card issuers)
+- API key management for integrations
+- Location services permissions
+- Notification preferences by type
+
+### **4. Enhanced Mobile Experience**
+
+#### **Mobile Navigation Strategy**
+- **Bottom Tab Bar**: Primary navigation for mobile
+- **Slide-out Menu**: Secondary navigation and settings
+- **Gesture Support**: Swipe gestures for tab switching
+- **Touch Targets**: Minimum 44px touch targets
+- **Progressive Web App**: PWA capabilities for native app feel
+
+#### **Mobile-Specific Features**
+- Pull-to-refresh functionality
+- Infinite scroll for transaction lists
+- Mobile-optimized modal dialogs
+- Camera integration for receipt scanning
+- Location-based card suggestions
+
+## 🔧 **Technical Implementation Requirements**
+
+### **1. Component Architecture**
+
+#### **Layout Components Structure**
+```tsx
+// src/components/layout/
+├── Header.tsx               # Main navigation header
+├── Sidebar.tsx              # Desktop sidebar navigation
+├── MobileNav.tsx            # Mobile bottom navigation
+├── Breadcrumbs.tsx          # Breadcrumb navigation
+├── DashboardLayout.tsx      # Wrapper for dashboard pages
+├── ProfileLayout.tsx        # Wrapper for profile pages
+└── SearchModal.tsx          # Global search functionality
+```
+
+#### **Navigation State Management**
+```tsx
+// Use Zustand for navigation state
+interface NavigationState {
+  currentPage: string;
+  breadcrumbs: BreadcrumbItem[];
+  sidebarCollapsed: boolean;
+  mobileMenuOpen: boolean;
+  searchOpen: boolean;
+  notifications: Notification[];
+  updateCurrentPage: (page: string) => void;
+  toggleSidebar: () => void;
+  toggleMobileMenu: () => void;
+  toggleSearch: () => void;
+}
+```
+
+### **2. Responsive Design System**
+
+#### **Breakpoints & Layout**
+```css
+/* Mobile-first responsive breakpoints */
+@media (min-width: 640px) { /* sm */ }
+@media (min-width: 768px) { /* md */ }
+@media (min-width: 1024px) { /* lg */ }
+@media (min-width: 1280px) { /* xl */ }
+
+/* Navigation should adapt:
+- Mobile: Bottom tabs + hamburger menu
+- Tablet: Top navigation + sidebar option
+- Desktop: Full navigation + sidebar
+*/
+```
+
+#### **Design Tokens** (Update `globals.css`)
+```css
+:root {
+  /* Navigation specific colors */
+  --nav-background: rgb(255, 255, 255);
+  --nav-border: rgb(229, 231, 235);
+  --nav-text: rgb(55, 65, 81);
+  --nav-text-hover: rgb(239, 68, 68);
+  --nav-active: rgb(239, 68, 68);
+  --nav-active-bg: rgb(254, 242, 242);
+  
+  /* Profile colors */
+  --profile-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --profile-hover: rgb(243, 244, 246);
+}
+```
+
+### **3. Performance Optimization**
+
+#### **Code Splitting & Lazy Loading**
+```tsx
+// Implement lazy loading for dashboard sections
+const CreditCards = lazy(() => import('@/components/cards/CreditCardManager'));
+const Analytics = lazy(() => import('@/components/analytics/AdvancedAnalytics'));
+const AIInsights = lazy(() => import('@/components/ai/AIInsights'));
+
+// Use Suspense with loading states
+<Suspense fallback={<DashboardSkeleton />}>
+  <CreditCards />
+</Suspense>
+```
+
+#### **Navigation Performance**
+- Prefetch critical routes on hover
+- Cache navigation state in localStorage
+- Debounce search functionality
+- Optimize bundle size with tree shaking
+
+### **4. Accessibility Requirements**
+
+#### **ARIA Implementation**
+```tsx
+// Navigation should include proper ARIA labels
+<nav role="navigation" aria-label="Main navigation">
+  <ul role="menubar">
+    <li role="none">
+      <a role="menuitem" aria-current={isActive ? "page" : undefined}>
+        Dashboard
+      </a>
+    </li>
+  </ul>
+</nav>
+
+// Breadcrumbs with proper semantics
+<nav aria-label="Breadcrumb">
+  <ol className="breadcrumb-list">
+    <li><a href="/dashboard" aria-label="Go to Dashboard">Dashboard</a></li>
+    <li aria-current="page">My Cards</li>
+  </ol>
+</nav>
+```
+
+#### **Keyboard Navigation**
+- Tab order should be logical and intuitive
+- Escape key closes modals and dropdowns
+- Arrow keys navigate through menu items
+- Enter and Space activate buttons and links
+
+## 📝 **Specific Implementation Tasks**
+
+### **Phase 1: Navigation Infrastructure (Priority 1)**
+
+1. **Redesign Header Component**
+   - Implement responsive navigation with mobile hamburger menu
+   - Add logo that links to main dashboard
+   - Create profile dropdown with avatar and settings
+   - Integrate smart notifications bell
+   - Add global search functionality
+
+2. **Create Breadcrumb System**
+   - Build dynamic breadcrumb component
+   - Integrate with Next.js routing
+   - Style to match Airbnb design system
+   - Test on all dashboard pages
+
+3. **Build Dashboard Layout Wrapper**
+   - Create consistent layout for all dashboard pages
+   - Implement sidebar for desktop
+   - Add bottom navigation for mobile
+   - Include loading and error states
+
+### **Phase 2: Profile Management (Priority 2)**
+
+4. **Build Profile Settings Page**
+   - Personal information management
+   - Dashboard preferences with toggle controls
+   - Privacy and security settings
+   - Integration and notification preferences
+
+5. **Implement Dashboard Customization**
+   - Allow users to show/hide dashboard sections
+   - Save preferences to user profile
+   - Update dashboard rendering based on preferences
+   - Add reset to defaults option
+
+### **Phase 3: Enhanced UX (Priority 3)**
+
+6. **Mobile Experience Optimization**
+   - Implement bottom tab navigation
+   - Add swipe gestures for tab switching
+   - Optimize touch targets and interactions
+   - Test on various mobile devices
+
+7. **Search & Discovery**
+   - Build global search modal
+   - Search across cards, transactions, insights
+   - Add keyboard shortcuts and quick actions
+   - Implement search result highlighting
+
+8. **Performance & Accessibility**
+   - Implement code splitting and lazy loading
+   - Add proper ARIA labels and keyboard navigation
+   - Optimize for screen readers
+   - Test with accessibility tools
+
+## ✨ **Success Criteria**
+
+### **User Experience Goals**
+- ✅ Users can easily navigate between all dashboard sections
+- ✅ Clear path back to main dashboard from any page
+- ✅ Intuitive mobile navigation that feels native
+- ✅ Customizable dashboard based on user preferences
+- ✅ Professional, clean design that matches top fintech apps
+
+### **Technical Goals**
+- ✅ All navigation components are fully responsive
+- ✅ Performance scores remain above 90 on Lighthouse
+- ✅ Accessibility score above 95 on axe-core
+- ✅ Zero console errors or warnings
+- ✅ Smooth animations and transitions throughout
+
+### **Business Goals**
+- ✅ Increased user engagement through better navigation
+- ✅ Reduced support requests about navigation confusion
+- ✅ Higher user retention through customizable experience
+- ✅ Professional appearance that builds trust
+
+## 🚨 **Important Notes**
+
+### **Existing Code Preservation**
+- **DO NOT** break existing functionality
+- **MAINTAIN** all current features and components
+- **ENHANCE** rather than replace working systems
+- **TEST** thoroughly after each change
+
+### **Design Consistency**
+- **FOLLOW** the established Airbnb-inspired design system
+- **USE** existing color palette and typography
+- **MAINTAIN** consistent spacing and layout patterns
+- **ENSURE** visual hierarchy is clear and logical
+
+### **Performance Considerations**
+- **OPTIMIZE** bundle size and loading times
+- **IMPLEMENT** progressive loading for better perceived performance
+- **CACHE** navigation state appropriately
+- **MINIMIZE** layout shifts and reflows
+
+---
+
+**Execute this prompt systematically, implementing each phase completely before moving to the next. Focus on creating a navigation system that rivals the best fintech and productivity applications while maintaining the unique character of the Points Companion app.**

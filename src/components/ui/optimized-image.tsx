@@ -92,6 +92,7 @@ export function OptimizedImage({
       <div className="relative overflow-hidden">
         <Image
           {...imageProps}
+          alt={alt}
           fill
           style={{ objectFit: 'cover' }}
         />
@@ -111,6 +112,7 @@ export function OptimizedImage({
     <div className="relative">
       <Image
         {...imageProps}
+        alt={alt}
         width={width}
         height={height}
       />

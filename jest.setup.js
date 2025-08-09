@@ -115,7 +115,10 @@ global.fetch = jest.fn()
 
 // Setup console mocks for cleaner test output
 const originalError = console.error
+const originalLog = console.log
+const originalWarn = console.warn
 beforeAll(() => {
+  // Silence noisy React deprecation errors but keep others
   console.error = (...args) => {
     if (
       typeof args[0] === 'string' &&
@@ -125,8 +128,16 @@ beforeAll(() => {
     }
     originalError.call(console, ...args)
   }
+
+  // Silence console.log/warn by default in tests; enable via DEBUG_TEST_LOGS=true
+  if (process.env.DEBUG_TEST_LOGS !== 'true') {
+    console.log = jest.fn()
+    console.warn = jest.fn()
+  }
 })
 
 afterAll(() => {
   console.error = originalError
+  console.log = originalLog
+  console.warn = originalWarn
 })

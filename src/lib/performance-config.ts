@@ -141,7 +141,7 @@ export const cacheHeaders = [
 
 // Experimental features for performance
 export const experimentalConfig = {
-  // optimizeCss: true, // disabled to avoid requiring optional 'critters' dependency
+  optimizeCss: true,
   optimizePackageImports: [
     '@radix-ui/react-icons',
     'lucide-react',
