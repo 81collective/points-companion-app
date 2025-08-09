@@ -17,8 +17,6 @@ import {
   Copy,
   ThumbsUp,
   ThumbsDown,
-  MicOff,
-  Mic,
   Volume2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -66,9 +64,6 @@ const NaturalLanguageChat: React.FC = () => {
   const [currentLocation, setCurrentLocation] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(true);
   const { user } = useAuth();
-
-  // Speech recognition states (disabled for TypeScript compliance)
-  const [speechRecognition] = useState<null>(null);
 
   useEffect(() => {
     initializeChat();
@@ -358,10 +353,6 @@ const NaturalLanguageChat: React.FC = () => {
       e.preventDefault();
       handleSendMessage();
     }
-  };
-
-  const handleVoiceInput = () => {
-    // Voice input disabled for TypeScript compatibility
   };
 
   const handleQuickAction = (action: QuickAction) => {

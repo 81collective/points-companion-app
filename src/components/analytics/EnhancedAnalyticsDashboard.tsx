@@ -60,7 +60,7 @@ export default function EnhancedAnalyticsDashboard() {
   const [exportLoading, setExportLoading] = useState(false);
   
   const { analytics, loading, error, refetch } = useEnhancedAnalytics(timeRange);
-  const { executeAsyncSafe, showError, showSuccess } = useErrorHandler();
+  const { executeAsyncSafe, showSuccess } = useErrorHandler();
 
   const handleExportPDF = async () => {
     if (!analytics) return;
