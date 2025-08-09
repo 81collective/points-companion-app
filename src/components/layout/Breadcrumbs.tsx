@@ -1,17 +1,25 @@
 "use client"
+import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home } from 'lucide-react'
+import { useNavigationStore } from '@/stores/navigationStore'
 
 export default function Breadcrumbs() {
   const pathname = usePathname()
-  const segments = pathname.split('/').filter(Boolean)
-  const crumbs = segments.map((seg, i) => ({
-    label: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
-    href: '/' + segments.slice(0, i + 1).join('/'),
-  }))
+  const { breadcrumbs, setBreadcrumbs } = useNavigationStore()
 
-  if (crumbs.length === 0) return null
+  // derive & sync breadcrumbs when path changes
+  React.useEffect(() => {
+    const segments = pathname.split('/').filter(Boolean)
+    const computed = segments.map((seg, i) => ({
+      label: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
+      href: '/' + segments.slice(0, i + 1).join('/'),
+    }))
+    setBreadcrumbs(computed)
+  }, [pathname, setBreadcrumbs])
+
+  if (!breadcrumbs.length) return null
 
   return (
     <nav className="text-sm text-gray-500" aria-label="Breadcrumb">
@@ -22,7 +30,7 @@ export default function Breadcrumbs() {
             Dashboard
           </Link>
         </li>
-        {crumbs.slice(1).map((c, i, arr) => (
+        {breadcrumbs.slice(1).map((c, i, arr) => (
           <li key={c.href} className="flex items-center gap-2">
             <span aria-hidden>/</span>
             {i === arr.length - 1 ? (

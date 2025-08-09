@@ -62,64 +62,6 @@ const AIRecommendationEngine: React.FC = () => {
     getCurrentLocation();
   }, [user]);
 
-  const initializeAIEngine = useCallback(() => {
-    // Generate some contextual recommendations based on current context
-    generateContextualRecommendations();
-    
-    // Load chat history from localStorage
-    const savedHistory = localStorage.getItem('ai_chat_history');
-    if (savedHistory) {
-      try {
-        setChatHistory(JSON.parse(savedHistory));
-      } catch {
-        // Ignore parsing errors
-      }
-    }
-  }, [generateContextualRecommendations]);
-
-  const loadSpendingPatterns = useCallback(() => {
-    // Mock spending patterns - in real app this would come from AI analysis
-    setSpendingPatterns([
-      {
-        category: 'Dining',
-        monthlySpend: 850,
-        preferredCards: ['Chase Sapphire Preferred'],
-        optimalRewards: 425,
-        currentRewards: 340,
-        improvement: 85
-      },
-      {
-        category: 'Groceries',
-        monthlySpend: 650,
-        preferredCards: ['Amex Gold', 'Chase Freedom'],
-        optimalRewards: 260,
-        currentRewards: 195,
-        improvement: 65
-      },
-      {
-        category: 'Gas',
-        monthlySpend: 280,
-        preferredCards: ['Chase Freedom Flex'],
-        optimalRewards: 140,
-        currentRewards: 112,
-        improvement: 28
-      },
-      {
-        category: 'Travel',
-        monthlySpend: 420,
-        preferredCards: ['Chase Sapphire Reserve'],
-        optimalRewards: 315,
-        currentRewards: 210,
-        improvement: 105
-      }
-    ]);
-  }, []);
-
-  const getCurrentLocation = useCallback(() => {
-    // Mock location - in real app this would use geolocation API
-    setCurrentLocation('Downtown Seattle, WA');
-  }, []);
-
   const generateContextualRecommendations = useCallback(() => {
     const currentHour = new Date().getHours();
     const timeContext = currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening';
@@ -182,6 +124,64 @@ const AIRecommendationEngine: React.FC = () => {
 
     setContextualRecommendations(recommendations);
   }, [currentLocation]);
+
+  const initializeAIEngine = useCallback(() => {
+    // Generate some contextual recommendations based on current context
+    generateContextualRecommendations();
+    
+    // Load chat history from localStorage
+    const savedHistory = localStorage.getItem('ai_chat_history');
+    if (savedHistory) {
+      try {
+        setChatHistory(JSON.parse(savedHistory));
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+  }, [generateContextualRecommendations]);
+
+  const loadSpendingPatterns = useCallback(() => {
+    // Mock spending patterns - in real app this would come from AI analysis
+    setSpendingPatterns([
+      {
+        category: 'Dining',
+        monthlySpend: 850,
+        preferredCards: ['Chase Sapphire Preferred'],
+        optimalRewards: 425,
+        currentRewards: 340,
+        improvement: 85
+      },
+      {
+        category: 'Groceries',
+        monthlySpend: 650,
+        preferredCards: ['Amex Gold', 'Chase Freedom'],
+        optimalRewards: 260,
+        currentRewards: 195,
+        improvement: 65
+      },
+      {
+        category: 'Gas',
+        monthlySpend: 280,
+        preferredCards: ['Chase Freedom Flex'],
+        optimalRewards: 140,
+        currentRewards: 112,
+        improvement: 28
+      },
+      {
+        category: 'Travel',
+        monthlySpend: 420,
+        preferredCards: ['Chase Sapphire Reserve'],
+        optimalRewards: 315,
+        currentRewards: 210,
+        improvement: 105
+      }
+    ]);
+  }, []);
+
+  const getCurrentLocation = useCallback(() => {
+    // Mock location - in real app this would use geolocation API
+    setCurrentLocation('Downtown Seattle, WA');
+  }, []);
 
   const processNaturalLanguageQuery = async (userQuery: string): Promise<AIRecommendation[]> => {
     // Mock AI processing - in real app this would call OpenAI API
@@ -331,13 +331,6 @@ const AIRecommendationEngine: React.FC = () => {
     // Mock feedback processing
     const feedbackType = positive ? 'positive' : 'negative';
     console.log(`Recorded ${feedbackType} feedback to improve future recommendations`);
-  };
-
-  const formatConfidence = (confidence: number) => {
-    if (confidence >= 90) return { label: 'Very High', color: 'text-green-600 bg-green-100' };
-    if (confidence >= 80) return { label: 'High', color: 'text-blue-600 bg-blue-100' };
-    if (confidence >= 70) return { label: 'Medium', color: 'text-yellow-600 bg-yellow-100' };
-    return { label: 'Low', color: 'text-red-600 bg-red-100' };
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -589,7 +582,13 @@ const RecommendationCard: React.FC<{
   onSelect?: (recommendation: AIRecommendation) => void;
   compact?: boolean;
 }> = ({ recommendation, onFeedback, onSelect, compact = false }) => {
-  const confidence = formatConfidence(recommendation.confidence);
+  const confidence = (() => {
+    const c = recommendation.confidence
+    if (c >= 90) return { label: 'Very High', color: 'bg-green-100 text-green-700' }
+    if (c >= 80) return { label: 'High', color: 'bg-blue-100 text-blue-700' }
+    if (c >= 70) return { label: 'Medium', color: 'bg-yellow-100 text-yellow-700' }
+    return { label: 'Low', color: 'bg-red-100 text-red-700' }
+  })();
 
   return (
     <motion.div
@@ -742,14 +741,6 @@ const RecommendationDetails: React.FC<{
       </div>
     </div>
   );
-};
-
-// Helper function for confidence formatting
-const formatConfidence = (confidence: number) => {
-  if (confidence >= 90) return { label: 'Very High', color: 'text-green-600 bg-green-100' };
-  if (confidence >= 80) return { label: 'High', color: 'text-blue-600 bg-blue-100' };
-  if (confidence >= 70) return { label: 'Medium', color: 'text-yellow-600 bg-yellow-100' };
-  return { label: 'Low', color: 'text-red-600 bg-red-100' };
 };
 
 export default AIRecommendationEngine;
