@@ -8,14 +8,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, 
   TrendingUp, 
-  Calendar, 
   Target, 
   Clock, 
   CheckCircle, 
   AlertTriangle,
-  DollarSign,
   Zap,
-  MoreHorizontal
+  MoreHorizontal,
+  DollarSign
 } from 'lucide-react';
 
 interface WelcomeBonusCardProps {

@@ -1,18 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, 
   TrendingUp, 
   AlertTriangle, 
-  Calendar, 
   Gift,
   Plus,
   Filter,
   RefreshCw,
   Star,
-  Award,
   ExternalLink,
   Eye,
   EyeOff
@@ -44,7 +42,7 @@ export default function LoyaltyDashboard({ className = "" }: LoyaltyDashboardPro
   const { data: analyticsResponse, isLoading: analyticsLoading } = useLoyaltyAnalytics();
   const { data: insightsResponse, isLoading: insightsLoading } = useLoyaltyInsights();
 
-  const accounts = accountsResponse?.data || [];
+  const accounts = useMemo(() => accountsResponse?.data || [], [accountsResponse]);
   const analytics = analyticsResponse?.data;
   const insights = insightsResponse?.data || [];
   const loading = accountsLoading || analyticsLoading || insightsLoading;

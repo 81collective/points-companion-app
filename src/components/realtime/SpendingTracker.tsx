@@ -5,17 +5,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
-import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  CreditCard,
-  Target,
-  AlertCircle,
-  CheckCircle,
-  Calendar,
-  X
-} from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, AlertCircle, CheckCircle, X, Calendar } from 'lucide-react';
 
 interface SpendingAlert {
   id: string;
@@ -49,74 +39,7 @@ export default function RealTimeSpendingTracker() {
   const { supabase } = useSupabase();
   const { executeAsyncSafe, showError, showWarning, showInfo } = useErrorHandler();
 
-  // Subscribe to real-time spending updates
-  const subscribeToSpending = useCallback(async () => {
-    if (!supabase) return;
-
-    try {
-      setIsTracking(true);
-
-      // Initial data fetch
-      await fetchCurrentSpending();
-      await fetchBudgetProgress();
-      await fetchSpendingAlerts();
-
-      // Set up real-time subscription for transactions
-      const transactionChannel = supabase
-        .channel('spending_tracker')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'transactions'
-          },
-          (payload) => {
-            console.log('New transaction detected:', payload);
-            handleNewTransaction(payload.new as {
-              id: string;
-              amount: number;
-              date: string;
-              category: string;
-              card_id: string;
-            });
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'spending_alerts'
-          },
-          (payload) => {
-            console.log('New spending alert:', payload);
-            const newAlert = payload.new as SpendingAlert;
-            setAlerts(prev => [newAlert, ...prev.slice(0, 9)]);
-            
-            // Show user notification based on severity
-            if (newAlert.severity === 'critical') {
-              showError(newAlert.message);
-            } else if (newAlert.severity === 'warning') {
-              showWarning(newAlert.message);
-            } else {
-              showInfo(newAlert.message);
-            }
-          }
-        )
-        .subscribe((status) => {
-          setIsTracking(status === 'SUBSCRIBED');
-        });
-
-      return () => {
-        supabase.removeChannel(transactionChannel);
-      };
-    } catch (error) {
-      console.error('Error setting up spending tracker:', error);
-      showError('Failed to connect to real-time spending tracker');
-      setIsTracking(false);
-    }
-  }, [supabase, showError, showWarning, showInfo]);
+  // (moved subscribeToSpending below dependent callbacks for proper declaration order)
 
   const fetchCurrentSpending = useCallback(async () => {
     if (!supabase) return;
@@ -258,12 +181,76 @@ export default function RealTimeSpendingTracker() {
     });
   }, [supabase, executeAsyncSafe]);
 
+  // Subscribe to real-time spending updates (after dependencies defined)
+  const subscribeToSpending = useCallback(async () => {
+    if (!supabase) return;
+
+    try {
+      setIsTracking(true);
+
+      // Initial data fetch
+      await fetchCurrentSpending();
+      await fetchBudgetProgress();
+      await fetchSpendingAlerts();
+
+      // Set up real-time subscription for transactions
+      const transactionChannel = supabase
+        .channel('spending_tracker')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'transactions'
+          },
+          (payload) => {
+            console.log('New transaction detected:', payload);
+            handleNewTransaction(payload.new as {
+              id: string;
+              amount: number;
+              date: string;
+              category: string;
+              card_id: string;
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'spending_alerts'
+          },
+          (payload) => {
+            console.log('New spending alert:', payload);
+            const newAlert = payload.new as SpendingAlert;
+            setAlerts(prev => [newAlert, ...prev.slice(0, 9)]);
+            
+            // Show user notification based on severity
+            if (newAlert.severity === 'critical') {
+              showError(newAlert.message);
+            } else if (newAlert.severity === 'warning') {
+              showWarning(newAlert.message);
+            } else {
+              showInfo(newAlert.message);
+            }
+          }
+        )
+        .subscribe((status) => {
+          setIsTracking(status === 'SUBSCRIBED');
+        });
+
+      return () => { supabase.removeChannel(transactionChannel); };
+    } catch (error) {
+      console.error('Error setting up spending tracker:', error);
+      showError('Failed to connect to real-time spending tracker');
+      setIsTracking(false);
+    }
+  }, [supabase, showError, showWarning, showInfo, fetchCurrentSpending, fetchBudgetProgress, fetchSpendingAlerts, handleNewTransaction]);
+
   useEffect(() => {
     const unsubscribe = subscribeToSpending();
-    
-    return () => {
-      unsubscribe?.then(cleanup => cleanup?.());
-    };
+    return () => { unsubscribe?.then(cleanup => cleanup?.()); };
   }, [subscribeToSpending]);
 
   const getTrendColor = (trend: BudgetProgress['trend']) => {

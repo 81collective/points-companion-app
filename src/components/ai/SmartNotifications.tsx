@@ -13,10 +13,7 @@ interface Transaction {
   card_id: string;
 }
 
-interface CreditCardRec {
-  id: string;
-  name: string;
-}
+// Removed unused CreditCardRec interface
 
 export type SmartNotification = {
   id: string;

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
   Search, 
-  Plus, 
   Eye, 
   EyeOff, 
   Settings, 
@@ -19,7 +18,7 @@ import {
   Utensils
 } from 'lucide-react';
 import { LoyaltyAccount, LoyaltyProgram } from '@/types/loyalty';
-import { getAllPrograms, getProgramById } from '@/lib/loyaltyPrograms';
+import { getAllPrograms } from '@/lib/loyaltyPrograms';
 
 interface AddLoyaltyAccountProps {
   isOpen: boolean;
@@ -166,7 +165,7 @@ export default function AddLoyaltyAccount({ isOpen, onClose, onAccountAdded }: A
       setTimeout(() => {
         handleClose();
       }, 2000);
-    } catch (err) {
+  } catch {
       setError('Failed to create account. Please try again.');
     } finally {
       setLoading(false);

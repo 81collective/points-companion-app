@@ -10,6 +10,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { createClient } from '@/lib/supabase';
 
 interface AIRecommendation {
   id: string;
@@ -46,6 +47,12 @@ interface SpendingPattern {
   improvement: number;
 }
 
+interface TransactionRow {
+  category?: string | null;
+  amount?: number | string | null;
+  created_at?: string;
+}
+
 const AIRecommendationEngine: React.FC = () => {
   const [query, setQuery] = useState('');
   const [chatHistory, setChatHistory] = useState<UserQuery[]>([]);
@@ -54,13 +61,9 @@ const AIRecommendationEngine: React.FC = () => {
   const [spendingPatterns, setSpendingPatterns] = useState<SpendingPattern[]>([]);
   const [selectedRecommendation, setSelectedRecommendation] = useState<AIRecommendation | null>(null);
   const [currentLocation, setCurrentLocation] = useState<string>('');
+  // future loading state placeholder (not currently displayed)
   const { user } = useAuth();
-
-  useEffect(() => {
-    initializeAIEngine();
-    loadSpendingPatterns();
-    getCurrentLocation();
-  }, [user]);
+  const supabase = createClient();
 
   const generateContextualRecommendations = useCallback(() => {
     const currentHour = new Date().getHours();
@@ -125,63 +128,80 @@ const AIRecommendationEngine: React.FC = () => {
     setContextualRecommendations(recommendations);
   }, [currentLocation]);
 
-  const initializeAIEngine = useCallback(() => {
-    // Generate some contextual recommendations based on current context
-    generateContextualRecommendations();
-    
-    // Load chat history from localStorage
-    const savedHistory = localStorage.getItem('ai_chat_history');
-    if (savedHistory) {
-      try {
-        setChatHistory(JSON.parse(savedHistory));
-      } catch {
-        // Ignore parsing errors
-      }
+  const loadSpendingPatterns = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('user_transactions')
+        .select('category, amount, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString());
+      if (error) throw error;
+      const rows = (data as TransactionRow[] | null) || [];
+      const categoryTotals = rows.reduce<Record<string, number>>((acc, tx) => {
+        const cat = tx.category || 'Other';
+        const amt = typeof tx.amount === 'string' ? parseFloat(tx.amount) : Number(tx.amount || 0);
+        acc[cat] = (acc[cat] || 0) + amt;
+        return acc;
+      }, {});
+      const patterns: SpendingPattern[] = Object.entries(categoryTotals).map(([category, amount]) => {
+        const numericAmount = Number(amount) || 0;
+        const optimal = numericAmount * 0.03;
+        const current = numericAmount * 0.015;
+        return {
+          category,
+          monthlySpend: numericAmount,
+          preferredCards: [],
+          optimalRewards: Number(optimal.toFixed(2)),
+          currentRewards: Number(current.toFixed(2)),
+          improvement: Number((optimal - current).toFixed(2))
+        };
+      });
+      setSpendingPatterns(patterns);
+      if (typeof window !== 'undefined') localStorage.setItem('ai_cached_patterns', JSON.stringify(patterns));
+    } catch (err) {
+      console.error('Pattern load error:', err);
     }
-  }, [generateContextualRecommendations]);
+  }, [user, supabase]);
 
-  const loadSpendingPatterns = useCallback(() => {
-    // Mock spending patterns - in real app this would come from AI analysis
-    setSpendingPatterns([
-      {
-        category: 'Dining',
-        monthlySpend: 850,
-        preferredCards: ['Chase Sapphire Preferred'],
-        optimalRewards: 425,
-        currentRewards: 340,
-        improvement: 85
-      },
-      {
-        category: 'Groceries',
-        monthlySpend: 650,
-        preferredCards: ['Amex Gold', 'Chase Freedom'],
-        optimalRewards: 260,
-        currentRewards: 195,
-        improvement: 65
-      },
-      {
-        category: 'Gas',
-        monthlySpend: 280,
-        preferredCards: ['Chase Freedom Flex'],
-        optimalRewards: 140,
-        currentRewards: 112,
-        improvement: 28
-      },
-      {
-        category: 'Travel',
-        monthlySpend: 420,
-        preferredCards: ['Chase Sapphire Reserve'],
-        optimalRewards: 315,
-        currentRewards: 210,
-        improvement: 105
+  const getCurrentLocation = useCallback(async () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    return new Promise<void>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCurrentLocation(`${pos.coords.latitude.toFixed(3)},${pos.coords.longitude.toFixed(3)}`);
+          resolve();
+        },
+        () => resolve(),
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    });
+  }, []);
+
+  const initializeAIEngine = useCallback(async () => {
+    if (!user) return;
+  // optional: set loading state if UI hook-up added
+    try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('ai_cached_patterns');
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached) as SpendingPattern[];
+            if (Array.isArray(parsed)) setSpendingPatterns(parsed);
+          } catch {/* ignore */}
+        }
       }
-    ]);
-  }, []);
+      await loadSpendingPatterns();
+      await getCurrentLocation();
+      generateContextualRecommendations();
+    } catch (err) {
+      console.error('Initialization error:', err);
+    } finally {
+      /* no-op */
+    }
+  }, [user, loadSpendingPatterns, getCurrentLocation, generateContextualRecommendations]);
 
-  const getCurrentLocation = useCallback(() => {
-    // Mock location - in real app this would use geolocation API
-    setCurrentLocation('Downtown Seattle, WA');
-  }, []);
+  useEffect(() => { initializeAIEngine(); }, [initializeAIEngine]);
 
   const processNaturalLanguageQuery = async (userQuery: string): Promise<AIRecommendation[]> => {
     // Mock AI processing - in real app this would call OpenAI API

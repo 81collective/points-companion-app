@@ -4,7 +4,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Crown, TrendingUp, MapPin } from 'lucide-react';
+import { Crown, TrendingUp } from 'lucide-react';
 
 export default function ExecutivePortfolioOptimizer() {
   const [selectedScenario, setSelectedScenario] = useState<'business_travel' | 'fine_dining' | 'luxury_shopping'>('business_travel');

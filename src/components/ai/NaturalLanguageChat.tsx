@@ -19,7 +19,7 @@ import {
   ThumbsDown,
   Volume2
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+// Auth context removed since user not referenced
 
 interface ChatMessage {
   id: string;
@@ -63,7 +63,7 @@ const NaturalLanguageChat: React.FC = () => {
   const [isListening] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(true);
-  const { user } = useAuth();
+  // user context not needed currently
 
   useEffect(() => {
     initializeChat();

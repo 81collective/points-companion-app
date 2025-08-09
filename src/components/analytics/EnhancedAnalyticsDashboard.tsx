@@ -15,7 +15,6 @@ import {
   Cell,
   LineChart,
   Line,
-  AreaChart,
   Area,
   ResponsiveContainer,
   ComposedChart

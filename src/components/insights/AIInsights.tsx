@@ -3,7 +3,7 @@ import React from 'react';
 
 import { useEffect, useState } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
-import { Lightbulb, AlertTriangle, TrendingUp, Sparkles, Target, DollarSign, ArrowUpRight, Clock } from 'lucide-react';
+import { Lightbulb, AlertTriangle, TrendingUp, Sparkles, Target } from 'lucide-react';
 
 interface Insight {
   type: 'tip' | 'alert' | 'opportunity' | 'achievement' | 'prediction';

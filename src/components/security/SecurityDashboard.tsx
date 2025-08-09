@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Shield,
@@ -17,7 +17,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useSecurityMonitor } from '@/lib/security';
-import DataProtection, { InputValidator } from '@/lib/dataProtection';
+import DataProtection from '@/lib/dataProtection';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 interface SecurityAuditLog {
@@ -41,7 +41,8 @@ export default function SecurityDashboard() {
   const dataProtection = DataProtection.getInstance();
 
   // Mock security audit data
-  const mockAuditLogs: SecurityAuditLog[] = [
+  // Stable ref for mock data to avoid effect dependency warning
+  const mockAuditLogsRef = useRef<SecurityAuditLog[]>([ 
     {
       id: '1',
       timestamp: new Date(Date.now() - 3600000).toISOString(),
@@ -76,49 +77,52 @@ export default function SecurityDashboard() {
       details: { cards_viewed: 2, method: 'dashboard' },
       risk_level: 'low'
     }
-  ];
+  ]);
+
+  const calculateSecurityScore = useCallback((): number => {
+    let score = 100;
+    score -= metrics.criticalEvents * 10;
+    score -= metrics.failedLogins * 2;
+    score -= metrics.suspiciousIPs.length * 5;
+    const recentCritical = auditLogs.filter(
+      log => log.risk_level === 'critical' && 
+      Date.now() - new Date(log.timestamp).getTime() < 86400000
+    ).length;
+    score -= recentCritical * 15;
+    return Math.max(0, Math.min(100, score));
+  }, [metrics, auditLogs]);
+
+  const getSecurityRecommendations = useCallback((): string[] => {
+    const recommendations: string[] = [];
+    if (metrics.failedLogins > 5) {
+      recommendations.push('Consider implementing account lockout after failed login attempts');
+    }
+    if (metrics.suspiciousIPs.length > 0) {
+      recommendations.push('Review and consider blocking suspicious IP addresses');
+    }
+    if (securityScore < 80) {
+      recommendations.push('Overall security posture needs improvement');
+    }
+    if (metrics.criticalEvents > 0) {
+      recommendations.push('Investigate and resolve critical security events');
+    }
+    return recommendations;
+  }, [metrics, securityScore]);
 
   useEffect(() => {
     const loadSecurityData = async () => {
       await executeAsyncSafe(async () => {
         setLoading(true);
-        
-        // Initialize data protection
         await dataProtection.initializeEncryption();
-        
-        // Load audit logs (in production, this would come from API)
-        setAuditLogs(mockAuditLogs);
-        
-        // Calculate security score
-        const score = calculateSecurityScore();
-        setSecurityScore(score);
-        
+  setAuditLogs(mockAuditLogsRef.current);
+        setSecurityScore(calculateSecurityScore());
         setLoading(false);
       });
     };
-
     loadSecurityData();
-  }, [dataProtection, executeAsyncSafe]);
+  }, [dataProtection, executeAsyncSafe, calculateSecurityScore]);
 
-  const calculateSecurityScore = (): number => {
-    let score = 100;
-    
-    // Deduct points based on security metrics
-    score -= metrics.criticalEvents * 10;
-    score -= metrics.failedLogins * 2;
-    score -= metrics.suspiciousIPs.length * 5;
-    
-    // Deduct points based on audit logs
-    const recentCritical = auditLogs.filter(
-      log => log.risk_level === 'critical' && 
-      Date.now() - new Date(log.timestamp).getTime() < 86400000
-    ).length;
-    
-    score -= recentCritical * 15;
-    
-    return Math.max(0, Math.min(100, score));
-  };
-
+  // calculateSecurityScore now memoized above
   const exportSecurityReport = async () => {
     await executeAsyncSafe(async () => {
       const report = {
@@ -142,27 +146,7 @@ export default function SecurityDashboard() {
     });
   };
 
-  const getSecurityRecommendations = (): string[] => {
-    const recommendations: string[] = [];
-    
-    if (metrics.failedLogins > 5) {
-      recommendations.push('Consider implementing account lockout after failed login attempts');
-    }
-    
-    if (metrics.suspiciousIPs.length > 0) {
-      recommendations.push('Review and consider blocking suspicious IP addresses');
-    }
-    
-    if (securityScore < 80) {
-      recommendations.push('Overall security posture needs improvement');
-    }
-    
-    if (metrics.criticalEvents > 0) {
-      recommendations.push('Investigate and resolve critical security events');
-    }
-    
-    return recommendations;
-  };
+  // getSecurityRecommendations now memoized above
 
   const getRiskColor = (risk: string): string => {
     switch (risk) {

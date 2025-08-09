@@ -9,11 +9,9 @@ import {
   Bell,
   X,
   CreditCard,
-  DollarSign,
   TrendingUp,
   Gift,
   AlertTriangle,
-  CheckCircle,
   Info,
   Star
 } from 'lucide-react';

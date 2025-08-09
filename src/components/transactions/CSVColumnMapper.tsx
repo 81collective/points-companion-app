@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTransactionStore } from '@/stores/transactionStore';
-import { CSVColumnMapping, CSVImportSession, TRANSACTION_CATEGORIES } from '@/types/transactions';
+import { CSVColumnMapping, CSVImportSession } from '@/types/transactions';
 
 interface CSVColumnMapperProps {
   sessionId: string;

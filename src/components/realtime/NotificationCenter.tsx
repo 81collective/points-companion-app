@@ -2,18 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, 
-  BellRing, 
-  CreditCard, 
-  TrendingUp, 
-  Award, 
-  AlertTriangle,
-  CheckCircle,
-  X,
-  Trash2,
-  Settings
-} from 'lucide-react';
+import { Bell, BellRing, CreditCard, TrendingUp, Award, AlertTriangle, X, Trash2, Settings, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@supabase/supabase-js';
 
@@ -48,6 +37,45 @@ const NotificationCenter: React.FC = () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  const handleTransactionEvent = useCallback((payload: RealtimeEvent) => {
+    if (payload.eventType === 'INSERT' && payload.new) {
+      const transaction = payload.new as { amount: number; merchant_name: string };
+      addNotification({
+        type: 'spending',
+        title: 'New Transaction Added',
+        message: `$${transaction.amount} spent at ${transaction.merchant_name}`,
+        data: { transaction },
+        priority: 'medium'
+      });
+    }
+  }, []);
+
+  const handleLoyaltyEvent = useCallback((payload: RealtimeEvent) => {
+    if (payload.eventType === 'UPDATE' && payload.new) {
+      const account = payload.new as { program_name: string; points: number };
+      addNotification({
+        type: 'bonus',
+        title: 'Loyalty Account Updated',
+        message: `Points updated for ${account.program_name}`,
+        data: { account },
+        priority: 'low'
+      });
+    }
+  }, []);
+
+  const generateDemoNotifications = useCallback(() => {
+    if (!user) return;
+    if (notifications.length === 0) {
+      addNotification({
+        type: 'recommendation',
+        title: 'Optimize Dining Rewards',
+        message: 'You could earn more points on dining with the Sapphire Preferred',
+        data: {},
+        priority: 'medium'
+      });
+    }
+  }, [user, notifications]);
 
   const setupRealtimeSubscription = useCallback(() => {
     if (!user) return;
@@ -103,7 +131,7 @@ const NotificationCenter: React.FC = () => {
 
     // Generate some demo notifications for testing
     generateDemoNotifications();
-  }, [user, supabase]);
+  }, [user, supabase, handleTransactionEvent, handleLoyaltyEvent, generateDemoNotifications]);
 
   // Load notifications from localStorage on mount
   useEffect(() => {
@@ -124,80 +152,6 @@ const NotificationCenter: React.FC = () => {
     localStorage.setItem('app_notifications', JSON.stringify(notifications));
     setUnreadCount(notifications.filter(n => !n.read).length);
   }, [notifications]);
-
-  const handleTransactionEvent = (payload: RealtimeEvent) => {
-    if (payload.eventType === 'INSERT' && payload.new) {
-      const transaction = payload.new as { amount: number; merchant_name: string };
-      addNotification({
-        type: 'spending',
-        title: 'New Transaction Added',
-        message: `$${transaction.amount} spent at ${transaction.merchant_name}`,
-        data: { transaction },
-        priority: 'medium'
-      });
-    }
-  };
-
-  const handleRecommendationEvent = (payload: RealtimeEvent) => {
-    if (payload.eventType === 'INSERT') {
-      const recommendation = payload.new;
-      addNotification({
-        type: 'recommendation',
-        title: 'New Card Recommendation',
-        message: `We found a better card for your recent purchase!`,
-        data: { recommendation },
-        priority: 'high'
-      });
-    }
-  };
-
-  const generateDemoNotifications = () => {
-    // Add some demo notifications to show the system working
-    setTimeout(() => {
-      addNotification({
-        type: 'recommendation',
-        title: 'New Card Recommendation',
-        message: 'Chase Sapphire Preferred offers 5x points on dining this month!',
-        priority: 'high'
-      });
-    }, 2000);
-
-    setTimeout(() => {
-      addNotification({
-        type: 'bonus',
-        title: 'Welcome Bonus Alert',
-        message: 'Only $500 left to earn your 80,000 point bonus on Amex Gold',
-        priority: 'urgent'
-      });
-    }, 5000);
-
-    setTimeout(() => {
-      addNotification({
-        type: 'achievement',
-        title: 'Milestone Reached!',
-        message: 'Congratulations! You have earned 10,000 points this month',
-        priority: 'medium'
-      });
-    }, 8000);
-  };
-
-  const handleLoyaltyEvent = (payload: RealtimeEvent) => {
-    if (payload.eventType === 'UPDATE' && payload.old) {
-      const account = payload.new;
-      const oldAccount = payload.old;
-      
-      if (Number(account.points) > Number(oldAccount.points)) {
-        const pointsEarned = Number(account.points) - Number(oldAccount.points);
-        addNotification({
-          type: 'achievement',
-          title: 'Points Earned!',
-          message: `You earned ${pointsEarned} ${account.program_name} points`,
-          data: { account, pointsEarned },
-          priority: 'medium'
-        });
-      }
-    }
-  };
 
   const addNotification = (notificationData: Omit<Notification, 'id' | 'read' | 'timestamp'>) => {
     const notification: Notification = {

@@ -1,17 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { 
   CheckCircle2, 
   AlertTriangle, 
-  Clock, 
   X,
   Download,
   RefreshCw,
   FileText,
   TrendingUp,
-  DollarSign,
   Calendar,
   Tag
 } from 'lucide-react';
@@ -27,8 +25,6 @@ import {
   Transaction, 
   TransactionSource,
   CSVRow,
-  DuplicateTransaction,
-  TRANSACTION_CATEGORIES,
   CSVErrorType,
   CSVError
 } from '@/types/transactions';
@@ -74,23 +70,90 @@ export default function TransactionImportProcessor({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingComplete, setProcessingComplete] = useState(false);
 
-  useEffect(() => {
-    const importSession = getCSVImportSession(sessionId);
-    if (importSession) {
-      setSession(importSession);
-      setStats(prev => ({
-        ...prev,
-        totalRows: importSession.totalRows
-      }));
-      
-      // Start processing automatically
-      if (importSession.status !== ImportStatus.FAILED) {
-        startProcessing(importSession);
+  const parseRowToTransaction = useCallback(async (
+    row: CSVRow,
+    mapping: CSVImportSession['mapping']
+  ): Promise<Transaction | null> => {
+    const data = row.data;
+    const dateStr = data[mapping.date];
+    const amountStr = data[mapping.amount];
+    const description = data[mapping.description];
+    if (!dateStr || !amountStr || !description) throw new Error('Missing required fields');
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) throw new Error(`Invalid date format: ${dateStr}`);
+    const amount = parseFloat(amountStr.replace(/[,$\s]/g, ''));
+    if (isNaN(amount)) throw new Error(`Invalid amount format: ${amountStr}`);
+    const category = mapping.category ? data[mapping.category] || 'Other' : 'Other';
+    const merchantName = mapping.merchant ? data[mapping.merchant] : extractMerchantFromDescription(description);
+    const paymentMethod = mapping.paymentMethod ? data[mapping.paymentMethod] : '';
+    return {
+      id: crypto.randomUUID(),
+      userId: 'current-user',
+      amount,
+      description,
+      merchantName,
+      category,
+      subcategory: '',
+      date: date.toISOString(),
+      pending: false,
+      source: TransactionSource.CSV_IMPORT,
+      paymentMethod,
+      tags: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }, []);
+
+  const processTransactions = useCallback(async (importSession: CSVImportSession) => {
+    const { mapping, previewData } = importSession;
+    const transactions: Transaction[] = [];
+    const errors: CSVError[] = [];
+    setStats(prev => ({ ...prev, currentStep: 'Parsing transactions...' }));
+    for (let i = 0; i < previewData.length; i++) {
+      const row = previewData[i];
+      try {
+        setStats(prev => ({
+          ...prev,
+          processedRows: i + 1,
+          currentStep: `Processing row ${i + 1} of ${previewData.length}...`
+        }));
+  const transaction = await parseRowToTransaction(row, mapping);
+        if (transaction) {
+          transactions.push(transaction);
+          setStats(prev => ({ ...prev, successfulRows: prev.successfulRows + 1 }));
+        }
+        if (i % 10 === 0) { await new Promise(resolve => setTimeout(resolve, 100)); }
+      } catch (error) {
+        console.error(`Error processing row ${i}:`, error);
+        errors.push({
+          row: i,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          type: CSVErrorType.INVALID_FORMAT
+        });
+        setStats(prev => ({ ...prev, errorRows: prev.errorRows + 1 }));
       }
     }
-  }, [sessionId, getCSVImportSession]);
+    setStats(prev => ({ ...prev, currentStep: 'Detecting duplicates...' }));
+    detectDuplicates(transactions);
+    const duplicateCount = duplicates.length;
+    setStats(prev => ({ ...prev, duplicateRows: duplicateCount }));
+    setStats(prev => ({ ...prev, currentStep: 'Applying AI categorization...' }));
+    const categorizedTransactions = await applyCategorization(transactions);
+    setStats(prev => ({ ...prev, currentStep: 'Finalizing import...' }));
+    categorizedTransactions.forEach(transaction => { addTransaction(transaction); });
+    setProcessedTransactions(categorizedTransactions);
+    updateCSVImportSession(sessionId, {
+      status: ImportStatus.COMPLETED,
+      successfulRows: categorizedTransactions.length,
+      errorRows: errors.length,
+      errors,
+      finalData: categorizedTransactions
+    });
+    setProcessingComplete(true);
+    setStats(prev => ({ ...prev, currentStep: 'Import completed successfully!' }));
+  }, [addTransaction, detectDuplicates, duplicates.length, sessionId, updateCSVImportSession, parseRowToTransaction]);
 
-  const startProcessing = async (importSession: CSVImportSession) => {
+  const startProcessing = useCallback(async (importSession: CSVImportSession) => {
     setIsProcessing(true);
     updateCSVImportSession(sessionId, { status: ImportStatus.PROCESSING });
 
@@ -105,134 +168,18 @@ export default function TransactionImportProcessor({
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [sessionId, updateCSVImportSession, processTransactions]);
 
-  const processTransactions = async (importSession: CSVImportSession) => {
-    const { mapping, previewData } = importSession;
-    const transactions: Transaction[] = [];
-    const errors: CSVError[] = [];
-    
-    setStats(prev => ({ ...prev, currentStep: 'Parsing transactions...' }));
-
-    // Process each row
-    for (let i = 0; i < previewData.length; i++) {
-      const row = previewData[i];
-      
-      try {
-        setStats(prev => ({
-          ...prev,
-          processedRows: i + 1,
-          currentStep: `Processing row ${i + 1} of ${previewData.length}...`
-        }));
-
-        const transaction = await parseRowToTransaction(row, mapping, i);
-        if (transaction) {
-          transactions.push(transaction);
-          setStats(prev => ({ ...prev, successfulRows: prev.successfulRows + 1 }));
-        }
-
-        // Simulate processing delay for demo
-        if (i % 10 === 0) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-      } catch (error) {
-        console.error(`Error processing row ${i}:`, error);
-        errors.push({
-          row: i,
-          message: error instanceof Error ? error.message : 'Unknown error',
-          type: CSVErrorType.INVALID_FORMAT
-        });
-        setStats(prev => ({ ...prev, errorRows: prev.errorRows + 1 }));
-      }
+  useEffect(() => {
+    const importSession = getCSVImportSession(sessionId);
+    if (!importSession) return;
+    setSession(importSession);
+    setStats(prev => ({ ...prev, totalRows: importSession.totalRows }));
+    if (importSession.status !== ImportStatus.FAILED) {
+      startProcessing(importSession);
     }
-
-    setStats(prev => ({ ...prev, currentStep: 'Detecting duplicates...' }));
-    
-    // Detect duplicates
-    detectDuplicates(transactions);
-    const duplicateCount = duplicates.length;
-    setStats(prev => ({ ...prev, duplicateRows: duplicateCount }));
-
-    setStats(prev => ({ ...prev, currentStep: 'Applying AI categorization...' }));
-    
-    // Apply AI categorization
-    const categorizedTransactions = await applyCategorization(transactions);
-
-    setStats(prev => ({ ...prev, currentStep: 'Finalizing import...' }));
-
-    // Add successful transactions
-    categorizedTransactions.forEach(transaction => {
-      addTransaction(transaction);
-    });
-
-    setProcessedTransactions(categorizedTransactions);
-
-    // Update session
-    updateCSVImportSession(sessionId, {
-      status: ImportStatus.COMPLETED,
-      successfulRows: categorizedTransactions.length,
-      errorRows: errors.length,
-      errors,
-      finalData: categorizedTransactions
-    });
-
-    setProcessingComplete(true);
-    setStats(prev => ({ ...prev, currentStep: 'Import completed successfully!' }));
-  };
-
-  const parseRowToTransaction = async (
-    row: CSVRow, 
-    mapping: CSVImportSession['mapping'], 
-    index: number
-  ): Promise<Transaction | null> => {
-    const data = row.data;
-
-    // Extract required fields
-    const dateStr = data[mapping.date];
-    const amountStr = data[mapping.amount];
-    const description = data[mapping.description];
-
-    if (!dateStr || !amountStr || !description) {
-      throw new Error('Missing required fields');
-    }
-
-    // Parse date
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) {
-      throw new Error(`Invalid date format: ${dateStr}`);
-    }
-
-    // Parse amount
-    const amount = parseFloat(amountStr.replace(/[,$\s]/g, ''));
-    if (isNaN(amount)) {
-      throw new Error(`Invalid amount format: ${amountStr}`);
-    }
-
-    // Extract optional fields
-    const category = mapping.category ? data[mapping.category] || 'Other' : 'Other';
-    const merchantName = mapping.merchant ? data[mapping.merchant] : extractMerchantFromDescription(description);
-    const paymentMethod = mapping.paymentMethod ? data[mapping.paymentMethod] : '';
-
-    return {
-      id: crypto.randomUUID(),
-      userId: 'current-user', // Replace with actual user ID
-      amount,
-      description,
-      merchantName,
-      category,
-      subcategory: '',
-      date: date.toISOString(),
-      pending: false,
-      source: TransactionSource.CSV_IMPORT,
-      paymentMethod,
-      tags: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  };
-
-  const extractMerchantFromDescription = (description: string): string => {
+  }, [sessionId, getCSVImportSession, startProcessing]);
+  function extractMerchantFromDescription(description: string): string {
     // Simple merchant extraction logic
     // Remove common prefixes/suffixes
     const cleaned = description
@@ -242,7 +189,7 @@ export default function TransactionImportProcessor({
       .trim();
 
     return cleaned;
-  };
+  }
 
   const applyCategorization = async (transactions: Transaction[]): Promise<Transaction[]> => {
     return transactions.map(transaction => {
