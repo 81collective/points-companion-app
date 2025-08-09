@@ -173,7 +173,7 @@ export const WelcomeBonusCard: React.FC<WelcomeBonusCardProps> = ({
             </motion.div>
             
             {/* Milestones */}
-            {bonus.milestones.map((milestone, index) => {
+            {bonus.milestones.map((milestone) => {
               const position = (milestone.threshold / bonus.requiredSpend) * 100;
               return (
                 <div

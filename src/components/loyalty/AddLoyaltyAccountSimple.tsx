@@ -4,10 +4,10 @@ import { LoyaltyAccount } from '@/types/loyalty';
 interface AddLoyaltyAccountProps {
   isOpen: boolean;
   onClose: () => void;
-  onAccountAdded: (account: LoyaltyAccount) => void;
+  onAccountAdded?: (account: LoyaltyAccount) => void; // optional until implementation
 }
 
-export default function AddLoyaltyAccount({ isOpen, onClose, onAccountAdded }: AddLoyaltyAccountProps) {
+export default function AddLoyaltyAccount({ isOpen, onClose }: AddLoyaltyAccountProps) {
   if (!isOpen) return null;
 
   return (

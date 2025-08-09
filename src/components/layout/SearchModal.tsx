@@ -61,7 +61,7 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
       const combined = [...cardResults, ...txResults, ...insightResults]
       setResults(combined)
       setActive(0)
-    } catch (e) {
+  } catch (_e) {
       setResults([])
     } finally {
       setLoading(false)

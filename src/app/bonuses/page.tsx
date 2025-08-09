@@ -223,7 +223,7 @@ export default function WelcomeBonusesPage() {
             >
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Best Categories</h3>
               <div className="space-y-2">
-                {analytics?.mostEffectiveCategories?.slice(0, 4).map((category, index) => (
+                {analytics?.mostEffectiveCategories?.slice(0, 4).map((category) => (
                   <div key={category} className="flex items-center space-x-2 text-sm">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-gray-600">{category}</span>

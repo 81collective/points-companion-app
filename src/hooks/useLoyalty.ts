@@ -5,7 +5,6 @@ import {
   LoyaltyAccountsResponse, 
   LoyaltyAccountResponse,
   LoyaltyAnalytics,
-  LoyaltyInsight,
   LoyaltyInsightsResponse,
   LoyaltyProgram,
   LoyaltyFilter,

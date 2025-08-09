@@ -50,7 +50,7 @@ const HouseholdCollaboration: React.FC = () => {
   const [sharedMetrics, setSharedMetrics] = useState<SharedMetric[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
   const [showInviteForm, setShowInviteForm] = useState(false);
-  const [isOwner, setIsOwner] = useState(true); // This would come from context/API
+  const [isOwner] = useState(true); // owner flag retained; setter removed as unused
   const { user } = useAuth();
 
   useEffect(() => {
@@ -173,7 +173,7 @@ const HouseholdCollaboration: React.FC = () => {
     ));
   };
 
-  const updateMemberPermissions = (memberId: string, permission: keyof HouseholdMember['permissions']) => {
+  const _updateMemberPermissions = (memberId: string, permission: keyof HouseholdMember['permissions']) => {
     setHouseholdMembers(prev => prev.map(member => 
       member.id === memberId 
         ? { 

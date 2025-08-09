@@ -1,5 +1,5 @@
 // Client-side Google Places service that respects referer restrictions
-import { Business } from '@/types/location.types';
+// Removed unused Business import
 
 interface PlaceSearchResult {
   id: string;

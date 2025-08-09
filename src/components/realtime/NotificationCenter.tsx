@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, BellRing, CreditCard, TrendingUp, Award, AlertTriangle, X, Trash2, Settings, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@supabase/supabase-js';
+import { useSupabase } from '@/hooks/useSupabase';
+import { createRealtimeChannel } from '@/lib/realtime';
 
 export interface Notification {
   id: string;
@@ -29,14 +30,9 @@ const NotificationCenter: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isConnected, setIsConnected] = useState(false);
+  const [_isConnected, setIsConnected] = useState(false);
   const { user } = useAuth();
-
-  // Initialize Supabase client for real-time
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const { supabase } = useSupabase();
 
   const handleTransactionEvent = useCallback((payload: RealtimeEvent) => {
     if (payload.eventType === 'INSERT' && payload.new) {
@@ -78,58 +74,35 @@ const NotificationCenter: React.FC = () => {
   }, [user, notifications]);
 
   const setupRealtimeSubscription = useCallback(() => {
-    if (!user) return;
-
-    // Create a channel for this user
-    const channel = supabase
-      .channel(`user-notifications-${user.id}`)
-      .on(
-        'postgres_changes',
+    if (!user || !supabase) return;
+    createRealtimeChannel(supabase, {
+      name: `user-notifications-${user.id}`,
+      postgresChanges: [
         {
           event: '*',
           schema: 'public',
           table: 'user_transactions',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user.id}`,
+          handler: (payload: RealtimeEvent) => handleTransactionEvent(payload)
         },
-        (payload: RealtimeEvent) => {
-          handleTransactionEvent(payload);
-        }
-      )
-      .on(
-        'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'loyalty_accounts',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload: RealtimeEvent) => {
-          handleLoyaltyEvent(payload);
+          filter: `user_id=eq.${user.id}`,
+          handler: (payload: RealtimeEvent) => handleLoyaltyEvent(payload)
         }
-      )
-      .on('presence', { event: 'sync' }, () => {
-        setIsConnected(true);
-      })
-      .on('presence', { event: 'join' }, () => {
-        setIsConnected(true);
-      })
-      .on('presence', { event: 'leave' }, () => {
-        setIsConnected(false);
-      })
-      .subscribe((status: string) => {
-        if (status === 'SUBSCRIBED') {
-          setIsConnected(true);
-          // Track user presence
-          channel.track({
-            user_id: user.id,
-            online_at: new Date().toISOString()
-          });
-        } else {
-          setIsConnected(false);
-        }
-      });
-
-    // Generate some demo notifications for testing
+      ],
+      presence: {
+        enable: true,
+        trackPayload: () => ({ user_id: user.id, online_at: new Date().toISOString() }),
+        onSync: () => setIsConnected(true),
+        onJoin: () => setIsConnected(true),
+        onLeave: () => setIsConnected(false)
+      },
+      onStatusChange: (status) => { setIsConnected(status === 'SUBSCRIBED'); },
+      autoTrackOnSubscribe: true
+    });
     generateDemoNotifications();
   }, [user, supabase, handleTransactionEvent, handleLoyaltyEvent, generateDemoNotifications]);
 

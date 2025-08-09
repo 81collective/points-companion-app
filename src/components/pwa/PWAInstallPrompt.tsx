@@ -16,7 +16,7 @@ const PWAInstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+  // standalone detection collapsed into isInstalled (was duplicated)
 
   useEffect(() => {
     // Check if app is already installed or running in standalone mode
@@ -24,7 +24,6 @@ const PWAInstallPrompt: React.FC = () => {
       const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
       const isRunningStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
       
-      setIsStandalone(isInStandaloneMode || isRunningStandalone);
       setIsInstalled(isInStandaloneMode || isRunningStandalone);
     };
 
@@ -56,7 +55,6 @@ const PWAInstallPrompt: React.FC = () => {
 
     // Listen for display mode changes
     const handleDisplayModeChange = (e: MediaQueryListEvent) => {
-      setIsStandalone(e.matches);
       setIsInstalled(e.matches);
     };
 

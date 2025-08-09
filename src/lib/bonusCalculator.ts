@@ -1,7 +1,7 @@
 // Welcome Bonus Calculator Library
 // Points Companion - Advanced Calculations and Optimization
 
-import { WelcomeBonusTracker, SpendingVelocity, SpendingRecommendation, SpendingPlan, BonusOpportunity } from '@/types/welcomeBonus';
+import { WelcomeBonusTracker, SpendingVelocity, SpendingRecommendation, SpendingPlan } from '@/types/welcomeBonus';
 import { addDays, differenceInDays, format, parseISO } from '@/lib/dateUtils';
 
 export class BonusCalculator {
@@ -19,7 +19,7 @@ export class BonusCalculator {
     const end = parseISO(deadline);
     const now = new Date();
     
-    const totalDays = differenceInDays(end, start);
+  // totalDays calculation removed (not used)
     const daysPassed = differenceInDays(now, start);
     const daysRemaining = differenceInDays(end, now);
     
@@ -81,7 +81,7 @@ export class BonusCalculator {
     const recommendations: SpendingRecommendation[] = [];
     
     // Calculate urgency based on time remaining and spending velocity
-    const dailyTarget = remainingSpend / Math.max(1, daysRemaining);
+  const _dailyTarget = remainingSpend / Math.max(1, daysRemaining); // reserved for future UI feedback
     let urgency: 'low' | 'medium' | 'high' | 'critical' = 'low';
     
     if (daysRemaining <= 7) urgency = 'critical';
@@ -176,7 +176,7 @@ export class BonusCalculator {
     bonus: WelcomeBonusTracker,
     recommendations: SpendingRecommendation[]
   ): SpendingPlan {
-    const remainingAmount = bonus.requiredSpend - bonus.currentSpend;
+  const remainingAmount = bonus.requiredSpend - bonus.currentSpend;
     const deadline = parseISO(bonus.deadline);
     const now = new Date();
     const timeRemaining = Math.max(1, differenceInDays(deadline, now));
@@ -284,12 +284,12 @@ export class BonusCalculator {
     monthlySpending: number
   ): Array<{ bonusId: string; priority: number; suggestedAllocation: number }> {
     const activeBonuses = bonuses.filter(b => b.status === 'active');
-    const totalRemaining = activeBonuses.reduce((sum, b) => sum + (b.requiredSpend - b.currentSpend), 0);
+  // totalRemaining removed (not used in coordination logic)
     
     return activeBonuses.map(bonus => {
       const remainingSpend = bonus.requiredSpend - bonus.currentSpend;
       const daysRemaining = Math.max(1, differenceInDays(parseISO(bonus.deadline), new Date()));
-      const dailyRequired = remainingSpend / daysRemaining;
+  const _dailyRequired = remainingSpend / daysRemaining; // reserved for future UI logic
       const efficiency = bonus.estimatedValue / remainingSpend;
       
       // Priority score based on urgency, efficiency, and achievability

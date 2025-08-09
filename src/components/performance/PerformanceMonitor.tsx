@@ -35,7 +35,7 @@ export default function PerformanceMonitor() {
 
       try {
         observer.observe({ entryTypes: ['longtask'] });
-      } catch (e) {
+  } catch (_e) {
         console.warn('Long task observer not supported');
       }
     }

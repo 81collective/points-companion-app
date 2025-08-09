@@ -19,25 +19,21 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTransactionStore } from '@/stores/transactionStore';
-import { CSVImportSession, ImportStatus, CSV_UPLOAD_LIMITS } from '@/types/transactions';
+import { ImportStatus, CSV_UPLOAD_LIMITS } from '@/types/transactions';
+import { parseCSV, ParsedCSVData } from '@/lib/csv/parser';
 
 interface CSVUploadProps {
   onUploadComplete?: (sessionId: string) => void;
   onUploadError?: (error: string) => void;
 }
 
-interface ParsedCSVData {
-  headers: string[];
-  rows: string[][];
-  totalRows: number;
-  previewRows: string[][];
-}
+// ParsedCSVData imported from csv/parser
 
 export default function CSVUpload({ onUploadComplete, onUploadError }: CSVUploadProps) {
   const {
     createCSVImportSession,
-    updateCSVImportSession,
-    getCSVImportSession
+    updateCSVImportSession
+    // getCSVImportSession not needed here currently
   } = useTransactionStore();
 
   const [uploadState, setUploadState] = useState<{
@@ -361,54 +357,4 @@ export default function CSVUpload({ onUploadComplete, onUploadError }: CSVUpload
   );
 }
 
-// Helper function to parse CSV
-function parseCSV(text: string): ParsedCSVData {
-  const lines = text.split('\n').filter(line => line.trim());
-  if (lines.length === 0) {
-    throw new Error('CSV file is empty');
-  }
-
-  // Parse headers
-  const headers = parseCSVLine(lines[0]);
-  if (headers.length === 0) {
-    throw new Error('CSV file has no headers');
-  }
-
-  // Parse data rows
-  const rows = lines.slice(1).map(line => parseCSVLine(line));
-  const validRows = rows.filter(row => row.length > 0);
-
-  return {
-    headers,
-    rows: validRows,
-    totalRows: validRows.length,
-    previewRows: validRows.slice(0, CSV_UPLOAD_LIMITS.PREVIEW_ROWS)
-  };
-}
-
-function parseCSVLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++; // Skip next quote
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  
-  result.push(current.trim());
-  return result;
-}
+// CSV parsing helpers moved to lib/csv/parser for testability

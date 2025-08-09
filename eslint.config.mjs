@@ -31,6 +31,16 @@ const eslintConfig = [
       "playwright-tests/**",
     ],
   },
+  // Global rule customizations
+  {
+    rules: {
+      // Allow intentionally unused vars/args when prefixed with underscore to reduce noise
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }
+      ],
+    },
+  },
 ];
 
 export default eslintConfig;

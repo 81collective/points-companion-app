@@ -7,7 +7,6 @@ import {
   TransactionStats,
   DuplicateTransaction,
   TransactionBulkEdit,
-  TransactionSource,
   ImportStatus,
   PlaidAccount,
   DuplicateAction
@@ -197,7 +196,7 @@ export const useTransactionStore = create<TransactionStore>()(
         try {
           // Plaid sync logic here
           console.log('Syncing Plaid transactions for account:', accountId);
-        } catch (error) {
+  } catch (_error) {
           set({ error: 'Failed to sync Plaid transactions' });
         } finally {
           set({ isLoading: false });

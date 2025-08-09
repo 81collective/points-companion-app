@@ -344,8 +344,8 @@ export class CardDataUpdater {
    */
   static async getCurrentQuarterlyCategories(): Promise<Record<string, RewardCategory[]>> {
     // This would fetch current quarterly categories from card issuers
-    const currentQuarter = Math.ceil((new Date().getMonth() + 1) / 3);
-    const year = new Date().getFullYear();
+  const _currentQuarter = Math.ceil((new Date().getMonth() + 1) / 3);
+  const _year = new Date().getFullYear();
     
     // Example quarterly categories for Q3 2025
     return {

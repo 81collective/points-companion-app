@@ -17,40 +17,40 @@ function buildBody(body: any) {
 
 describe('bonuses analytics & recommendations smoke', () => {
   it('analytics GET returns mock analytics', async () => {
-    const res: any = await analyticsGET(buildReq('https://test.local/api/bonuses/analytics?timeframe=30d'))
-    const data = await res.json()
+  const res: any = await analyticsGET(buildReq('https://test.local/api/bonuses/analytics?timeframe=30d'))
+  const _data = await res.json() // underscore variable to indicate intentional use in assertions below
     expect(res.status).toBe(200)
-    expect(data.success).toBe(true)
-    expect(data.data).toBeDefined()
+  expect(_data.success).toBe(true)
+  expect(_data.data).toBeDefined()
   })
 
   it('recommendations GET 400 without bonusId', async () => {
-    const res: any = await recsGET(buildReq('https://test.local/api/bonuses/recommendations'))
-    const data = await res.json()
+  const res: any = await recsGET(buildReq('https://test.local/api/bonuses/recommendations'))
+  const _data = await res.json()
     expect(res.status).toBe(400)
-    expect(data.success).toBe(false)
+  expect(_data.success).toBe(false)
   })
 
   it('recommendations GET with bonusId returns data', async () => {
-    const res: any = await recsGET(buildReq('https://test.local/api/bonuses/recommendations?bonusId=abc&urgency=high'))
-    const data = await res.json()
+  const res: any = await recsGET(buildReq('https://test.local/api/bonuses/recommendations?bonusId=abc&urgency=high'))
+  const _data = await res.json()
     expect(res.status).toBe(200)
-    expect(data.success).toBe(true)
-    expect(Array.isArray(data.data)).toBe(true)
+  expect(_data.success).toBe(true)
+  expect(Array.isArray(_data.data)).toBe(true)
   })
 
   it('recommendations POST validates bonusId', async () => {
-    const res: any = await recsPOST(buildBody({}))
-    const data = await res.json()
+  const res: any = await recsPOST(buildBody({}))
+  const _data = await res.json()
     expect(res.status).toBe(400)
   })
 
   it('recommendations POST returns personalized recs', async () => {
-    const body = { bonusId: 'b1', userSpendingPatterns: [{ category: 'Groceries', monthlyAverage: 300 }], monthlyBudget: 4000, timeRemaining: 10 }
-    const res: any = await recsPOST(buildBody(body))
-    const data = await res.json()
+  const body = { bonusId: 'b1', userSpendingPatterns: [{ category: 'Groceries', monthlyAverage: 300 }], monthlyBudget: 4000, timeRemaining: 10 }
+  const res: any = await recsPOST(buildBody(body))
+  const _data = await res.json()
     expect(res.status).toBe(200)
-    expect(data.success).toBe(true)
-    expect(Array.isArray(data.data)).toBe(true)
+  expect(_data.success).toBe(true)
+  expect(Array.isArray(_data.data)).toBe(true)
   })
 })

@@ -7,7 +7,6 @@ import {
   reportWebVitals, 
   monitorMemoryUsage,
   performanceMark,
-  performanceMeasure,
   analyzeBundleSize
 } from '../performance'
 

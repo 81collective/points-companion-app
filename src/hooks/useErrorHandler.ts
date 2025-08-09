@@ -36,20 +36,20 @@ export function useErrorHandler(defaultOptions: UseErrorHandlerOptions = {}) {
       }
       
       return result;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    } catch (_error) {
+      const errorMessage = _error instanceof Error ? _error.message : 'An unexpected error occurred';
       
       if (showToast) {
         showError(`${context} Failed`, errorMessage);
       }
       
-      console.error(`[${context}] Operation failed:`, error);
+  console.error(`[${context}] Operation failed:`, _error);
       
       if (fallbackValue !== undefined) {
         return fallbackValue;
       }
       
-      throw error;
+  throw _error;
     }
   }, [defaultOptions, showError, showSuccess]);
 

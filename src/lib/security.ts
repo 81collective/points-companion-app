@@ -25,7 +25,7 @@ interface SecurityMetrics {
   lastIncident?: string;
 }
 
-class SecurityMonitor {
+export class SecurityMonitor {
   private static instance: SecurityMonitor;
   private events: SecurityEvent[] = [];
   private rateLimits: Map<string, { count: number; resetTime: number }> = new Map();
@@ -36,6 +36,15 @@ class SecurityMonitor {
       SecurityMonitor.instance = new SecurityMonitor();
     }
     return SecurityMonitor.instance;
+  }
+
+  // Test-only: reset internal state
+  static __resetForTests() {
+    if (SecurityMonitor.instance) {
+      SecurityMonitor.instance.events = [];
+      SecurityMonitor.instance.rateLimits.clear();
+      SecurityMonitor.instance.suspiciousIPs.clear();
+    }
   }
 
   // Log security events
@@ -227,7 +236,7 @@ export function useSecurityMonitor() {
     failedLogins: 0
   });
   
-  const { supabase } = useSupabase();
+  const { supabase: _supabase } = useSupabase();
   const { executeAsyncSafe } = useErrorHandler();
   const monitor = SecurityMonitor.getInstance();
 

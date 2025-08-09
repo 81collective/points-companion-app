@@ -20,7 +20,7 @@ export default function TransactionImportPage() {
     setCurrentStep('mapping');
   };
 
-  const handleMappingComplete = (mapping: CSVColumnMapping) => {
+  const handleMappingComplete = (_mapping: CSVColumnMapping) => {
     setCurrentStep('processing');
   };
 

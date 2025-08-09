@@ -470,7 +470,7 @@ export default function LoyaltyDashboard({ className = "" }: LoyaltyDashboardPro
       <AddLoyaltyAccount
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onAccountAdded={(account: LoyaltyAccount) => {
+  onAccountAdded={(_account: LoyaltyAccount) => {
           // The React Query cache will be updated automatically by the mutation
           setShowAddModal(false);
         }}

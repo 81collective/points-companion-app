@@ -9,8 +9,7 @@ import {
   BonusAnalytics, 
   SpendingRecommendation,
   BonusFilter,
-  AddBonusForm,
-  UpdateSpendingForm
+  AddBonusForm
 } from '@/types/welcomeBonus';
 
 // API base URL

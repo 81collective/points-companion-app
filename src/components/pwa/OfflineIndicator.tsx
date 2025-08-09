@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { WifiOff, RefreshCw } from 'lucide-react';
 
 const OfflineIndicator: React.FC = () => {
-  const [isOnline, setIsOnline] = useState(true);
+  const [_isOnline, setIsOnline] = useState(true); // underscore to suppress unused until UI uses it
   const [showOfflineToast, setShowOfflineToast] = useState(false);
 
   useEffect(() => {

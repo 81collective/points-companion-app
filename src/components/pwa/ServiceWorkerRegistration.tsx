@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import useServiceWorker from '@/hooks/useServiceWorker';
 
 const ServiceWorkerRegistration = () => {
-  const { isInstalled, isUpdateAvailable, updateServiceWorker } = useServiceWorker();
+  const { isInstalled: _isInstalled, isUpdateAvailable, updateServiceWorker } = useServiceWorker();
 
   useEffect(() => {
     if (isUpdateAvailable) {
