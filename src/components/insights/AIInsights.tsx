@@ -231,12 +231,28 @@ export default function AIInsights() {
     fetchInsights();
   }, [analyzeSpending, supabase]);
 
-  const filteredInsights = insights.filter(insight => {
-    if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'high') return insight.impact === 'high';
-    if (selectedFilter === 'actionable') return insight.actionable;
-    return false;
-  });
+  const filteredInsights = React.useMemo(() => {
+    return insights.filter(insight => {
+      if (selectedFilter === 'all') return true;
+      if (selectedFilter === 'high') return insight.impact === 'high';
+      if (selectedFilter === 'actionable') return insight.actionable;
+      return false;
+    });
+  }, [insights, selectedFilter]);
+
+  if (loading) {
+    return (
+      <div className="p-4 animate-pulse space-y-4">
+        <div className="h-6 w-40 bg-gray-200 rounded" />
+        <div className="h-10 w-60 bg-gray-200 rounded" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-20 bg-gray-100 rounded" />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4">
@@ -253,38 +269,34 @@ export default function AIInsights() {
           <option value="actionable">Actionable</option>
         </select>
       </div>
-      {loading ? (
-        <p>Loading insights...</p>
-      ) : (
-        <div>
-          {filteredInsights.length === 0 ? (
-            <p>No insights available based on your spending data.</p>
-          ) : (
-            filteredInsights.map((insight, index) => (
-              <div
-                key={index}
-                className={`p-4 mb-4 rounded-lg border-l-4 ${insight.type === 'alert' ? 'border-red-500' : insight.type === 'opportunity' ? 'border-green-500' : 'border-blue-500'}`}
-              >
-                <div className="flex items-center mb-2">
-                  {insight.type === 'tip' && <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />}
-                  {insight.type === 'alert' && <AlertTriangle className="w-5 h-5 mr-2 text-red-500" />}
-                  {insight.type === 'opportunity' && <TrendingUp className="w-5 h-5 mr-2 text-green-500" />}
-                  {insight.type === 'achievement' && <Sparkles className="w-5 h-5 mr-2 text-purple-500" />}
-                  {insight.type === 'prediction' && <Target className="w-5 h-5 mr-2 text-orange-500" />}
-                  <h2 className="text-lg font-semibold">{insight.title}</h2>
-                </div>
-                <p className="text-sm text-gray-700 mb-2">{insight.description}</p>
-                {insight.savings && (
-                  <p className="text-sm font-medium">
-                    Potential Savings: ${insight.savings.toFixed(2)} {insight.timeframe && `(${insight.timeframe})`}
-                  </p>
-                )}
-                <p className="text-xs text-gray-500">{insight.impact} impact</p>
+      <div>
+        {filteredInsights.length === 0 ? (
+          <p>No insights available based on your spending data.</p>
+        ) : (
+          filteredInsights.map((insight, index) => (
+            <div
+              key={index}
+              className={`p-4 mb-4 rounded-lg border-l-4 ${insight.type === 'alert' ? 'border-red-500' : insight.type === 'opportunity' ? 'border-green-500' : 'border-blue-500'}`}
+            >
+              <div className="flex items-center mb-2">
+                {insight.type === 'tip' && <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />}
+                {insight.type === 'alert' && <AlertTriangle className="w-5 h-5 mr-2 text-red-500" />}
+                {insight.type === 'opportunity' && <TrendingUp className="w-5 h-5 mr-2 text-green-500" />}
+                {insight.type === 'achievement' && <Sparkles className="w-5 h-5 mr-2 text-purple-500" />}
+                {insight.type === 'prediction' && <Target className="w-5 h-5 mr-2 text-orange-500" />}
+                <h2 className="text-lg font-semibold">{insight.title}</h2>
               </div>
-            ))
-          )}
-        </div>
-      )}
+              <p className="text-sm text-gray-700 mb-2">{insight.description}</p>
+              {insight.savings && (
+                <p className="text-sm font-medium">
+                  Potential Savings: ${insight.savings.toFixed(2)} {insight.timeframe && `(${insight.timeframe})`}
+                </p>
+              )}
+              <p className="text-xs text-gray-500">{insight.impact} impact</p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
