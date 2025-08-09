@@ -83,14 +83,14 @@ const NotificationCenter: React.FC = () => {
           schema: 'public',
           table: 'user_transactions',
           filter: `user_id=eq.${user.id}`,
-          handler: (payload: RealtimeEvent) => handleTransactionEvent(payload)
+          handler: (payload: unknown) => handleTransactionEvent(payload as RealtimeEvent)
         },
         {
           event: '*',
           schema: 'public',
           table: 'loyalty_accounts',
           filter: `user_id=eq.${user.id}`,
-          handler: (payload: RealtimeEvent) => handleLoyaltyEvent(payload)
+          handler: (payload: unknown) => handleLoyaltyEvent(payload as RealtimeEvent)
         }
       ],
       presence: {
