@@ -3,9 +3,12 @@ jest.mock('@supabase/supabase-js', () => ({ createClient: () => ({ auth: { getSe
 jest.mock('@supabase/ssr', () => ({ createBrowserClient: () => ({ auth: { getSession: async () => ({ data: { session: null } }) } }) }))
 jest.mock('@/hooks/useSupabase', () => ({ useSupabase: () => ({ supabase: { auth: { getSession: async () => ({ data: { session: null } }) } } }) }))
 
-// Provide minimal navigator for tests
-// @ts-ignore
-global.navigator = { userAgent: 'jest' }
+// Provide minimal navigator for tests (define on globalThis without suppressing TS)
+// Assign mock navigator (augment existing Navigator via type assertion)
+Object.defineProperty(globalThis, 'navigator', {
+  value: { userAgent: 'jest' },
+  configurable: true
+});
 
 import { SecurityMonitor } from '../security'
 

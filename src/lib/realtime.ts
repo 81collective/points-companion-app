@@ -2,6 +2,8 @@
 // Shared helpers for setting up Supabase Realtime channels (postgres changes + presence)
 // Provides a single structured way to subscribe and clean up.
 // Using loose typing to avoid version mismatch issues with supabase-js realtime channel typings
+import type { SupabaseClient } from '@supabase/supabase-js';
+// Use loose channel typing to avoid version-specific overload mismatches
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RealtimeChannel = any;
 
@@ -10,7 +12,7 @@ export interface PostgresChangeConfig {
   schema?: string; // default 'public'
   table: string;
   filter?: string; // e.g. user_id=eq.some-id
-  handler: (payload: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  handler: (payload: unknown) => void;
 }
 
 export interface PresenceConfig {
@@ -30,7 +32,7 @@ export interface RealtimeChannelOptions {
   autoTrackOnSubscribe?: boolean; // default true (if presence + trackPayload)
 }
 
-export function createRealtimeChannel(supabase: any, options: RealtimeChannelOptions) { // eslint-disable-line @typescript-eslint/no-explicit-any
+export function createRealtimeChannel(supabase: SupabaseClient, options: RealtimeChannelOptions) {
   const {
     name,
     postgresChanges = [],
@@ -40,7 +42,7 @@ export function createRealtimeChannel(supabase: any, options: RealtimeChannelOpt
     autoTrackOnSubscribe = true
   } = options;
 
-  const channel: RealtimeChannel = supabase.channel(name);
+  const channel: RealtimeChannel = (supabase as unknown as { channel: (name: string) => RealtimeChannel }).channel(name);
 
   // Postgres change handlers
   postgresChanges.forEach(cfg => {
@@ -55,8 +57,8 @@ export function createRealtimeChannel(supabase: any, options: RealtimeChannelOpt
   // Presence handlers
   if (presence?.enable) {
     if (presence.onSync) channel.on('presence', { event: 'sync' }, () => presence.onSync!(channel));
-    if (presence.onJoin) channel.on('presence', { event: 'join' }, presence.onJoin as any); // eslint-disable-line @typescript-eslint/no-explicit-any
-    if (presence.onLeave) channel.on('presence', { event: 'leave' }, presence.onLeave as any);
+  if (presence.onJoin) channel.on('presence', { event: 'join' }, presence.onJoin as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (presence.onLeave) channel.on('presence', { event: 'leave' }, presence.onLeave as any); // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 
   channel.subscribe((status: string) => {
@@ -66,7 +68,7 @@ export function createRealtimeChannel(supabase: any, options: RealtimeChannelOpt
         try {
           const payload = presence.trackPayload?.();
             if (payload) channel.track(payload);
-        } catch (err) {
+  } catch (err) {
           // Fail silently; tracking is non-critical
           console.warn('Presence track failed', err);
         }
@@ -76,7 +78,7 @@ export function createRealtimeChannel(supabase: any, options: RealtimeChannelOpt
   });
 
   const unsubscribe = () => {
-    try { supabase.removeChannel(channel); } catch { /* ignore */ }
+  try { (supabase as unknown as { removeChannel: (c: RealtimeChannel) => void }).removeChannel(channel); } catch { /* ignore */ }
   };
 
   return { channel, unsubscribe };
@@ -85,7 +87,7 @@ export function createRealtimeChannel(supabase: any, options: RealtimeChannelOpt
 // React hook wrapper for convenience
 import { useEffect, useRef } from 'react';
 
-export function useRealtimeChannel(supabase: any, options: RealtimeChannelOptions, deps: unknown[] = []) { // eslint-disable-line @typescript-eslint/no-explicit-any
+export function useRealtimeChannel(supabase: SupabaseClient | null | undefined, options: RealtimeChannelOptions, deps: unknown[] = []) {
   const saved = useRef<{ unsubscribe: () => void } | null>(null);
 
   useEffect(() => {

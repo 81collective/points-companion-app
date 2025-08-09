@@ -62,7 +62,7 @@ export function useErrorHandler(defaultOptions: UseErrorHandlerOptions = {}) {
   ): Promise<T | undefined> => {
     try {
       return await executeAsync(operation, options);
-    } catch (error) {
+  } catch (_error) {
       // Safe version that never throws
       return options.fallbackValue;
     }
