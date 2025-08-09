@@ -43,9 +43,11 @@ The following refactors and enhancements were implemented to improve stability, 
 - Converted mock datasets to stable refs to prevent unnecessary re-renders (`mockAuditLogsRef`).
 
 ### Real‑Time & Data Flow Enhancements
-- Refactored Supabase real‑time channel setup in `LiveDashboard`, `NotificationCenter`, and spending tracker for clearer lifecycle management and proper cleanup.
+- Introduced a shared realtime abstraction (`src/lib/realtime.ts`) to standardize Supabase channel creation, presence tracking, and cleanup.
+- Refactored `NotificationCenter` to use the new helper (remaining: `SpendingTracker`, `LiveDashboard`, `RealTimeSystem`).
 - Centralized metric update logic and reduced repetition in real‑time dashboards.
 - Added structured parsing for transaction & loyalty change payloads; guarded geolocation and window usage for SSR safety.
+- Hardened handler typing (moved to `unknown` + localized safe casting) to satisfy strict build pipeline while avoiding brittle upstream Supabase type coupling.
 
 ### AI & Analytics Layer
 - Integrated Supabase-backed spending pattern extraction in `AIRecommendationEngine` (replacing static mock patterns) with caching layer via `localStorage`.
@@ -67,10 +69,17 @@ The following refactors and enhancements were implemented to improve stability, 
 
 ### PWA / Offline & Misc
 - Began cleanup of PWA components (removal of unused network state variables & icons) preparing for future offline robustness work.
+- Added safer navigator mocking in tests (removed `@ts-ignore`) and reinforced SSR guards in components referencing browser globals.
 
 ### Repository Health
 - Large net reduction in lines (removal > additions) while increasing functional clarity.
 - Commit history now groups related cleanup operations with descriptive messages for traceability.
+- Eliminated remaining build blockers (lint + type) via targeted handler signature adjustments and removal of deprecated suppression comments.
+
+### Testing & Tooling Additions
+- Added initial unit tests for security monitoring & CSV parsing utilities (foundation for upcoming realtime + import pipeline test expansion).
+- Enforced stricter no-`@ts-ignore` policy (replaced with explicit environment-safe mocks and localized casting where appropriate).
+- Improved error handling patterns (underscore convention for intentionally unused caught errors).
 
 ## Remaining Technical Debt / Open Warnings
 The production build still reports a focused set of `@typescript-eslint/no-unused-vars` warnings in:
@@ -85,9 +94,10 @@ These are now isolated and can be addressed or suppressed systematically dependi
 
 ### Short-Term (1–2 sprints)
 - Complete remaining unused variable pruning or add ESLint ignore patterns for intentional placeholders (indexes, underscore params).
-- Add unit tests around: CSV import pipeline (parsing + duplicate detection), security score calculation, AI spending pattern derivation.
-- Extract a shared real‑time subscription utility to DRY channel setup (transactions, loyalty, notifications, metrics).
+- Expand unit tests: CSV import duplicate detection, security score calculation, AI spending pattern derivation, realtime abstraction (channel lifecycle & presence scenarios).
+- Migrate remaining realtime consumers (`SpendingTracker`, `LiveDashboard`, `RealTimeSystem`) onto shared subscription utility.
 - Introduce lightweight error boundary & toast surfacing for background realtime failures.
+- Add deterministic mocks for Supabase realtime events for test isolation.
 
 ### Medium-Term (Quarter)
 - Implement background job / edge function to precompute analytics & AI recommendations (reduces client cold-start cost).
@@ -111,6 +121,7 @@ These are now isolated and can be addressed or suppressed systematically dependi
 - Add ESLint rule customization to allow `_`-prefixed unused parameters; enforce import ordering & consistent icon set usage.
 - Adopt commit lint & conventional release notes automation (semantic-release) for changelog generation.
 - CI integration: per-PR size diff + bundle analyzer artifact upload.
+- Add type-safe test factories for transactions & loyalty accounts to reduce duplication.
 
 ### Observability & Metrics
 - Add OpenTelemetry tracing for: CSV import lifecycle, AI recommendation generation, real-time subscription throughput.
@@ -118,9 +129,10 @@ These are now isolated and can be addressed or suppressed systematically dependi
 
 ## Suggested Next Steps
 1. Decide suppression vs. elimination strategy for the remaining explicit unused variable warnings.
-2. Prioritize test coverage seeds (CSV import + security scoring) to lock in current behavior before further refactors.
+2. Expand test coverage (CSV duplicate detection, realtime channel lifecycle, security scoring) before broader refactors.
 3. Stand up a metrics/tracing foundation early to avoid retrofitting observability into AI & realtime layers later.
 4. Formalize performance budget targets and wire into CI.
+5. Complete migration of remaining realtime components to the shared abstraction and validate with presence + error simulation tests.
 
 ---
 This log will evolve as new architectural or performance-focused enhancements are introduced. Keep entries concise, action-oriented, and grouped by domain for ongoing clarity.
