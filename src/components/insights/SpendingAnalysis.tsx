@@ -82,7 +82,9 @@ export default function SpendingAnalysis() {
   function processMonthlyData(transactions: Transaction[]): SpendingData[] {
     const monthlySpending: { [key: string]: SpendingData } = {};
     transactions.forEach(tx => {
+      const safeCategory = (tx.category || 'Other').toLowerCase();
       const date = new Date(tx.date);
+      if (Number.isNaN(date.getTime())) return; // skip invalid dates
       const monthKey = date.toLocaleString('default', { month: 'short' });
       if (!monthlySpending[monthKey]) {
         monthlySpending[monthKey] = {
@@ -94,11 +96,10 @@ export default function SpendingAnalysis() {
           other: 0,
         };
       }
-      const category = tx.category.toLowerCase();
-      if (["dining","groceries","travel","gas"].includes(category)) {
-        (monthlySpending[monthKey][category as "dining"|"groceries"|"travel"|"gas"] as number) += Number(tx.amount);
+      if (["dining","groceries","travel","gas"].includes(safeCategory)) {
+        (monthlySpending[monthKey][safeCategory as "dining"|"groceries"|"travel"|"gas"] as number) += Number(tx.amount) || 0;
       } else {
-        (monthlySpending[monthKey].other as number) += Number(tx.amount);
+        (monthlySpending[monthKey].other as number) += Number(tx.amount) || 0;
       }
     });
     return Object.values(monthlySpending);
@@ -113,11 +114,11 @@ export default function SpendingAnalysis() {
       other: 0,
     };
     transactions.forEach(tx => {
-      const category = tx.category.toLowerCase();
-      if (["dining","groceries","travel","gas"].includes(category)) {
-        categoryTotals[category] += Number(tx.amount);
+      const safeCategory = (tx.category || 'Other').toLowerCase();
+      if (["dining","groceries","travel","gas"].includes(safeCategory)) {
+        categoryTotals[safeCategory] += Number(tx.amount) || 0;
       } else {
-        categoryTotals.other += Number(tx.amount);
+        categoryTotals.other += Number(tx.amount) || 0;
       }
     });
     return Object.entries(categoryTotals).map(([name, value]) => ({

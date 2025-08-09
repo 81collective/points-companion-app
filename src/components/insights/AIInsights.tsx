@@ -103,11 +103,13 @@ export default function AIInsights() {
     return bestCard;
   };
 
-  const calculatePoints = (amount: number, card: CreditCard, category: string): number => {
+  const calculatePoints = (amount: number, card: CreditCard | null | undefined, category: string): number => {
+    if (!card) return Math.round(amount); // default 1x if no card info
     const multiplier = card.rewards.reduce((max, reward) => {
       const [cat, mult] = reward.split(':');
       if (cat.toLowerCase() === category.toLowerCase()) {
-        return Math.max(max, parseFloat(mult));
+        const parsed = parseFloat(mult);
+        return isNaN(parsed) ? max : Math.max(max, parsed);
       }
       return max;
     }, 1);
@@ -196,214 +198,93 @@ export default function AIInsights() {
     const fetchInsights = async () => {
       setLoading(true);
       try {
-        // Get recent transactions
         const { data: transactions, error: txError } = await supabase
           .from('transactions')
           .select('*')
           .gte('date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
         if (txError) throw txError;
 
-        // Get user's cards
         const { data: cards, error: cardError } = await supabase
           .from('credit_cards')
           .select('*');
-
         if (cardError) throw cardError;
 
-        // Analyze spending patterns
+        if (!transactions || !cards || !transactions.length || !cards.length) {
+          setInsights([]);
+          return;
+        }
+
         const analysis = analyzeSpending(transactions as Transaction[], cards as CreditCard[]);
-        
-        // Generate insights from analysis
+        if (!analysis.length) {
+          setInsights([]);
+          return;
+        }
         const newInsights = generateInsights(analysis);
         setInsights(newInsights);
       } catch (error) {
         console.error('Error fetching insights:', error);
+        setInsights([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchInsights();
   }, [analyzeSpending, supabase]);
 
-  const getIcon = (type: Insight['type']) => {
-    switch (type) {
-      case 'tip':
-        return <Lightbulb className="h-5 w-5 text-amber-500" />;
-      case 'alert':
-        return <AlertTriangle className="h-5 w-5 text-rose-500" />;
-      case 'opportunity':
-        return <TrendingUp className="h-5 w-5 text-emerald-500" />;
-      case 'achievement':
-        return <Target className="h-5 w-5 text-purple-500" />;
-      case 'prediction':
-        return <Sparkles className="h-5 w-5 text-blue-500" />;
-    }
-  };
-
-  const getBackgroundColor = (type: Insight['type']) => {
-    switch (type) {
-      case 'tip':
-        return 'bg-amber-50 border-amber-200';
-      case 'alert':
-        return 'bg-rose-50 border-rose-200';
-      case 'opportunity':
-        return 'bg-emerald-50 border-emerald-200';
-      case 'achievement':
-        return 'bg-purple-50 border-purple-200';
-      case 'prediction':
-        return 'bg-blue-50 border-blue-200';
-    }
-  };
-
-  const getImpactBadge = (impact?: string) => {
-    if (!impact) return null;
-    
-    const colors = {
-      high: 'bg-rose-100 text-rose-800',
-      medium: 'bg-amber-100 text-amber-800',
-      low: 'bg-gray-100 text-gray-800'
-    };
-
-    return (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colors[impact as keyof typeof colors]}`}>
-        {impact.toUpperCase()} IMPACT
-      </span>
-    );
-  };
-
   const filteredInsights = insights.filter(insight => {
+    if (selectedFilter === 'all') return true;
     if (selectedFilter === 'high') return insight.impact === 'high';
     if (selectedFilter === 'actionable') return insight.actionable;
-    return true;
+    return false;
   });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Header with Summary Stats */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">AI Insights Dashboard</h2>
-            <p className="text-purple-100">Smart recommendations powered by your spending patterns</p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold">{insights.length}</div>
-            <div className="text-sm text-purple-100">Active Insights</div>
-          </div>
-        </div>
-        
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="bg-white/20 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold">
-              ${insights.filter(i => i.savings).reduce((sum, i) => sum + (i.savings || 0), 0).toFixed(0)}
-            </div>
-            <div className="text-sm text-purple-100">Potential Monthly Savings</div>
-          </div>
-          <div className="bg-white/20 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold">
-              {insights.filter(i => i.impact === 'high').length}
-            </div>
-            <div className="text-sm text-purple-100">High Impact Opportunities</div>
-          </div>
-          <div className="bg-white/20 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold">
-              {insights.filter(i => i.actionable).length}
-            </div>
-            <div className="text-sm text-purple-100">Actionable Items</div>
-          </div>
-        </div>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">AI Insights</h1>
+      <div className="mb-4">
+        <label className="mr-2">Filter:</label>
+        <select
+          value={selectedFilter}
+          onChange={(e) => setSelectedFilter(e.target.value as 'all' | 'high' | 'actionable')}
+          className="p-2 border rounded"
+        >
+          <option value="all">All</option>
+          <option value="high">High Impact</option>
+          <option value="actionable">Actionable</option>
+        </select>
       </div>
-
-      {/* Filter Controls */}
-      <div className="flex items-center space-x-3">
-        <span className="text-sm font-medium text-gray-700">Filter by:</span>
-        {['all', 'high', 'actionable'].map((filter) => (
-          <button
-            key={filter}
-                              onClick={() => setSelectedFilter(filter as 'all' | 'high' | 'actionable')}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-              selectedFilter === filter
-                ? 'bg-rose-500 text-white shadow-lg'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {filter === 'all' ? 'All Insights' : filter === 'high' ? 'High Impact' : 'Actionable'}
-          </button>
-        ))}
-      </div>
-
-      {/* Insights List */}
-      <div className="space-y-4">
-        {filteredInsights.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-2xl">
-            <Sparkles className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No insights match your filter</h3>
-            <p className="text-gray-600">Try adjusting your filter or check back later for new insights.</p>
-          </div>
-        ) : (
-          filteredInsights.map((insight, index) => (
-            <div
-              key={index}
-              className={`p-6 rounded-2xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${getBackgroundColor(insight.type)}`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-white shadow-sm">
-                  {getIcon(insight.type)}
+      {loading ? (
+        <p>Loading insights...</p>
+      ) : (
+        <div>
+          {filteredInsights.length === 0 ? (
+            <p>No insights available based on your spending data.</p>
+          ) : (
+            filteredInsights.map((insight, index) => (
+              <div
+                key={index}
+                className={`p-4 mb-4 rounded-lg border-l-4 ${insight.type === 'alert' ? 'border-red-500' : insight.type === 'opportunity' ? 'border-green-500' : 'border-blue-500'}`}
+              >
+                <div className="flex items-center mb-2">
+                  {insight.type === 'tip' && <Lightbulb className="w-5 h-5 mr-2 text-yellow-500" />}
+                  {insight.type === 'alert' && <AlertTriangle className="w-5 h-5 mr-2 text-red-500" />}
+                  {insight.type === 'opportunity' && <TrendingUp className="w-5 h-5 mr-2 text-green-500" />}
+                  {insight.type === 'achievement' && <Sparkles className="w-5 h-5 mr-2 text-purple-500" />}
+                  {insight.type === 'prediction' && <Target className="w-5 h-5 mr-2 text-orange-500" />}
+                  <h2 className="text-lg font-semibold">{insight.title}</h2>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 text-lg">{insight.title}</h3>
-                    <div className="flex items-center space-x-2">
-                      {getImpactBadge(insight.impact)}
-                      {insight.actionable && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          ACTIONABLE
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-4 leading-relaxed">{insight.description}</p>
-                  
-                  {/* Action Row */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      {insight.savings && (
-                        <div className="flex items-center space-x-1">
-                          <DollarSign className="h-4 w-4" />
-                          <span>${insight.savings.toFixed(2)} potential savings</span>
-                        </div>
-                      )}
-                      {insight.timeframe && (
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{insight.timeframe}</span>
-                        </div>
-                      )}
-                    </div>
-                    {insight.actionable && (
-                      <button className="inline-flex items-center px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-200 transition-colors text-sm">
-                        Take Action
-                        <ArrowUpRight className="ml-2 h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <p className="text-sm text-gray-700 mb-2">{insight.description}</p>
+                {insight.savings && (
+                  <p className="text-sm font-medium">
+                    Potential Savings: ${insight.savings.toFixed(2)} {insight.timeframe && `(${insight.timeframe})`}
+                  </p>
+                )}
+                <p className="text-xs text-gray-500">{insight.impact} impact</p>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
