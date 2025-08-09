@@ -2,12 +2,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { navigationItems } from '@/config/navigation'
+import { useNavigationStore } from '@/stores/navigationStore'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed }: { collapsed?: boolean }) {
   const pathname = usePathname()
+  const { toggleSidebar } = useNavigationStore()
   return (
-    <aside className="hidden lg:block w-60 shrink-0 border-r border-gray-200 bg-white">
-      <nav className="p-4 space-y-1" aria-label="Sidebar navigation">
+    <aside className={`hidden lg:flex flex-col ${collapsed ? 'w-16' : 'w-60'} transition-all duration-200 shrink-0 border-r border-gray-200 bg-white`}>      
+      <div className="p-2 flex justify-end">
+        <button onClick={toggleSidebar} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} className="p-2 rounded-md hover:bg-gray-50 text-gray-500">
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
+      <nav className="px-2 pb-4 space-y-1 flex-1 overflow-y-auto" aria-label="Sidebar navigation">
         {navigationItems.map((item) => {
           const active = pathname.startsWith(item.href)
           const Icon = item.icon
@@ -20,7 +28,7 @@ export default function Sidebar() {
               aria-current={active ? 'page' : undefined}
             >
               <Icon className="w-4 h-4" />
-              {item.label}
+              {!collapsed && <span>{item.label}</span>}
             </Link>
           )
         })}
