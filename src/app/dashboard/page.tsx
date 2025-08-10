@@ -21,6 +21,9 @@ import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
 import SmartNotifications from '@/components/ai/SmartNotifications'
 import { isCurrentUTCMonth } from '@/lib/timeUtils'
 import DashboardTabs from '@/components/dashboard/DashboardTabs'
+import CardsSection from '@/components/dashboard/sections/CardsSection'
+import InsightsSection from '@/components/dashboard/sections/InsightsSection'
+import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
 
 const NaturalLanguageChat = dynamic(() => import('@/components/ai/NaturalLanguageChat'), {
   ssr: false,
@@ -262,13 +265,13 @@ export default function DashboardPage() {
           </>
         )}
         {activeTab === 'cards' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">Cards tab (migrate content)</div>
+          <CardsSection />
         )}
         {activeTab === 'insights' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">Insights tab (migrate content)</div>
+          <InsightsSection />
         )}
         {activeTab === 'analytics' && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">Analytics tab (migrate content)</div>
+          <AnalyticsSection />
         )}
       </>
     </ProtectedRoute>
