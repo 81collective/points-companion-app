@@ -11,6 +11,7 @@ import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import LocationPermission from '@/components/location/LocationPermission';
 import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
 import { Business } from '@/types/location.types';
+import { logInteraction } from '@/lib/interactionLogger';
 
 const BusinessMap = dynamic(() => import('@/components/maps/BusinessMap'), {
   loading: () => (
@@ -92,6 +93,15 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
       willUseCategory: selectedCategory
     });
     setSelectedBusiness(business);
+    logInteraction({
+      type: 'business_select',
+      label: business.name,
+      meta: {
+        businessId: business.id,
+        category: business.category,
+        uiCategory: selectedCategory,
+      }
+    })
     console.log('🏢 Business selected - AFTER setSelectedBusiness');
   };
 

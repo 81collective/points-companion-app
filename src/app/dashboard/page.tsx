@@ -19,6 +19,7 @@ import dynamic from 'next/dynamic'
 import InsightsPreview from '@/components/dashboard/InsightsPreview'
 import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
 import SmartNotifications from '@/components/ai/SmartNotifications'
+import { isCurrentUTCMonth } from '@/lib/timeUtils'
 
 const NaturalLanguageChat = dynamic(() => import('@/components/ai/NaturalLanguageChat'), {
   ssr: false,
@@ -63,8 +64,8 @@ export default function DashboardPage() {
         const now = new Date()
         const monthlyTotal = transactions
           .filter((tx) => {
-            const txDate = new Date(tx.date)
-            return txDate.getMonth() === now.getMonth() && txDate.getFullYear() === now.getFullYear()
+            if (!tx.date) return false
+            return isCurrentUTCMonth(tx.date, now)
           })
           .reduce((sum, tx) => sum + (tx.amount || 0), 0)
         setMonthlyPoints(Math.round(monthlyTotal))

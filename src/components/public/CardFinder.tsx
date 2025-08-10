@@ -8,6 +8,7 @@ import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import LocationPermission from '@/components/location/LocationPermission';
 import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
 import { Business } from '@/types/location.types';
+import { logInteraction } from '@/lib/interactionLogger';
 
 interface CardFinderProps {
   className?: string;
@@ -73,6 +74,15 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
       willUseCategory: selectedCategory
     });
     setSelectedBusiness(business);
+    logInteraction({
+      type: 'homepage_business_select',
+      label: business.name,
+      meta: {
+        businessId: business.id,
+        category: business.category,
+        uiCategory: selectedCategory,
+      }
+    })
     console.log('🏢 HOMEPAGE: Business selected - AFTER setSelectedBusiness');
   };
 
