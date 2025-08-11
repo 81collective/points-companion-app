@@ -1,5 +1,5 @@
-import DashboardLayout from '@/components/layout/DashboardLayout'
+import UnifiedDashboardShell from '@/components/layout/UnifiedDashboardShell'
 
 export default function DashboardRouteLayout({ children }: { children: React.ReactNode }) {
-  return <DashboardLayout>{children}</DashboardLayout>
+  return <UnifiedDashboardShell>{children}</UnifiedDashboardShell>
 }

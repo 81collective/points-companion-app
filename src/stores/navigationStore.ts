@@ -5,13 +5,11 @@ export interface AppNotification { id: string; title: string; read: boolean; cre
 
 interface NavigationState {
   currentPage: string
-  breadcrumbs: BreadcrumbItem[]
   sidebarCollapsed: boolean
   mobileMenuOpen: boolean
   searchOpen: boolean
   notifications: AppNotification[]
   setCurrentPage: (page: string) => void
-  setBreadcrumbs: (items: BreadcrumbItem[]) => void
   toggleSidebar: () => void
   toggleMobileMenu: () => void
   openSearch: () => void
@@ -23,13 +21,11 @@ interface NavigationState {
 
 export const useNavigationStore = create<NavigationState>((set) => ({
   currentPage: 'dashboard',
-  breadcrumbs: [],
   sidebarCollapsed: false,
   mobileMenuOpen: false,
   searchOpen: false,
   notifications: [],
   setCurrentPage: (currentPage) => set({ currentPage }),
-  setBreadcrumbs: (breadcrumbs) => set({ breadcrumbs }),
   toggleSidebar: () => set(s => ({ sidebarCollapsed: !s.sidebarCollapsed })),
   toggleMobileMenu: () => set(s => ({ mobileMenuOpen: !s.mobileMenuOpen })),
   openSearch: () => set({ searchOpen: true }),

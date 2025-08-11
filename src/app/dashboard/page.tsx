@@ -1,300 +1,73 @@
 "use client"
-import { useState, useEffect, useCallback, type ElementType } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 // Removed Header (provided by DashboardLayout)
 import { createClient } from '@/lib/supabase'
-import {
-  CreditCard,
-  TrendingUp,
-  DollarSign,
-  Plus,
-  BarChart3,
-  ArrowUpRight,
-  PieChart,
-  Target,
-} from 'lucide-react'
-import dynamic from 'next/dynamic'
-import InsightsPreview from '@/components/dashboard/InsightsPreview'
-import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
-import SmartNotifications from '@/components/ai/SmartNotifications'
-import { isCurrentUTCMonth } from '@/lib/timeUtils'
 import CardsSection from '@/components/dashboard/sections/CardsSection'
 import InsightsSection from '@/components/dashboard/sections/InsightsSection'
 import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
 import BonusesSection from '@/components/dashboard/sections/BonusesSection'
+import OverviewSection from '@/components/dashboard/sections/OverviewSection'
 import CommandPalette from '@/components/command-palette/CommandPalette'
-import AIDisabledNotice from '@/components/ai/AIDisabledNotice'
+import { fetchDashboardData } from '@/services/dashboardData'
+import { DashboardMetrics } from '@/types/dashboard'
 
-const NaturalLanguageChat = dynamic(() => import('@/components/ai/NaturalLanguageChat'), {
-  ssr: false,
-  loading: () => (
-    <div className="rounded-2xl p-6 border border-gray-100 bg-white text-gray-500">Loading assistant…</div>
-  ),
-})
 
 export default function DashboardPage() {
   const { profile, user } = useAuth()
-  const [cardCount, setCardCount] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [totalPoints, setTotalPoints] = useState(0)
-  const [monthlyPoints, setMonthlyPoints] = useState(0)
-  const [active, setActive] = useState('overview')
+  const router = useRouter()
+  const pathname = usePathname()
+  const section = pathname.split('/dashboard/')[1]?.split('/')[0] || 'overview'
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Restore last active section
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('pc-dashboard-active');
-      if (saved) setActive(saved);
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try { localStorage.setItem('pc-dashboard-active', active); } catch {}
-  }, [active]);
-  const { preferences } = useDashboardPreferences()
-
-  const supabase = createClient()
-
-  const fetchDashboardData = useCallback(async () => {
+  const load = useCallback(async () => {
     if (!user?.id) return
-
+    setLoading(true)
+    setError(null)
     try {
-      const { count: cardCountResult, error: cardError } = await supabase
-        .from('credit_cards')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-
-      if (cardError) throw cardError
-      setCardCount(cardCountResult || 0)
-
-      const { data: transactions, error: txError } = await supabase
-        .from('transactions')
-        .select('amount, date, card_id')
-        .eq('user_id', user.id)
-
-      if (txError) throw txError
-
-      if (transactions) {
-        const total = transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0)
-        setTotalPoints(Math.round(total))
-
-        const now = new Date()
-        const monthlyTotal = transactions
-          .filter((tx) => {
-            if (!tx.date) return false
-            return isCurrentUTCMonth(tx.date, now)
-          })
-          .reduce((sum, tx) => sum + (tx.amount || 0), 0)
-        setMonthlyPoints(Math.round(monthlyTotal))
-      }
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err)
-      setCardCount(0)
-      setTotalPoints(0)
-      setMonthlyPoints(0)
+      const data = await fetchDashboardData(user.id)
+      setMetrics(data)
+    } catch (e: any) {
+      setError(e.message || 'Failed to load dashboard data')
     } finally {
       setLoading(false)
     }
-  }, [supabase, user?.id])
+  }, [user?.id])
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [fetchDashboardData])
-
-  const stats = [
-    {
-      title: 'Total Points',
-      value: loading ? '…' : totalPoints.toLocaleString(),
-      helper: 'All-time earned',
-      icon: TrendingUp,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50',
-    },
-    {
-      title: 'This Month',
-      value: loading ? '…' : monthlyPoints.toLocaleString(),
-      helper: monthlyPoints > 0 ? 'Active' : 'No activity yet',
-      icon: DollarSign,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      title: 'Active Cards',
-      value: loading ? '…' : cardCount.toString(),
-      helper: cardCount === 0 ? 'Add your first card' : `${cardCount} in wallet`,
-      icon: CreditCard,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-    },
-  ] as const
-
-  const suggestions: Array<{ icon: ElementType; title: string; cta?: { href: string; label: string } }> = []
-  if (cardCount === 0) {
-    suggestions.push({ icon: Plus, title: 'Add your first card to unlock personalized rewards', cta: { href: '/dashboard/cards', label: 'Add card' } })
-  }
-  if (monthlyPoints === 0) {
-    suggestions.push({ icon: DollarSign, title: 'Kickstart this month: make a purchase on a category bonus card' })
-  }
-  suggestions.push({ icon: BarChart3, title: 'Review Insights to optimize categories', cta: { href: '/dashboard/insights', label: 'Open insights' } })
+  useEffect(() => { load() }, [load])
 
   return (
     <ProtectedRoute>
-      <>
-        <div className="flex flex-col lg:flex-row gap-6">
-          <aside className="w-full lg:w-56 flex-shrink-0">
-            <nav className="space-y-1">
-              {[
-                { key: 'overview', label: 'Overview' },
-                { key: 'cards', label: 'Cards' },
-                { key: 'bonuses', label: 'Bonuses' },
-                { key: 'insights', label: 'Insights' },
-                { key: 'analytics', label: 'Analytics' },
-              ].map(item => (
-                <button
-                  key={item.key}
-                  onClick={() => setActive(item.key)}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors border ${active===item.key ? 'bg-gray-900 text-white border-gray-900' : 'bg-[var(--color-bg-alt)] border-[var(--color-border)] text-dim hover:text-[var(--color-text)]'}`}
-                  aria-current={active===item.key ? 'page' : undefined}
-                >{item.label}</button>
-              ))}
-            </nav>
-          </aside>
-          <div className="flex-1 min-w-0">
+      <div className="space-y-8">
         <CommandPalette />
-  {active === 'overview' && (
-          // existing overview content
-          <>
-            {/* Welcome */}
-            <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-                Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''} 👋
-              </h1>
-              <p className="mt-2 text-dim">Your at-a-glance rewards overview and next best actions.</p>
-            </div>
-
-            {/* Quick actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 mb-8">
-              <Link href="/dashboard/cards" className="btn-accent btn-minimal h-12 justify-center">
-                <Plus className="w-4 h-4" /> Add card
-              </Link>
-              <Link href="/transactions/import" className="btn-minimal h-12 justify-center">
-                <ArrowUpRight className="w-4 h-4" /> Import
-              </Link>
-              <Link href="/dashboard/analytics" className="btn-minimal h-12 justify-center">
-                <PieChart className="w-4 h-4" /> Analytics
-              </Link>
-            </div>
-
-            {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-              {stats.map((stat, idx) => {
-                const Icon = stat.icon
-                return (
-                  <div key={idx} className="stat-card surface-hover">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <small>{stat.title}</small>
-                        <h3>{stat.value}</h3>
-                        <p className="helper">{stat.helper}</p>
-                      </div>
-                      <div className="stat-icon">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Smart tips */}
-            {preferences.showNotifications ? (
-              <div className="mb-8">
-                <SmartNotifications max={3} />
-              </div>
-            ) : null}
-
-            <AIDisabledNotice />
-            {/* AI Assistant */}
-            {preferences.showAIInsights ? (
-              <section className="mb-12">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xl font-semibold text-gray-900">AI Assistant</h2>
-                  <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600">Beta</span>
-                </div>
-                <NaturalLanguageChat />
-              </section>
-            ) : null}
-
-            {/* Main grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              {/* Next best actions */}
-              <div className="lg:col-span-2 surface p-6 surface-hover">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-medium">Next best actions</h2>
-                  <Link href="/dashboard/insights" className="text-xs font-medium text-dim hover:text-[var(--color-text)]">
-                    View insights →
-                  </Link>
-                </div>
-                <ul className="space-y-2">
-                  {suggestions.map((s, i) => {
-                    const Icon = s.icon
-                    return (
-                      <li key={i} className="flex items-center justify-between px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-alt)]/60">
-                        <div className="flex items-center">
-                          <div className="mr-3 p-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)]">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <span className="text-sm">{s.title}</span>
-                        </div>
-                        {s.cta ? (
-                          <Link href={s.cta.href} className="text-xs font-medium text-dim hover:text-[var(--color-text)]">
-                            {s.cta.label} →
-                          </Link>
-                        ) : null}
-                      </li>
-                    )
-                  })}
-                </ul>
-                <div className="mt-4">
-                  <Link
-                    href="/dashboard/ai-assistant"
-                    className="btn-minimal btn-accent"
-                  >
-                    <Target className="w-4 h-4" /> Personalized recommendation
-                  </Link>
-                </div>
-              </div>
-
-              {/* Recent activity */}
-              {preferences.showTransactions ? (
-                <div className="surface p-6 surface-hover">
-                  <h2 className="text-lg font-medium mb-4">Recent activity</h2>
-                  <div className="flex flex-col items-center py-8 text-dim">
-                    <div className="w-12 h-12 bg-[var(--color-bg-alt)] rounded-md flex items-center justify-center mb-3 border border-[var(--color-border)]">
-                      <TrendingUp className="h-6 w-6" />
-                    </div>
-                    <p className="font-medium mb-1 text-sm text-[var(--color-text)]">No recent activity</p>
-                    <p className="text-xs text-center max-w-[16ch]">Import transactions to populate your history.</p>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Insights preview */}
-            {preferences.showAnalytics ? (
-              <InsightsPreview loading={loading} totalPoints={totalPoints} monthlyPoints={monthlyPoints} cardCount={cardCount} />
-            ) : null}
-          </>
-        )}
-  {active === 'cards' && <CardsSection />}
-  {active === 'bonuses' && <BonusesSection />}
-  {active === 'insights' && <InsightsSection />}
-  {active === 'analytics' && <AnalyticsSection />}
-          </div>
+        <div className="mb-2">
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">{`Welcome back${profile?.first_name ? `, ${profile.first_name}` : ''} 👋`}</h1>
+          <p className="mt-2 text-dim">Unified rewards overview and optimization hub.</p>
         </div>
-      </>
+        {error && (
+          <div className="p-4 rounded-md bg-red-50 border border-red-200 text-sm text-red-700 flex justify-between items-start">
+            <span>{error}</span>
+            <button onClick={load} className="text-xs underline">Retry</button>
+          </div>
+        )}
+        {loading && !metrics ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[...Array(4)].map((_,i) => <div key={i} className="h-32 rounded-lg animate-pulse bg-[var(--color-bg-alt)] border" />)}
+          </div>
+        ) : null}
+        {!loading && metrics && section === 'overview' && (
+          <OverviewSection {...metrics} />
+        )}
+        {section === 'cards' && <CardsSection />}
+        {section === 'bonuses' && <BonusesSection />}
+        {section === 'insights' && <InsightsSection />}
+        {section === 'analytics' && <AnalyticsSection />}
+      </div>
     </ProtectedRoute>
-  )
+  );
 }
