@@ -25,6 +25,7 @@ import InsightsSection from '@/components/dashboard/sections/InsightsSection'
 import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
 import BonusesSection from '@/components/dashboard/sections/BonusesSection'
 import CommandPalette from '@/components/command-palette/CommandPalette'
+import AIDisabledNotice from '@/components/ai/AIDisabledNotice'
 
 const NaturalLanguageChat = dynamic(() => import('@/components/ai/NaturalLanguageChat'), {
   ssr: false,
@@ -40,6 +41,18 @@ export default function DashboardPage() {
   const [totalPoints, setTotalPoints] = useState(0)
   const [monthlyPoints, setMonthlyPoints] = useState(0)
   const [active, setActive] = useState('overview')
+
+  // Restore last active section
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('pc-dashboard-active');
+      if (saved) setActive(saved);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('pc-dashboard-active', active); } catch {}
+  }, [active]);
   const { preferences } = useDashboardPreferences()
 
   const supabase = createClient()
@@ -202,6 +215,7 @@ export default function DashboardPage() {
               </div>
             ) : null}
 
+            <AIDisabledNotice />
             {/* AI Assistant */}
             {preferences.showAIInsights ? (
               <section className="mb-12">

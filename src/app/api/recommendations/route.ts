@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOpenAIClient, isOpenAIConfigured } from '@/lib/openai'
+import { getOpenAIClient, isOpenAIConfigured } from '@/lib/openai-server'
 import type { RecommendationRequest, RecommendationResponse } from '@/types/recommendation.types'
 
 let lastRequestTime = 0

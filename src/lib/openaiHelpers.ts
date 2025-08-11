@@ -1,10 +1,10 @@
-import { openai, isOpenAIConfigured, getOpenAIClient } from './openai';
+import { isOpenAIConfigured, getOpenAIClient } from './openai-server';
 
 export async function getOpenAICompletion(prompt: string) {
   if (!isOpenAIConfigured) {
     return null;
   }
-  const client = openai || getOpenAIClient();
+  const client = getOpenAIClient();
   if (!client) return null;
   const response = await client.chat.completions.create({
     model: 'gpt-4',

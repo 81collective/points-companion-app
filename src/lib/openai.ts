@@ -1,19 +1,6 @@
-import OpenAI from 'openai'
+// Client-safe facade; real OpenAI client only available server-side via openai-server.ts
+export const isOpenAIConfigured = !!process.env.OPENAI_API_KEY;
 
-const apiKey = process.env.OPENAI_API_KEY
-export const isOpenAIConfigured = !!apiKey
-
-let _client: OpenAI | null = null
-
-export function getOpenAIClient(): OpenAI | null {
-  if (!apiKey) return null
-  if (!_client) {
-    _client = new OpenAI({ apiKey, dangerouslyAllowBrowser: false })
-  }
-  return _client
-}
-
-// Backwards compatibility named export used by helpers; will be null if not configured
-export const openai = getOpenAIClient()
-
-export type { OpenAI } from 'openai'
+// These functions are server-only; in client they return null to avoid bundling the SDK
+export function getOpenAIClient() { return null; }
+export const openai = null;

@@ -24,7 +24,14 @@ export function ThemeToggle() {
   }, [dark, mounted, reducedMotion]);
 
   return (
-  <button type="button" aria-label="Toggle theme" className="theme-toggle" onClick={()=>setDark(d=>!d)}>
+    <button
+      type="button"
+      aria-label="Toggle dark theme"
+      aria-pressed={dark}
+      title={dark ? 'Switch to light theme' : 'Switch to dark theme'}
+      className="theme-toggle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2"
+      onClick={()=>setDark(d=>!d)}
+    >
       {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
     </button>
   );
