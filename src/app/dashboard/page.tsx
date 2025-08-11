@@ -24,6 +24,8 @@ import DashboardTabs from '@/components/dashboard/DashboardTabs'
 import CardsSection from '@/components/dashboard/sections/CardsSection'
 import InsightsSection from '@/components/dashboard/sections/InsightsSection'
 import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
+import BonusesSection from '@/components/dashboard/sections/BonusesSection'
+import CommandPalette from '@/components/command-palette/CommandPalette'
 
 const NaturalLanguageChat = dynamic(() => import('@/components/ai/NaturalLanguageChat'), {
   ssr: false,
@@ -131,6 +133,7 @@ export default function DashboardPage() {
         <div className="mb-4">
           <DashboardTabs onChange={setActiveTab} />
         </div>
+        <CommandPalette />
         {activeTab === 'overview' && (
           // existing overview content
           <>
@@ -264,15 +267,10 @@ export default function DashboardPage() {
             ) : null}
           </>
         )}
-        {activeTab === 'cards' && (
-          <CardsSection />
-        )}
-        {activeTab === 'insights' && (
-          <InsightsSection />
-        )}
-        {activeTab === 'analytics' && (
-          <AnalyticsSection />
-        )}
+  {activeTab === 'cards' && <CardsSection />}
+  {activeTab === 'bonuses' && <BonusesSection />}
+  {activeTab === 'insights' && <InsightsSection />}
+  {activeTab === 'analytics' && <AnalyticsSection />}
       </>
     </ProtectedRoute>
   )

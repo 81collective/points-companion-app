@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase';
 import CardList from '@/components/cards/CardList';
@@ -19,7 +19,7 @@ export default function CardsSection() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string>('');
 
-  async function fetchCards() {
+  const fetchCards = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     const supabase = createClient();
@@ -30,9 +30,9 @@ export default function CardsSection() {
       .order('created_at', { ascending: false });
     setCards((data as CreditCard[]) || []);
     setLoading(false);
-  }
+  }, [user]);
 
-  useEffect(()=>{ fetchCards(); }, [user]);
+  useEffect(()=>{ fetchCards(); }, [fetchCards]);
 
   const handleAddCard = async (newCard: CreditCard) => {
     setCards([newCard, ...cards]);
