@@ -100,26 +100,7 @@ export const redirectConfig = [
   },
   // Dashboard legacy sub-routes now consolidated under /dashboard tabs
   // Use temporary redirects (302) initially to avoid aggressive caching while IA refactor stabilizes
-  {
-    source: '/dashboard/cards',
-    destination: '/dashboard?tab=cards',
-    permanent: false,
-  },
-  {
-    source: '/dashboard/insights',
-    destination: '/dashboard?tab=insights',
-    permanent: false,
-  },
-  {
-    source: '/dashboard/analytics',
-    destination: '/dashboard?tab=analytics',
-    permanent: false,
-  },
-  {
-    source: '/dashboard/bonuses',
-    destination: '/dashboard?tab=bonuses',
-    permanent: false,
-  },
+  // (Removed) Tab query redirects retired after navigation simplification
 ];
 
 // Rewrite configuration

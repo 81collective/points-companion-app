@@ -20,7 +20,6 @@ import InsightsPreview from '@/components/dashboard/InsightsPreview'
 import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
 import SmartNotifications from '@/components/ai/SmartNotifications'
 import { isCurrentUTCMonth } from '@/lib/timeUtils'
-import DashboardTabs from '@/components/dashboard/DashboardTabs'
 import CardsSection from '@/components/dashboard/sections/CardsSection'
 import InsightsSection from '@/components/dashboard/sections/InsightsSection'
 import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
@@ -40,7 +39,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [totalPoints, setTotalPoints] = useState(0)
   const [monthlyPoints, setMonthlyPoints] = useState(0)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [active, setActive] = useState('overview')
   const { preferences } = useDashboardPreferences()
 
   const supabase = createClient()
@@ -130,11 +129,28 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <>
-        <div className="mb-4">
-          <DashboardTabs onChange={setActiveTab} />
-        </div>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <aside className="w-full lg:w-56 flex-shrink-0">
+            <nav className="space-y-1">
+              {[
+                { key: 'overview', label: 'Overview' },
+                { key: 'cards', label: 'Cards' },
+                { key: 'bonuses', label: 'Bonuses' },
+                { key: 'insights', label: 'Insights' },
+                { key: 'analytics', label: 'Analytics' },
+              ].map(item => (
+                <button
+                  key={item.key}
+                  onClick={() => setActive(item.key)}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors border ${active===item.key ? 'bg-gray-900 text-white border-gray-900' : 'bg-[var(--color-bg-alt)] border-[var(--color-border)] text-dim hover:text-[var(--color-text)]'}`}
+                  aria-current={active===item.key ? 'page' : undefined}
+                >{item.label}</button>
+              ))}
+            </nav>
+          </aside>
+          <div className="flex-1 min-w-0">
         <CommandPalette />
-        {activeTab === 'overview' && (
+  {active === 'overview' && (
           // existing overview content
           <>
             {/* Welcome */}
@@ -258,10 +274,12 @@ export default function DashboardPage() {
             ) : null}
           </>
         )}
-  {activeTab === 'cards' && <CardsSection />}
-  {activeTab === 'bonuses' && <BonusesSection />}
-  {activeTab === 'insights' && <InsightsSection />}
-  {activeTab === 'analytics' && <AnalyticsSection />}
+  {active === 'cards' && <CardsSection />}
+  {active === 'bonuses' && <BonusesSection />}
+  {active === 'insights' && <InsightsSection />}
+  {active === 'analytics' && <AnalyticsSection />}
+          </div>
+        </div>
       </>
     </ProtectedRoute>
   )
