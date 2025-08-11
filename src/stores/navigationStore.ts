@@ -10,6 +10,7 @@ interface NavigationState {
   searchOpen: boolean
   notifications: AppNotification[]
   setCurrentPage: (page: string) => void
+  setSidebarCollapsed: (v: boolean) => void
   toggleSidebar: () => void
   toggleMobileMenu: () => void
   openSearch: () => void
@@ -19,14 +20,26 @@ interface NavigationState {
   clearNotifications: () => void
 }
 
-export const useNavigationStore = create<NavigationState>((set) => ({
+export const useNavigationStore = create<NavigationState>((set, get) => ({
   currentPage: 'dashboard',
   sidebarCollapsed: false,
   mobileMenuOpen: false,
   searchOpen: false,
   notifications: [],
   setCurrentPage: (currentPage) => set({ currentPage }),
-  toggleSidebar: () => set(s => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  setSidebarCollapsed: (v) => set(() => {
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('sidebarCollapsed', JSON.stringify(v)); } catch { /* ignore */ }
+    }
+    return { sidebarCollapsed: v };
+  }),
+  toggleSidebar: () => set(s => {
+    const next = !s.sidebarCollapsed;
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('sidebarCollapsed', JSON.stringify(next)); } catch { /* ignore */ }
+    }
+    return { sidebarCollapsed: next };
+  }),
   toggleMobileMenu: () => set(s => ({ mobileMenuOpen: !s.mobileMenuOpen })),
   openSearch: () => set({ searchOpen: true }),
   closeSearch: () => set({ searchOpen: false }),
@@ -34,3 +47,16 @@ export const useNavigationStore = create<NavigationState>((set) => ({
   markNotificationRead: (id) => set(s => ({ notifications: s.notifications.map(n => n.id===id? { ...n, read: true }: n) })),
   clearNotifications: () => set({ notifications: [] })
 }))
+
+// Hydrate sidebar collapsed preference once on the client (idempotent)
+if (typeof window !== 'undefined') {
+  try {
+    const raw = localStorage.getItem('sidebarCollapsed');
+    if (raw != null) {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed === 'boolean') {
+        useNavigationStore.setState({ sidebarCollapsed: parsed });
+      }
+    }
+  } catch { /* ignore */ }
+}

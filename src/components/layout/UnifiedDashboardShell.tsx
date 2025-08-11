@@ -7,6 +7,36 @@ import { useNavigationStore } from '@/stores/navigationStore';
 export default function UnifiedDashboardShell({ children }: { children: React.ReactNode }) {
   const { sidebarCollapsed } = useNavigationStore();
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const drawerRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Close on ESC
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
+
+  // Basic focus trap when drawer open
+  React.useEffect(() => {
+    if (!mobileOpen || !drawerRef.current) return;
+    const focusable = drawerRef.current.querySelectorAll<HTMLElement>("a,button,[tabindex]:not([tabindex='-1'])");
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    first?.focus();
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Tab') {
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); (last || first).focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); (first || last).focus(); }
+      }
+    }
+    drawerRef.current.addEventListener('keydown', handleKey);
+    return () => {
+      drawerRef.current?.removeEventListener('keydown', handleKey);
+      previouslyFocused?.focus();
+    };
+  }, [mobileOpen]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -18,8 +48,8 @@ export default function UnifiedDashboardShell({ children }: { children: React.Re
         </div>
         {/* Mobile drawer */}
         {mobileOpen && (
-          <div className="md:hidden fixed inset-0 z-50 flex">
-            <div className="w-60 bg-white h-full shadow-xl">
+          <div className="md:hidden fixed inset-0 z-50 flex" aria-modal="true" role="dialog">
+            <div ref={drawerRef} className="w-60 bg-white dark:bg-gray-900 h-full shadow-xl outline-none" tabIndex={-1}>
               <SideNavCompact mobile onNavigate={() => setMobileOpen(false)} />
             </div>
             <button
