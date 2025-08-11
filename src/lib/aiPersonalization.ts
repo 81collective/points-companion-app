@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase';
 import { OpenAI } from 'openai';
+import { getOpenAIClient, isOpenAIConfigured } from './openai';
 
 export interface SpendingProfile {
   userId: string;
@@ -17,7 +18,16 @@ export async function buildSpendingProfile(userId: string): Promise<SpendingProf
     .eq('user_id', userId);
   // Analyze transactions for habits, preferences, and seasonal patterns
   // Use OpenAI for advanced pattern recognition
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = getOpenAIClient();
+  if (!isOpenAIConfigured || !openai) {
+    return {
+      userId,
+      habits: [],
+      preferences: [],
+      seasonalPatterns: [],
+      feedbackHistory: [],
+    };
+  }
   const prompt = `Analyze the following transactions for user habits, preferences, and seasonal patterns: ${JSON.stringify(transactions)}`;
   const completion = await openai.chat.completions.create({
     messages: [{ role: 'user', content: prompt }],

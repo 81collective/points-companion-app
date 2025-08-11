@@ -1,7 +1,12 @@
-import { openai } from './openai';
+import { openai, isOpenAIConfigured, getOpenAIClient } from './openai';
 
 export async function getOpenAICompletion(prompt: string) {
-  const response = await openai.chat.completions.create({
+  if (!isOpenAIConfigured) {
+    return null;
+  }
+  const client = openai || getOpenAIClient();
+  if (!client) return null;
+  const response = await client.chat.completions.create({
     model: 'gpt-4',
     messages: [
       { role: 'system', content: 'You are an expert at categorizing credit card transactions for rewards.' },

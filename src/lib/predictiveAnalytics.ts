@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase';
 import { OpenAI } from 'openai';
+import { getOpenAIClient, isOpenAIConfigured } from './openai';
 
 export interface SpendingPrediction {
   futurePatterns: string[];
@@ -14,7 +15,15 @@ export async function predictSpending(userId: string): Promise<SpendingPredictio
     .from('transactions')
     .select('*')
     .eq('user_id', userId);
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = getOpenAIClient();
+  if (!isOpenAIConfigured || !openai) {
+    return {
+      futurePatterns: [],
+      recommendedCards: [],
+      annualPointsForecast: [],
+      categoryTrends: [],
+    };
+  }
   const prompt = `Predict future spending, recommend new cards, forecast annual points, and identify category trends for user: ${JSON.stringify(transactions)}`;
   const completion = await openai.chat.completions.create({
     messages: [{ role: 'user', content: prompt }],
