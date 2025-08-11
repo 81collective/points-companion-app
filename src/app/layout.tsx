@@ -13,6 +13,7 @@ import GamificationTracker from "@/components/gamification/GamificationTracker";
 import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
 import { generateMetadata, seoConfigs, generateOrganizationSchema } from "@/lib/seo";
 import Script from "next/script";
+import { MinimalHeader } from "@/components/layout/MinimalHeader";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,12 +82,13 @@ export default function RootLayout({
           async
         />
       </head>
-      <body>
+  <body>
         <PerformanceMonitor />
         <ErrorBoundary>
           <ErrorProvider>
             <ReactQueryProvider>
               <AuthProvider>
+        <MinimalHeader />
                 <ServiceWorkerRegistration />
                 <PWAInstallPrompt />
                 <OfflineIndicator />

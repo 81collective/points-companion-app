@@ -139,48 +139,39 @@ export default function DashboardPage() {
           <>
             {/* Welcome */}
             <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
                 Welcome back{profile?.first_name ? `, ${profile.first_name}` : ''} 👋
               </h1>
-              <p className="mt-2 text-gray-600">Your at-a-glance rewards overview and next best actions.</p>
+              <p className="mt-2 text-dim">Your at-a-glance rewards overview and next best actions.</p>
             </div>
 
             {/* Quick actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-8">
-              <Link
-                href="/dashboard/cards"
-                className="inline-flex items-center justify-center rounded-xl px-4 py-3 bg-rose-500 hover:bg-rose-600 text-white font-medium transition-all shadow-sm hover:shadow md:h-12"
-              >
-                <Plus className="w-5 h-5 mr-2" /> Add card
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 mb-8">
+              <Link href="/dashboard/cards" className="btn-accent btn-minimal h-12 justify-center">
+                <Plus className="w-4 h-4" /> Add card
               </Link>
-              <Link
-                href="/transactions/import"
-                className="inline-flex items-center justify-center rounded-xl px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 font-medium border border-gray-200 transition-all shadow-sm md:h-12"
-              >
-                <ArrowUpRight className="w-5 h-5 mr-2" /> Import transactions
+              <Link href="/transactions/import" className="btn-minimal h-12 justify-center">
+                <ArrowUpRight className="w-4 h-4" /> Import
               </Link>
-              <Link
-                href="/dashboard/analytics"
-                className="inline-flex items-center justify-center rounded-xl px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium transition-all shadow-sm hover:shadow md:h-12"
-              >
-                <PieChart className="w-5 h-5 mr-2" /> View analytics
+              <Link href="/dashboard/analytics" className="btn-minimal h-12 justify-center">
+                <PieChart className="w-4 h-4" /> Analytics
               </Link>
             </div>
 
             {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
               {stats.map((stat, idx) => {
                 const Icon = stat.icon
                 return (
-                  <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div key={idx} className="stat-card surface-hover">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                        <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                        <p className="text-sm text-gray-500 mt-1">{stat.helper}</p>
+                        <small>{stat.title}</small>
+                        <h3>{stat.value}</h3>
+                        <p className="helper">{stat.helper}</p>
                       </div>
-                      <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                        <Icon className={`h-6 w-6 ${stat.color}`} />
+                      <div className="stat-icon">
+                        <Icon className="h-5 w-5" />
                       </div>
                     </div>
                   </div>
@@ -209,26 +200,26 @@ export default function DashboardPage() {
             {/* Main grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
               {/* Next best actions */}
-              <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="lg:col-span-2 surface p-6 surface-hover">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Next best actions</h2>
-                  <Link href="/dashboard/insights" className="text-sm font-medium text-rose-600 hover:text-rose-700">
+                  <h2 className="text-lg font-medium">Next best actions</h2>
+                  <Link href="/dashboard/insights" className="text-xs font-medium text-dim hover:text-[var(--color-text)]">
                     View insights →
                   </Link>
                 </div>
-                <ul className="space-y-3">
+                <ul className="space-y-2">
                   {suggestions.map((s, i) => {
                     const Icon = s.icon
                     return (
-                      <li key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                      <li key={i} className="flex items-center justify-between px-3 py-2 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-alt)]/60">
                         <div className="flex items-center">
-                          <div className="mr-3 p-2 rounded-lg bg-white border border-gray-200">
-                            <Icon className="w-5 h-5 text-gray-700" />
+                          <div className="mr-3 p-2 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)]">
+                            <Icon className="w-4 h-4" />
                           </div>
-                          <span className="text-gray-800">{s.title}</span>
+                          <span className="text-sm">{s.title}</span>
                         </div>
                         {s.cta ? (
-                          <Link href={s.cta.href} className="text-sm font-medium text-gray-700 hover:text-gray-900">
+                          <Link href={s.cta.href} className="text-xs font-medium text-dim hover:text-[var(--color-text)]">
                             {s.cta.label} →
                           </Link>
                         ) : null}
@@ -239,23 +230,23 @@ export default function DashboardPage() {
                 <div className="mt-4">
                   <Link
                     href="/dashboard/ai-assistant"
-                    className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-black/90"
+                    className="btn-minimal btn-accent"
                   >
-                    <Target className="w-4 h-4 mr-2" /> Get personalized recommendation
+                    <Target className="w-4 h-4" /> Personalized recommendation
                   </Link>
                 </div>
               </div>
 
               {/* Recent activity */}
               {preferences.showTransactions ? (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent activity</h2>
-                  <div className="flex flex-col items-center py-10 text-gray-500">
-                    <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
-                      <TrendingUp className="h-7 w-7 text-gray-400" />
+                <div className="surface p-6 surface-hover">
+                  <h2 className="text-lg font-medium mb-4">Recent activity</h2>
+                  <div className="flex flex-col items-center py-8 text-dim">
+                    <div className="w-12 h-12 bg-[var(--color-bg-alt)] rounded-md flex items-center justify-center mb-3 border border-[var(--color-border)]">
+                      <TrendingUp className="h-6 w-6" />
                     </div>
-                    <p className="font-medium text-gray-900 mb-1">No recent activity</p>
-                    <p className="text-sm text-center text-gray-500">Connect your accounts or import transactions to see history.</p>
+                    <p className="font-medium mb-1 text-sm text-[var(--color-text)]">No recent activity</p>
+                    <p className="text-xs text-center max-w-[16ch]">Import transactions to populate your history.</p>
                   </div>
                 </div>
               ) : null}
