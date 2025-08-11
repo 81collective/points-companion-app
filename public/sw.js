@@ -1,6 +1,7 @@
-const CACHE_NAME = 'points-companion-v1';
-const STATIC_CACHE_NAME = 'points-companion-static-v1';
-const DYNAMIC_CACHE_NAME = 'points-companion-dynamic-v1';
+// Version bump (v2) to ensure clients activate updated logic that avoids caching non-GET requests
+const CACHE_NAME = 'points-companion-v2';
+const STATIC_CACHE_NAME = 'points-companion-static-v2';
+const DYNAMIC_CACHE_NAME = 'points-companion-dynamic-v2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
