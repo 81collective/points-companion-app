@@ -13,9 +13,13 @@ export async function GET() {
       await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL as string, { method: 'HEAD', signal: controller.signal })
       clearTimeout(id)
       connectivity = 'ok'
-    } catch (err: any) {
+    } catch (err: unknown) {
       connectivity = 'error'
-      connectivityError = err?.message || 'fetch_failed'
+      if (err instanceof Error) {
+        connectivityError = err.message
+      } else {
+        connectivityError = 'fetch_failed'
+      }
     }
   }
 
