@@ -1,12 +1,11 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { Menu, PanelLeftOpen, PanelLeftClose, Search, Bell, User } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, PanelLeftOpen, PanelLeftClose, User } from 'lucide-react';
 import { useNavigationStore } from '@/stores/navigationStore';
 import { useAuth } from '@/contexts/AuthContext';
-import SearchModal from '@/components/layout/SearchModal';
-import NotificationCenter from '@/components/realtime/NotificationCenter';
-import RealTimeSystemClean from '@/components/realtime/RealTimeSystemClean';
+// Removed RealTimeSystemClean per simplification
 import { useDashboardPreferences } from '@/hooks/useDashboardPreferences';
 
 interface Props {
@@ -17,20 +16,18 @@ interface Props {
 export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Props) {
   const { sidebarCollapsed, toggleSidebar } = useNavigationStore();
   const { user, signOut } = useAuth();
-  const [searchOpen, setSearchOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const { preferences } = useDashboardPreferences();
+  const pathname = usePathname();
 
-  React.useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || e.key === '/') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  const navLinks = React.useMemo(() => ([
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/cards', label: 'Cards' },
+    { href: '/insights', label: 'Insights' },
+    { href: '/analytics', label: 'Analytics' }
+  ]), []);
+
+  // Search functionality removed
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
@@ -56,21 +53,18 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-xs font-bold">PC</div>
           <span className="hidden sm:inline">Points Companion</span>
         </Link>
+        <nav className="hidden md:flex items-center gap-1 ml-4">
+          {navLinks.map(l => (
+            <Link
+              key={l.href}
+              href={l.href}
+              aria-current={pathname === l.href ? 'page' : undefined}
+              className={`text-xs font-medium px-3 py-2 rounded-md transition-colors ${pathname === l.href ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}
+            >{l.label}</Link>
+          ))}
+        </nav>
         <div className="flex-1" />
-        {user && (
-          <>
-            <button
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="hidden sm:inline-flex items-center gap-2 h-9 px-3 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm"
-            >
-              <Search className="w-4 h-4" />
-              <span className="hidden lg:inline text-xs text-gray-500">/ or ⌘K</span>
-            </button>
-            {preferences.showNotifications && <NotificationCenter />}
-            {preferences.showNotifications && <RealTimeSystemClean />}
-          </>
-        )}
+  {/* Search & notifications removed */}
         {/* User avatar / menu */}
         {user && (
           <div className="relative">
@@ -83,12 +77,14 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
               <User className="w-4 h-4 text-gray-700" />
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-lg shadow-md py-2 text-sm z-50">
-                <div className="px-4 py-2 border-b border-gray-100 text-gray-700 truncate">{user.email}</div>
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md py-2 text-sm z-50">
+                <div className="px-4 py-2 border-b border-gray-100 text-gray-700 truncate font-medium">{user.email}</div>
                 <Link onClick={() => setMenuOpen(false)} href="/dashboard/profile" className="block px-4 py-2 hover:bg-gray-50">Profile</Link>
                 <Link onClick={() => setMenuOpen(false)} href="/dashboard/cards" className="block px-4 py-2 hover:bg-gray-50">My Cards</Link>
                 <Link onClick={() => setMenuOpen(false)} href="/dashboard/insights" className="block px-4 py-2 hover:bg-gray-50">Insights</Link>
                 <Link onClick={() => setMenuOpen(false)} href="/dashboard/analytics" className="block px-4 py-2 hover:bg-gray-50">Analytics</Link>
+                {/* Theme toggle removed from nav */}
+                <hr className="my-2" />
                 <button
                   onClick={() => { signOut(); setMenuOpen(false); }}
                   className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700"
@@ -98,7 +94,20 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
           </div>
         )}
       </div>
-      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {/* Mobile horizontal nav (mirrors primary links) */}
+      {user && (
+        <nav aria-label="Primary" className="md:hidden px-3 pb-2 flex gap-2 overflow-x-auto">
+          {navLinks.map(l => (
+            <Link
+              key={l.href}
+              href={l.href}
+              aria-current={pathname === l.href ? 'page' : undefined}
+              className={`whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-md border transition-colors ${pathname === l.href ? 'bg-gray-100 border-gray-300 text-gray-900' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            >{l.label}</Link>
+          ))}
+        </nav>
+      )}
+  {/* SearchModal removed */}
     </header>
   );
 }

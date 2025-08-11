@@ -13,7 +13,7 @@ import GamificationTracker from "@/components/gamification/GamificationTracker";
 import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
 import { generateMetadata, seoConfigs, generateOrganizationSchema } from "@/lib/seo";
 import Script from "next/script";
-import { MinimalHeader } from "@/components/layout/MinimalHeader";
+import ForceLightMode from "@/components/layout/ForceLightMode";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -83,12 +83,12 @@ export default function RootLayout({
         />
       </head>
   <body>
+        <ForceLightMode />
         <PerformanceMonitor />
         <ErrorBoundary>
           <ErrorProvider>
             <ReactQueryProvider>
               <AuthProvider>
-        <MinimalHeader />
                 <ServiceWorkerRegistration />
                 <PWAInstallPrompt />
                 <OfflineIndicator />

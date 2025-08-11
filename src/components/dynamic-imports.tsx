@@ -37,14 +37,7 @@ export const ManualTransactionEntry = dynamic(
   }
 );
 
-// Realtime components (existing)
-export const NotificationCenter = dynamic(
-  () => import('@/components/realtime/NotificationCenter'),
-  {
-    loading: () => <Skeleton className="h-10 w-10 rounded-full" />,
-    ssr: false
-  }
-);
+// Realtime components (notifications disabled for now)
 
 // Analytics components (existing)
 export const EnhancedAnalyticsDashboard = dynamic(
@@ -117,7 +110,6 @@ export const performanceAnalytics = {
       // Preload most commonly used components
       import('@/components/transactions/TransactionList');
       import('@/components/cards/CardList');
-      import('@/components/realtime/NotificationCenter');
     }
   },
 
@@ -135,14 +127,7 @@ export const performanceAnalytics = {
 
   // Bundle analysis helper
   analyzeBundleComponents: () => {
-    const dynamicComponents = [
-      'TransactionList',
-      'CSVUpload',
-      'NotificationCenter',
-      'CardList',
-      'EnhancedAnalyticsDashboard',
-      'BusinessMap'
-    ];
+  const dynamicComponents = ['TransactionList','CSVUpload','CardList','EnhancedAnalyticsDashboard','BusinessMap'];
 
     console.group('Dynamic Components Analysis');
     console.log('Total dynamic components:', dynamicComponents.length);

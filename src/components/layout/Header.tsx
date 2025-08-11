@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation'
 import { CreditCard, User, Menu, Search } from 'lucide-react';
 import RealTimeSystemClean from '@/components/realtime/RealTimeSystemClean';
-import NotificationCenter from '@/components/realtime/NotificationCenter';
+// NotificationCenter temporarily disabled
 import { navigationItems } from '@/config/navigation'
 import SearchModal from '@/components/layout/SearchModal'
 import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
@@ -88,7 +88,7 @@ export default function Header() {
             )}
 
             {/* Single notifications modal */}
-            {user && preferences.showNotifications && <NotificationCenter />}
+            {/* NotificationCenter disabled */}
             {user && <RealTimeSystemClean />}
 
             {user ? (

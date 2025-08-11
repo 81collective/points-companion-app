@@ -1,7 +1,6 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ThemeToggle } from './ThemeToggle';
 
 const links: Array<{ href: string; label: string }> = [
   { href: '/dashboard', label: 'Dashboard' },
@@ -23,9 +22,7 @@ export function MinimalHeader() {
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-        </div>
+  {/* Theme toggle removed */}
       </div>
     </header>
   );

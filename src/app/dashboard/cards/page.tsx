@@ -78,12 +78,6 @@ export default function CardsPage() {
             <h1 className="text-2xl font-semibold tracking-tight">My Credit Cards</h1>
             <p className="text-dim text-sm mt-1">Manage and optimize your wallet.</p>
           </div>
-          <button
-            className="btn-minimal btn-accent"
-            onClick={() => setShowAddModal(true)}
-          >
-            Add New Card
-          </button>
         </div>
   {feedback && <div className="text-center text-xs text-green-600">{feedback}</div>}
         {/* Breadcrumb Navigation */}
@@ -103,18 +97,13 @@ export default function CardsPage() {
                 </div>
               ))}
             </div>
-          ) : cards.length === 0 ? (
-            <div className="text-center py-8 text-dim">
-              <CreditCardIcon className="h-10 w-10 mx-auto mb-3 opacity-50" />
-              <p className="font-medium text-sm text-[var(--color-text)]">No cards yet</p>
-              <p className="text-xs mt-1 max-w-[24ch] mx-auto">Add cards to unlock personalized recommendations.</p>
-            </div>
           ) : (
             <CardList
               cards={cards}
               onEdit={card => setEditCard(card)}
               onDelete={card => setDeleteCard(card)}
               loadingId={actionLoadingId}
+              onAddCard={() => setShowAddModal(true)}
             />
           )}
         </div>

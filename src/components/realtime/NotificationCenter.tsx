@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, BellRing, CreditCard, TrendingUp, Award, AlertTriangle, X, Trash2, Settings, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,10 +29,22 @@ interface RealtimeEvent {
 const NotificationCenter: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  // Derive unread count instead of storing separate state to avoid desync bugs
+  const unreadCount = notifications.reduce((c, n) => c + (n.read ? 0 : 1), 0);
   const [_isConnected, setIsConnected] = useState(false);
+  const seededRef = useRef(false); // prevent repeated demo seeding
+  const unsubscribeRef = useRef<null | (() => void)>(null);
   const { user } = useAuth();
   const { supabase } = useSupabase();
+
+  const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'read' | 'timestamp'>) => {
+    setNotifications(prev => [{
+      ...notificationData,
+      id: `notif_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      read: false,
+      timestamp: new Date().toISOString()
+    }, ...prev].slice(0, 100));
+  }, []);
 
   const handleTransactionEvent = useCallback((payload: RealtimeEvent) => {
     if (payload.eventType === 'INSERT' && payload.new) {
@@ -45,7 +57,7 @@ const NotificationCenter: React.FC = () => {
         priority: 'medium'
       });
     }
-  }, []);
+  }, [addNotification]);
 
   const handleLoyaltyEvent = useCallback((payload: RealtimeEvent) => {
     if (payload.eventType === 'UPDATE' && payload.new) {
@@ -58,24 +70,30 @@ const NotificationCenter: React.FC = () => {
         priority: 'low'
       });
     }
-  }, []);
+  }, [addNotification]);
 
   const generateDemoNotifications = useCallback(() => {
-    if (!user) return;
-    if (notifications.length === 0) {
-      addNotification({
-        type: 'recommendation',
-        title: 'Optimize Dining Rewards',
-        message: 'You could earn more points on dining with the Sapphire Preferred',
-        data: {},
-        priority: 'medium'
-      });
-    }
-  }, [user, notifications]);
+    if (!user || seededRef.current) return;
+    seededRef.current = true;
+    addNotification({
+      type: 'recommendation',
+      title: 'Optimize Dining Rewards',
+      message: 'You could earn more points on dining with the Sapphire Preferred',
+      data: {},
+      priority: 'medium'
+    });
+  }, [user, addNotification]);
 
   const setupRealtimeSubscription = useCallback(() => {
     if (!user || !supabase) return;
-    createRealtimeChannel(supabase, {
+    // If already subscribed for this user id, skip
+    if ((unsubscribeRef.current as any)?.userId === user.id) return;
+    // Clean previous subscription
+    if (unsubscribeRef.current) {
+      (unsubscribeRef.current as any)();
+      unsubscribeRef.current = null;
+    }
+    const { unsubscribe } = createRealtimeChannel(supabase, {
       name: `user-notifications-${user.id}`,
       postgresChanges: [
         {
@@ -103,39 +121,35 @@ const NotificationCenter: React.FC = () => {
       onStatusChange: (status) => { setIsConnected(status === 'SUBSCRIBED'); },
       autoTrackOnSubscribe: true
     });
+  // store tagged unsubscribe
+  const tagged = () => { unsubscribe(); };
+  (tagged as any).userId = user.id;
+  unsubscribeRef.current = tagged;
     generateDemoNotifications();
   }, [user, supabase, handleTransactionEvent, handleLoyaltyEvent, generateDemoNotifications]);
 
-  // Load notifications from localStorage on mount
+  // Load notifications from localStorage on mount & setup realtime
   useEffect(() => {
-    const savedNotifications = localStorage.getItem('app_notifications');
-    if (savedNotifications) {
-      try {
-        const parsed = JSON.parse(savedNotifications);
-        setNotifications(parsed);
-        setUnreadCount(parsed.filter((n: Notification) => !n.read).length);
-      } catch { /* ignore */ }
-    }
-
+    try {
+      const saved = localStorage.getItem('app_notifications');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setNotifications(parsed);
+          if (parsed.length > 0) seededRef.current = true;
+        }
+      }
+    } catch { /* ignore */ }
     setupRealtimeSubscription();
+    return () => { unsubscribeRef.current?.(); };
   }, [setupRealtimeSubscription]);
 
-  // Save notifications to localStorage whenever they change
+  // Persist notifications (debounced via microtask) when list changes
   useEffect(() => {
-    localStorage.setItem('app_notifications', JSON.stringify(notifications));
-    setUnreadCount(notifications.filter(n => !n.read).length);
+    Promise.resolve().then(() => {
+      try { localStorage.setItem('app_notifications', JSON.stringify(notifications)); } catch { /* ignore */ }
+    });
   }, [notifications]);
-
-  const addNotification = (notificationData: Omit<Notification, 'id' | 'read' | 'timestamp'>) => {
-    const notification: Notification = {
-      ...notificationData,
-      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      read: false,
-      timestamp: new Date().toISOString()
-    };
-
-    setNotifications(prev => [notification, ...prev].slice(0, 100)); // Keep only last 100 notifications
-  };
 
   const markAsRead = (id: string) => {
     setNotifications(prev => 

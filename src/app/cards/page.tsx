@@ -1,17 +1,17 @@
 "use client"
 
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import Header from '@/components/layout/Header'
 import CardManager from '@/components/cards/CardManager'
 import { CreditCard, Plus, Star, Calendar } from 'lucide-react'
+import UnifiedDashboardShell from '@/components/layout/UnifiedDashboardShell'
 
 export default function CardsPage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <UnifiedDashboardShell>
+        <div className="space-y-8">
         
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="px-2 sm:px-0">
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -90,8 +90,9 @@ export default function CardsPage() {
 
           {/* Card Manager Component */}
           <CardManager />
-        </main>
-      </div>
+        </div>
+        </div>
+      </UnifiedDashboardShell>
     </ProtectedRoute>
   )
 }
