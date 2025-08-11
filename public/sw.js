@@ -159,8 +159,8 @@ async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
     
-    if (networkResponse.ok) {
-      // Cache successful responses
+    // Only cache safe idempotent GET requests; some browsers throw on cache.put with POST/other
+    if (networkResponse.ok && request.method === 'GET') {
       cache.put(request, networkResponse.clone());
     }
     
@@ -181,14 +181,16 @@ async function staleWhileRevalidate(request) {
   const cachedResponse = await cache.match(request);
   
   // Always try to fetch and update cache
-  const fetchPromise = fetch(request).then(response => {
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  }).catch(() => {
-    // Ignore network errors
-  });
+  const fetchPromise = request.method === 'GET'
+    ? fetch(request).then(response => {
+        if (response.ok) {
+          cache.put(request, response.clone());
+        }
+        return response;
+      }).catch(() => {
+        // Ignore network errors
+      })
+    : fetch(request); // For non-GET just passthrough without caching
   
   // Return cached version immediately if available
   if (cachedResponse) {
