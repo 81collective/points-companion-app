@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 
-import type { AdvancedMetrics } from '@/lib/analyticsTransform';
+// AdvancedMetrics type not used directly here
 
 
 
@@ -59,7 +59,7 @@ export default function AdvancedAnalytics() {
   const [timeRange, setTimeRange] = useState<'3m' | '6m' | '12m'>('6m');
   const [selectedView, setSelectedView] = useState<'overview' | 'categories' | 'projections'>('overview');
   // TODO: Pass timeRange to the hook if needed for filtering
-  const { data: metrics, isLoading: loading, error } = useAdvancedAnalytics();
+  const { data: metrics } = useAdvancedAnalytics();
 
   return (
     <div className="space-y-8">

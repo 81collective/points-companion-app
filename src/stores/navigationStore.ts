@@ -20,7 +20,7 @@ interface NavigationState {
   clearNotifications: () => void
 }
 
-export const useNavigationStore = create<NavigationState>((set, get) => ({
+export const useNavigationStore = create<NavigationState>((set, _get) => ({
   currentPage: 'dashboard',
   sidebarCollapsed: false,
   mobileMenuOpen: false,

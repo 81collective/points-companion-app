@@ -6,7 +6,7 @@ import { Menu, PanelLeftOpen, PanelLeftClose, User } from 'lucide-react';
 import { useNavigationStore } from '@/stores/navigationStore';
 import { useAuth } from '@/contexts/AuthContext';
 // Removed RealTimeSystemClean per simplification
-import { useDashboardPreferences } from '@/hooks/useDashboardPreferences';
+// import { useDashboardPreferences } from '@/hooks/useDashboardPreferences';
 
 interface Props {
   onMobileMenuToggle: () => void;
@@ -17,7 +17,7 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
   const { sidebarCollapsed, toggleSidebar } = useNavigationStore();
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const { preferences } = useDashboardPreferences();
+  // const { preferences } = useDashboardPreferences();
   const pathname = usePathname();
 
   const navLinks = React.useMemo(() => ([

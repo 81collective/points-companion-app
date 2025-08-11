@@ -8,7 +8,6 @@ import CardList from '@/components/cards/CardList'
 import AddCardModal from '@/components/cards/AddCardModal'
 import EditCardModal from '@/components/cards/EditCardModal'
 import DeleteCardDialog from '@/components/cards/DeleteCardDialog'
-import { CreditCard as CreditCardIcon } from 'lucide-react'
 import { CreditCard } from '@/components/cards/types'
 // import { Loader2 } from 'lucide-react'
 

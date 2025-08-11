@@ -10,14 +10,14 @@ import RealTimeSystemClean from '@/components/realtime/RealTimeSystemClean';
 // NotificationCenter temporarily disabled
 import { navigationItems } from '@/config/navigation'
 import SearchModal from '@/components/layout/SearchModal'
-import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
+// import { useDashboardPreferences } from '@/hooks/useDashboardPreferences'
 
 export default function Header() {
   const { user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false)
   const pathname = usePathname()
-  const { preferences } = useDashboardPreferences()
+  // const { preferences } = useDashboardPreferences()
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {

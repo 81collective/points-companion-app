@@ -33,14 +33,18 @@ const NotificationCenter: React.FC = () => {
   const unreadCount = notifications.reduce((c, n) => c + (n.read ? 0 : 1), 0);
   const [_isConnected, setIsConnected] = useState(false);
   const seededRef = useRef(false); // prevent repeated demo seeding
-  const unsubscribeRef = useRef<null | (() => void)>(null);
+  type TaggedUnsubscribe = (() => void) & { userId: string };
+  const unsubscribeRef = useRef<TaggedUnsubscribe | null>(null);
   const { user } = useAuth();
   const { supabase } = useSupabase();
 
   const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'read' | 'timestamp'>) => {
+    const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+      ? crypto.randomUUID()
+      : `notif_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     setNotifications(prev => [{
       ...notificationData,
-      id: `notif_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      id,
       read: false,
       timestamp: new Date().toISOString()
     }, ...prev].slice(0, 100));
@@ -87,13 +91,13 @@ const NotificationCenter: React.FC = () => {
   const setupRealtimeSubscription = useCallback(() => {
     if (!user || !supabase) return;
     // If already subscribed for this user id, skip
-    if ((unsubscribeRef.current as any)?.userId === user.id) return;
+  if (unsubscribeRef.current?.userId === user.id) return;
     // Clean previous subscription
     if (unsubscribeRef.current) {
-      (unsubscribeRef.current as any)();
+      unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
-    const { unsubscribe } = createRealtimeChannel(supabase, {
+  const { unsubscribe } = createRealtimeChannel(supabase, {
       name: `user-notifications-${user.id}`,
       postgresChanges: [
         {
@@ -121,10 +125,11 @@ const NotificationCenter: React.FC = () => {
       onStatusChange: (status) => { setIsConnected(status === 'SUBSCRIBED'); },
       autoTrackOnSubscribe: true
     });
-  // store tagged unsubscribe
-  const tagged = () => { unsubscribe(); };
-  (tagged as any).userId = user.id;
-  unsubscribeRef.current = tagged;
+    // store tagged unsubscribe without any casts
+    const tagged: TaggedUnsubscribe = Object.assign(() => {
+      unsubscribe();
+    }, { userId: user.id });
+    unsubscribeRef.current = tagged;
     generateDemoNotifications();
   }, [user, supabase, handleTransactionEvent, handleLoyaltyEvent, generateDemoNotifications]);
 

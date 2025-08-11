@@ -1,7 +1,4 @@
 "use client"
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { navigationItems } from '@/config/navigation'
 
 // Deprecated MobileNav component. Use UnifiedDashboardShell integrated drawer instead.
 export default function MobileNav(): null {
