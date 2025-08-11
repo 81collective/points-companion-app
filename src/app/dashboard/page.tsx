@@ -1,11 +1,9 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-// Removed Header (provided by DashboardLayout)
-import { createClient } from '@/lib/supabase'
+// Removed unused legacy imports
 import CardsSection from '@/components/dashboard/sections/CardsSection'
 import InsightsSection from '@/components/dashboard/sections/InsightsSection'
 import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
@@ -18,7 +16,6 @@ import { DashboardMetrics } from '@/types/dashboard'
 
 export default function DashboardPage() {
   const { profile, user } = useAuth()
-  const router = useRouter()
   const pathname = usePathname()
   const section = pathname.split('/dashboard/')[1]?.split('/')[0] || 'overview'
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
@@ -32,8 +29,9 @@ export default function DashboardPage() {
     try {
       const data = await fetchDashboardData(user.id)
       setMetrics(data)
-    } catch (e: any) {
-      setError(e.message || 'Failed to load dashboard data')
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to load dashboard data'
+      setError(message)
     } finally {
       setLoading(false)
     }

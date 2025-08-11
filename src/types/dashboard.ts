@@ -5,6 +5,7 @@ export interface DashboardMetrics {
   recentActivityCount: number;
 }
 
-export interface DashboardDataResult extends DashboardMetrics {
-  // extend later with charts, distributions, etc.
-}
+// Extend with charts, distributions, etc. when needed; placeholder generic for future augmentation.
+export type DashboardDataResult = DashboardMetrics & {
+  // future: charts?: ChartSeries[]; trends?: TrendMetric[];
+};

@@ -19,8 +19,9 @@ export default function UnifiedDashboardShell({ children }: { children: React.Re
 
   // Basic focus trap when drawer open
   React.useEffect(() => {
-    if (!mobileOpen || !drawerRef.current) return;
-    const focusable = drawerRef.current.querySelectorAll<HTMLElement>("a,button,[tabindex]:not([tabindex='-1'])");
+    const node = drawerRef.current;
+    if (!mobileOpen || !node) return;
+    const focusable = node.querySelectorAll<HTMLElement>("a,button,[tabindex]:not([tabindex='-1'])");
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -31,9 +32,9 @@ export default function UnifiedDashboardShell({ children }: { children: React.Re
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); (first || last).focus(); }
       }
     }
-    drawerRef.current.addEventListener('keydown', handleKey);
+    node.addEventListener('keydown', handleKey);
     return () => {
-      drawerRef.current?.removeEventListener('keydown', handleKey);
+      node.removeEventListener('keydown', handleKey);
       previouslyFocused?.focus();
     };
   }, [mobileOpen]);

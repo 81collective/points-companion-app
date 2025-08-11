@@ -5,7 +5,7 @@ import { Plus, ArrowUpRight, PieChart, BarChart3, DollarSign, Target } from 'luc
 import { DashboardMetrics } from '@/types/dashboard';
 import StatCard from '@/components/dashboard/StatCard';
 
-interface Props extends DashboardMetrics {}
+type Props = DashboardMetrics; // remove empty interface extending same type
 
 function buildSuggestions(m: DashboardMetrics) {
   const suggestions: Array<{ icon: React.ElementType; title: string; cta?: { href: string; label: string } }> = [];
