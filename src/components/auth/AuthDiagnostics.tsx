@@ -2,6 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Augment window for debug flag
+declare global {
+  interface Window { __AUTH_DEBUG?: boolean }
+}
+
 export default function AuthDiagnostics() {
   const { user, loading, profile } = useAuth();
   const [visible, setVisible] = useState(false);
@@ -10,7 +15,7 @@ export default function AuthDiagnostics() {
   useEffect(()=>{
     const params = new URLSearchParams(window.location.search);
     if (params.get('debug-auth') === '1') {
-      (window as any).__AUTH_DEBUG = true;
+      window.__AUTH_DEBUG = true;
       setVisible(true);
     }
   }, []);

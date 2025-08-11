@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase';
-import { OpenAI } from 'openai';
 import { getOpenAIClient, isOpenAIConfigured } from './openai';
 
 export interface SpendingPrediction {

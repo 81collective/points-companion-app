@@ -33,8 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  const debugEnabled = typeof window !== 'undefined' && (window as any).__AUTH_DEBUG
-  const debugLog = (...args: unknown[]) => { if (debugEnabled) console.log('[AuthDebug]', ...args) }
+  const debugEnabled = typeof window !== 'undefined' && (window as unknown as { __AUTH_DEBUG?: boolean }).__AUTH_DEBUG
+  const debugLog = useCallback((...args: unknown[]) => { if (debugEnabled) console.log('[AuthDebug]', ...args) }, [debugEnabled])
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase.auth, fetchProfile])
+  }, [supabase.auth, fetchProfile, debugLog])
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
     try {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { openai } from '@/lib/openai'
+import { getOpenAIClient, isOpenAIConfigured } from '@/lib/openai'
 import type { RecommendationRequest, RecommendationResponse } from '@/types/recommendation.types'
 
 let lastRequestTime = 0
@@ -20,7 +20,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    if (!isOpenAIConfigured) {
+      return NextResponse.json({ recommendations: [] })
+    }
+
     const prompt = `Given the following user transactions and credit cards, recommend the best card for each transaction.\nTransactions: ${JSON.stringify(body.transactions)}\nCards: ${JSON.stringify(body.cards)}\nReturn recommendations as an array of objects with cardId, cardName, reason, and score.`
+
+    const openai = getOpenAIClient()
+    if (!openai) {
+      return NextResponse.json({ recommendations: [] })
+    }
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
@@ -36,8 +45,8 @@ export async function POST(req: NextRequest) {
     let recommendations: RecommendationResponse['recommendations'] = []
     try {
       recommendations = JSON.parse(text || '[]')
-  } catch {
-    return NextResponse.json({ error: 'Failed to parse recommendations.' }, { status: 500 })
+    } catch {
+      return NextResponse.json({ error: 'Failed to parse recommendations.' }, { status: 500 })
     }
 
     return NextResponse.json({ recommendations })
