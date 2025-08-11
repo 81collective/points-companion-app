@@ -41,22 +41,21 @@ export default function TransactionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Transactions</h1>
-        <div className="mb-6 flex gap-4 items-center">
-          <input type="file" accept=".csv" onChange={e => setCsvFile(e.target.files?.[0] || null)} />
-          <button
-            className="px-4 py-2 bg-primary text-white rounded"
-            disabled={!csvFile || importing}
-            onClick={handleCsvImport}
-          >
-            {importing ? 'Importing...' : 'Import CSV'}
-          </button>
-        </div>
+    <div className="page-container py-8 max-w-5xl mx-auto">
+      <h1 className="text-3xl font-semibold tracking-tight mb-6">Transactions</h1>
+      <div className="surface p-4 mb-6 flex flex-col sm:flex-row gap-4 sm:items-center">
+        <input type="file" accept=".csv" onChange={e => setCsvFile(e.target.files?.[0] || null)} className="text-sm" />
+        <button
+          className="btn-minimal btn-accent text-sm"
+          disabled={!csvFile || importing}
+          onClick={handleCsvImport}
+        >
+          {importing ? 'Importing…' : 'Import CSV'}
+        </button>
+      </div>
+      <div className="surface p-4 surface-hover">
         <TransactionList />
-        {/* Add edit/delete/bulk actions UI in future updates */}
-      </main>
+      </div>
     </div>
   );
 }

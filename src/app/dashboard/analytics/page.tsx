@@ -1,33 +1,21 @@
 "use client"
 
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import Header from '@/components/layout/Header'
 import AdvancedAnalytics from '@/components/analytics/AdvancedAnalytics'
 import { BarChart3, TrendingUp, PieChart, Calendar } from 'lucide-react'
 
 export default function AnalyticsPage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-container py-8">
+        <main className="max-w-7xl mx-auto">
           {/* Page Header */}
-          <div className="mb-8">
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
-                <BarChart3 className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold text-gray-900">Advanced Analytics</h1>
-                <p className="text-xl text-gray-600 mt-2">
-                  Deep insights into your spending patterns and rewards optimization
-                </p>
-              </div>
-            </div>
+          <div className="mb-8 space-y-3">
+            <h1 className="text-3xl font-semibold tracking-tight">Advanced Analytics</h1>
+            <p className="text-dim max-w-prose text-sm">Deep insights into spending patterns and rewards optimization.</p>
             
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
               {[
                 {
                   title: 'Total Rewards Earned',
@@ -64,25 +52,22 @@ export default function AnalyticsPage() {
               ].map((stat, index) => {
                 const IconComponent = stat.icon;
                 return (
-                  <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`p-2 rounded-xl ${stat.bgColor}`}>
-                        <IconComponent className={`h-5 w-5 ${stat.color}`} />
-                      </div>
+                  <div key={index} className="stat-card surface-hover">
+                    <div className="flex items-center justify-between">
+                      <small>{stat.title}</small>
+                      <div className="stat-icon"><IconComponent className="h-4 w-4" /></div>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">
-                      {stat.title}
-                    </h3>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</p>
-                    <p className="text-sm text-gray-600">{stat.change}</p>
+                    <h3 className="text-xl font-semibold mt-1">{stat.value}</h3>
+                    <p className="helper">{stat.change}</p>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Advanced Analytics Component */}
-          <AdvancedAnalytics />
+          <div className="surface p-6 mt-10 surface-hover">
+            <AdvancedAnalytics />
+          </div>
         </main>
       </div>
     </ProtectedRoute>
