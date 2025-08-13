@@ -1,11 +1,15 @@
+'use client';
 import React from 'react';
 import AIRecommendationEngine from '@/components/ai/AIRecommendationEngine';
 import SmartInsights from '@/components/ai/SmartInsights';
 import BusinessAssistant from '@/components/ai/BusinessAssistant';
 import { CardComparisonCards } from '@/components/ai/CardComparisonCards';
+import { useAssistantStore } from '@/stores/assistantStore';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 
 export default function AIPage() {
+  const latest = useAssistantStore(s => s.latestRecs);
+  const ctx = useAssistantStore(s => s.context);
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50 py-8">
@@ -31,16 +35,23 @@ export default function AIPage() {
               </div>
             </section>
 
-            {/* Transparent Math Deep Dive (uses AIRecommendationEngine or top picks) */}
+            {/* Transparent Math Deep Dive - reflects latest assistant picks */}
             <section>
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="mb-4">
                   <h2 className="text-2xl font-semibold text-gray-900">Transparent Math</h2>
                   <p className="text-gray-600">Understand how we compute value: points, $ estimates, fee impact, and break-even.</p>
                 </div>
-                {/* For now, this section is illustrative; BusinessAssistant already shows top picks with math. */}
-                {/* You can optionally plug in AIRecommendationEngine state here in a follow-up. */}
-                <p className="text-sm text-gray-600">Use the Business Assistant above to see real examples for your current place.</p>
+                {latest?.length ? (
+                  <div className="space-y-2">
+                    <div className="text-sm text-gray-700">
+                      Showing latest picks{ctx?.place ? <> for <span className="font-medium">{ctx.place}</span></> : ''} ({ctx?.mode} · {ctx?.category})
+                    </div>
+                    <CardComparisonCards items={latest} />
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">Use the Business Assistant above to generate live examples.</p>
+                )}
               </div>
             </section>
 

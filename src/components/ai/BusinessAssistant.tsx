@@ -9,6 +9,7 @@ import { LocationConfirmation } from './LocationConfirmation';
 import { fetchTopRecommendations } from '@/lib/ai/businessRecommendations';
 import type { Recommendation } from '@/lib/ai/responseFormatter';
 import { CardComparisonCards } from './CardComparisonCards';
+import { useAssistantStore } from '@/stores/assistantStore';
 
 export default function BusinessAssistant() {
   const { location, permissionState, requestLocation } = useLocation();
@@ -27,6 +28,7 @@ export default function BusinessAssistant() {
   const [input, setInput] = useState('');
   const [topRecs, setTopRecs] = useState<Recommendation[]>([]);
   const [planningRecs, setPlanningRecs] = useState<Recommendation[]>([]);
+  const publish = useAssistantStore(s => s.setPicks);
   const place = useMemo(() => businesses?.[0]?.name, [businesses]);
 
   useEffect(() => {
@@ -58,7 +60,8 @@ export default function BusinessAssistant() {
           lng: location?.longitude,
           limit: 3,
         });
-        setTopRecs(recs);
+  setTopRecs(recs);
+  publish(recs, { mode, category: selectedCategory, place });
       } catch {}
     } else {
       // Planning mode: pull top category comps (no business needed)
@@ -67,7 +70,8 @@ export default function BusinessAssistant() {
           category: selectedCategory,
           limit: 3,
         });
-        setPlanningRecs(recs);
+  setPlanningRecs(recs);
+  publish(recs, { mode, category: selectedCategory, place });
       } catch {}
     }
   };
