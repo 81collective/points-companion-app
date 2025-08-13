@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Zap, TrendingUp, Loader2, MapPin } from 'lucide-react';
 import HomepageBusinessDemo from '@/components/public/HomepageBusinessDemo';
+import NaturalLanguageChat from '@/components/ai/NaturalLanguageChat';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -44,17 +45,17 @@ export default function HomePage() {
           </button>
         </div>
       </header>
-      <div className="max-w-5xl w-full mx-auto py-12 md:py-20 space-y-12">
+      <div className="max-w-5xl w-full mx-auto py-6 md:py-10 space-y-8">
       {/* Hero Section */}
-      <section className="rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800 shadow-sm border border-gray-900 p-8 md:p-14 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-4">
+      <section className="rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800 shadow-sm border border-gray-900 p-6 md:p-8 text-center">
+        <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-3">
           Maximize your
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-700"> credit card rewards</span>
         </h1>
-        <p className="mt-4 text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+        <p className="mt-2 text-base md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
           Smart AI recommendations help you earn more points, cashback, and travel rewards. Never miss out on the best card for each purchase again.
         </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={() => router.push('/auth')}
             className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
@@ -76,8 +77,13 @@ export default function HomePage() {
         <HomepageBusinessDemo />
       </div>
 
+      {/* AI Assistant Section */}
+      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-6 md:p-10">
+        <NaturalLanguageChat />
+      </section>
+
       {/* Features Section */}
-      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-8 md:p-14">
+  <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-8 md:p-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Everything you need to optimize rewards
