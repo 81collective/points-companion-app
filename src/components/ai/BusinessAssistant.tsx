@@ -101,7 +101,19 @@ export default function BusinessAssistant() {
         ))}
       </div>
 
-      <LocationConfirmation place={place} onConfirm={() => place && setInput(`I am at ${place}. Best card?`)} />
+      <LocationConfirmation
+        place={place}
+        needsLocation={!permissionState.granted}
+        onEnableLocation={requestLocation}
+        onConfirm={() => {
+          if (!permissionState.granted) {
+            // If still not granted, request it; otherwise proceed
+            requestLocation();
+          } else if (place) {
+            setInput(`I am at ${place}. Best card?`);
+          }
+        }}
+      />
 
       <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
 
