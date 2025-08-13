@@ -7,8 +7,7 @@ import { ConversationDisplay } from './ConversationDisplay';
 import { SuggestionChips } from './SuggestionChips';
 import { LocationConfirmation } from './LocationConfirmation';
 import { fetchTopRecommendations } from '@/lib/ai/businessRecommendations';
-import type { Recommendation } from '@/lib/ai/responseFormatter';
-import { CardComparisonCards } from './CardComparisonCards';
+import { formatTransparentMath, type Recommendation } from '@/lib/ai/responseFormatter';
 import { useAssistantStore } from '@/stores/assistantStore';
 
 export default function BusinessAssistant() {
@@ -18,8 +17,8 @@ export default function BusinessAssistant() {
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [input, setInput] = useState('');
-  const [topRecs, setTopRecs] = useState<Recommendation[]>([]);
-  const [planningRecs, setPlanningRecs] = useState<Recommendation[]>([]);
+  const [_topRecs, setTopRecs] = useState<Recommendation[]>([]); // kept for publishing to store
+  const [_planningRecs, setPlanningRecs] = useState<Recommendation[]>([]); // kept for publishing to store
   const publish = useAssistantStore(s => s.setPicks);
   const [selectedPlaceName, setSelectedPlaceName] = useState<string | null>(null);
   const { businesses } = useNearbyBusinesses({
@@ -117,6 +116,16 @@ export default function BusinessAssistant() {
           });
           setTopRecs(recs);
           publish(recs, { mode, category: selectedCategory, place: chosen.name });
+          // Append recommendations as a chat message
+          const lines = recs.map((rec, i) => {
+            const math = formatTransparentMath(rec);
+            const reasons = (math.reasons || []).slice(0, 3);
+            const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+            const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+            return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+          });
+          const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${chosen.name}:\n${lines.join('\n')}` };
+          setTurns(prev => [...prev, recMsg]);
         } catch {}
         return;
       }
@@ -139,8 +148,17 @@ export default function BusinessAssistant() {
           lng: location?.longitude,
           limit: 3,
         });
-  setTopRecs(recs);
-  publish(recs, { mode, category: selectedCategory, place });
+        setTopRecs(recs);
+        publish(recs, { mode, category: selectedCategory, place });
+        const lines = recs.map((rec, i) => {
+          const math = formatTransparentMath(rec);
+          const reasons = (math.reasons || []).slice(0, 3);
+          const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+          const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+          return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+        });
+        const recMsg: ChatTurn = { role: 'assistant', content: `Top picks${place ? ` for ${place}` : ''}:\n${lines.join('\n')}` };
+        setTurns(prev => [...prev, recMsg]);
       } catch {}
     } else {
       // Planning mode: pull top category comps (no business needed)
@@ -149,8 +167,17 @@ export default function BusinessAssistant() {
           category: selectedCategory,
           limit: 3,
         });
-  setPlanningRecs(recs);
-  publish(recs, { mode, category: selectedCategory, place });
+        setPlanningRecs(recs);
+        publish(recs, { mode, category: selectedCategory, place });
+        const lines = recs.map((rec, i) => {
+          const math = formatTransparentMath(rec);
+          const reasons = (math.reasons || []).slice(0, 3);
+          const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+          const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+          return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+        });
+        const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${selectedCategory}:\n${lines.join('\n')}` };
+        setTurns(prev => [...prev, recMsg]);
       } catch {}
     }
   };
@@ -202,21 +229,9 @@ export default function BusinessAssistant() {
 
       <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
 
-      <SuggestionChips items={suggestions} onPick={(s) => setInput(s)} />
+  <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
 
-      {mode === 'quick' && topRecs.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-900">Top picks nearby</h4>
-          <CardComparisonCards items={topRecs} />
-        </div>
-      )}
-
-      {mode === 'planning' && planningRecs.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-900">Planning comparison (Top 3 for {selectedCategory})</h4>
-          <CardComparisonCards items={planningRecs} />
-        </div>
-      )}
+  {/* Recommendations are now shown directly in the chat above */}
 
       <div className="flex gap-2">
         <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the best card…" className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm" />
