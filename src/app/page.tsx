@@ -4,9 +4,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ArrowRight, Zap, TrendingUp, Loader2, MapPin } from 'lucide-react';
-import HomepageBusinessDemo from '@/components/public/HomepageBusinessDemo';
-import NaturalLanguageChat from '@/components/ai/NaturalLanguageChat';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import SmartFinderWidget from '@/components/public/SmartFinderWidget';
+import DealOfTheDay from '@/components/public/DealOfTheDay';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -72,55 +72,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Interactive Demo Section */}
-  <div className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-6 md:p-10">
-        <HomepageBusinessDemo />
-      </div>
-
-      {/* AI Assistant Section */}
-      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-6 md:p-10">
-        <NaturalLanguageChat />
+      {/* Smart Finder: combines search, nearby, and recommendations */}
+      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
+        <SmartFinderWidget />
       </section>
 
-      {/* Features Section */}
-  <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-8 md:p-10">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Everything you need to optimize rewards
-          </h2>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Powerful features designed to help you make the most of every purchase.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-blue-900 to-gray-900 border border-blue-800">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">AI-Powered Recommendations</h3>
-            <p className="text-gray-300 leading-relaxed">
-              Get instant suggestions for the best credit card to use for each purchase, maximizing your points and cashback.
-            </p>
-          </div>
-          <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-gray-900 to-blue-900 border border-blue-800">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-700 to-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <TrendingUp className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Smart Analytics</h3>
-            <p className="text-gray-300 leading-relaxed">
-              Track your spending patterns and discover opportunities to earn more rewards with detailed insights and reports.
-            </p>
-          </div>
-          <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-gray-900 to-blue-950 border border-blue-800">
-            <div className="w-16 h-16 bg-gradient-to-r from-gray-800 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <MapPin className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">Location-Based Recommendations</h3>
-            <p className="text-gray-300 leading-relaxed">
-              Discover nearby businesses and get instant credit card recommendations for each specific merchant to maximize your rewards.
-            </p>
-          </div>
-        </div>
+      {/* Deal of the Day replaces the features grid */}
+      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
+        <DealOfTheDay />
       </section>
       </div>
     </>
