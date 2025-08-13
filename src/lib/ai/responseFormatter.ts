@@ -32,3 +32,30 @@ export function formatTransparentMath(rec: Recommendation, basisAmount = 100) {
     reasons: rec.reasons || [],
   };
 }
+
+// Try to estimate welcome bonus value from a free-form bonus_offer like "80,000 points" or "$200"
+export function estimateWelcomeBonusValue(bonusOffer?: string, cpp = 0.0125) {
+  if (!bonusOffer) return 0;
+  const dollars = bonusOffer.match(/\$\s*(\d{2,6})/i);
+  if (dollars) return parseInt(dollars[1], 10);
+  const points = bonusOffer.match(/(\d{2,6})\s*(?:pts|points|miles)/i);
+  if (points) return Math.round(parseInt(points[1], 10) * cpp);
+  return 0;
+}
+
+// Break-even monthly spend where rewards value offsets the monthly fee
+export function estimateBreakEvenMonthlySpend(rec: Recommendation, cpp = 0.0125) {
+  const feeMonthly = (rec.card.annual_fee || 0) / 12;
+  const valuePerDollar = (rec.reward_multiplier ?? 1) * cpp;
+  if (valuePerDollar <= 0) return Infinity;
+  return Math.round((feeMonthly / valuePerDollar) * 100) / 100; // dollars per month
+}
+
+// Compare two recommendations by estimated value per $100 basis
+export function deltaPerBasis(top: Recommendation, second: Recommendation, basisAmount = 100, cpp = 0.0125) {
+  const multTop = top.reward_multiplier ?? 1;
+  const multSecond = second.reward_multiplier ?? 1;
+  const valTop = Math.round((basisAmount * multTop * cpp) * 100) / 100;
+  const valSecond = Math.round((basisAmount * multSecond * cpp) * 100) / 100;
+  return Math.round((valTop - valSecond) * 100) / 100;
+}

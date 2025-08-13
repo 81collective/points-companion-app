@@ -1,8 +1,8 @@
 import React from 'react';
 import AIRecommendationEngine from '@/components/ai/AIRecommendationEngine';
 import SmartInsights from '@/components/ai/SmartInsights';
-import NaturalLanguageChat from '@/components/ai/NaturalLanguageChat';
 import BusinessAssistant from '@/components/ai/BusinessAssistant';
+import { CardComparisonCards } from '@/components/ai/CardComparisonCards';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 
 export default function AIPage() {
@@ -31,16 +31,16 @@ export default function AIPage() {
               </div>
             </section>
 
-            {/* AI Chat Assistant */}
+            {/* Transparent Math Deep Dive (uses AIRecommendationEngine or top picks) */}
             <section>
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">AI Chat Assistant</h2>
-                  <p className="text-gray-600">
-                    Ask natural language questions about credit cards and get personalized recommendations
-                  </p>
+                <div className="mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-900">Transparent Math</h2>
+                  <p className="text-gray-600">Understand how we compute value: points, $ estimates, fee impact, and break-even.</p>
                 </div>
-                <NaturalLanguageChat />
+                {/* For now, this section is illustrative; BusinessAssistant already shows top picks with math. */}
+                {/* You can optionally plug in AIRecommendationEngine state here in a follow-up. */}
+                <p className="text-sm text-gray-600">Use the Business Assistant above to see real examples for your current place.</p>
               </div>
             </section>
 
