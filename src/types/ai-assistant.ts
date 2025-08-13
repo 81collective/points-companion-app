@@ -31,6 +31,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  suggestions?: string[];
 }
 
 export interface CardInfo {
@@ -55,4 +56,18 @@ export interface ConversationState {
   recommendations: CardRecommendation[];
   followUpSuggestions: string[];
   conversationHistory: Message[];
+}
+
+export interface ChatContext {
+  mode: 'quick' | 'planning';
+  userLocation?: { lat: number; lng: number };
+  userCards?: UserCard[];
+  isAuthenticated: boolean;
+  businessContext?: DetectedBusiness;
+  conversationHistory?: Message[];
+}
+
+export interface ChatResponse {
+  content: string;
+  suggestions?: string[];
 }
