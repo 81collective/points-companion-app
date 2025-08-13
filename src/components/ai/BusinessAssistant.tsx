@@ -13,14 +13,6 @@ import { useAssistantStore } from '@/stores/assistantStore';
 
 export default function BusinessAssistant() {
   const { location, permissionState, requestLocation } = useLocation();
-  const { businesses } = useNearbyBusinesses({
-    latitude: location?.latitude,
-    longitude: location?.longitude,
-    radius: 1609 * 3,
-    category: 'dining',
-    enabled: permissionState.granted && !!location,
-  });
-
   const [mode, setMode] = useState<'quick' | 'planning'>('quick');
   const [selectedCategory, setSelectedCategory] = useState<string>('dining');
   const [turns, setTurns] = useState<ChatTurn[]>([]);
@@ -29,9 +21,18 @@ export default function BusinessAssistant() {
   const [topRecs, setTopRecs] = useState<Recommendation[]>([]);
   const [planningRecs, setPlanningRecs] = useState<Recommendation[]>([]);
   const publish = useAssistantStore(s => s.setPicks);
-  const place = useMemo(() => businesses?.[0]?.name, [businesses]);
+  const [selectedPlaceName, setSelectedPlaceName] = useState<string | null>(null);
+  const { businesses } = useNearbyBusinesses({
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+    radius: 1609 * 3,
+    category: selectedCategory,
+    enabled: permissionState.granted && !!location,
+  });
+  const place = useMemo(() => selectedPlaceName || businesses?.[0]?.name, [selectedPlaceName, businesses]);
   const [pendingConfirmAfterLocation, setPendingConfirmAfterLocation] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(() => !permissionState.granted);
+  const [showedNearbyPrompt, setShowedNearbyPrompt] = useState(false);
 
   useEffect(() => {
     if (!turns.length) {
@@ -40,24 +41,61 @@ export default function BusinessAssistant() {
     }
   }, [turns.length]);
 
-  // If user clicked Yes before granting, auto-complete once permission is granted (and place is available if applicable)
+  // If user clicked Yes before granting, once permission is granted show nearby prompt (no second tap)
   useEffect(() => {
     if (permissionState.granted) {
       setShowLocationPrompt(false);
       if (pendingConfirmAfterLocation) {
-        if (place) {
-          setInput(`I am at ${place}. Best card?`);
-        }
+        // Will show nearby prompt below
         setPendingConfirmAfterLocation(false);
       }
     }
   }, [permissionState.granted, pendingConfirmAfterLocation, place]);
 
+  // After location available, prompt user with closest businesses in quick mode
+  useEffect(() => {
+    if (mode !== 'quick') return;
+    if (!permissionState.granted) return;
+    if (!businesses || businesses.length === 0) return;
+    if (showedNearbyPrompt) return;
+
+    const top = businesses.slice(0, 5);
+    const lines = top.map((b, i) => `${i + 1}) ${b.name}`);
+    const msg = `I found some nearby places:\n${lines.join('\n')}\n\nReply with a number (1-${top.length}) and I'll show the best card for that place. Or ask a different question.`;
+    const assistantTurn: ChatTurn = { role: 'assistant', content: msg };
+    setTurns((prev) => [...prev, assistantTurn]);
+    setShowedNearbyPrompt(true);
+  }, [mode, permissionState.granted, businesses, showedNearbyPrompt]);
+
   const send = async (text: string) => {
     const userTurn: ChatTurn = { role: 'user', content: text };
     const nextTurns: ChatTurn[] = [...turns, userTurn];
     setTurns(nextTurns);
-    const ctx: Record<string, unknown> = { mode };
+
+    // If user typed a number selecting one of the listed businesses in quick mode
+    const numMatch = text.trim().match(/^([1-9]\d*)$/);
+    if (mode === 'quick' && numMatch && businesses.length > 0) {
+      const idx = Math.max(1, Math.min(businesses.length, parseInt(numMatch[1], 10))) - 1;
+      const chosen = businesses[idx];
+      if (chosen?.name) {
+        setSelectedPlaceName(chosen.name);
+        const confirmTurn: ChatTurn = { role: 'assistant', content: `Great — let's look at ${chosen.name}.` };
+        setTurns((prev) => [...prev, confirmTurn]);
+        try {
+          const recs = await fetchTopRecommendations({
+            category: selectedCategory,
+            businessName: chosen.name,
+            lat: location?.latitude,
+            lng: location?.longitude,
+            limit: 3,
+          });
+          setTopRecs(recs);
+          publish(recs, { mode, category: selectedCategory, place: chosen.name });
+        } catch {}
+        return;
+      }
+    }
+  const ctx: Record<string, unknown> = { mode };
     if (location) ctx.location = location;
     if (place) ctx.business = place;
   const { reply, suggestions } = await converse(nextTurns, ctx);
