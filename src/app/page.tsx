@@ -45,9 +45,9 @@ export default function HomePage() {
           </button>
         </div>
       </header>
-      <div className="max-w-5xl w-full mx-auto py-6 md:py-10 space-y-8">
-      {/* Hero Section */}
-      <section className="rounded-2xl bg-gradient-to-b from-gray-900 to-gray-800 shadow-sm border border-gray-900 p-6 md:p-8 text-center">
+      <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-6 md:py-10 space-y-8">
+      {/* Combined Hero + Assistant */}
+      <section className="bg-gradient-to-b from-gray-900 to-gray-800 shadow-sm border border-gray-900 p-4 sm:p-6 md:p-8 text-center">
         <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-3">
           Maximize your
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-700"> credit card rewards</span>
@@ -55,34 +55,28 @@ export default function HomePage() {
         <p className="mt-2 text-base md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
           Smart AI recommendations help you earn more points, cashback, and travel rewards. Never miss out on the best card for each purchase again.
         </p>
+        <div className="mt-6">
+          <BusinessAssistant />
+        </div>
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={() => router.push('/auth')}
-            className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
-            Get started
+            Sign up
             <ArrowRight className="ml-2 w-5 h-5" />
           </button>
           <button
             onClick={() => router.push('/auth')}
-            className="inline-flex items-center px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-xl border-2 border-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="inline-flex items-center px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-medium border-2 border-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             Learn more
           </button>
         </div>
       </section>
 
-      {/* AI Assistant replaces ask and category selection with a conversational flow */}
-      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
-        <div className="mb-3">
-          <h2 className="text-lg font-semibold text-white">AI Assistant</h2>
-          <p className="text-sm text-gray-300">Ask about the best card right now. Enable location for nearby picks.</p>
-        </div>
-        <BusinessAssistant />
-      </section>
-
       {/* Deal of the Day replaces the features grid */}
-      <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
+      <section className="bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
         <DealOfTheDay />
       </section>
       </div>

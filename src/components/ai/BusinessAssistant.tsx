@@ -204,24 +204,24 @@ export default function BusinessAssistant() {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
+    <div className="bg-white border border-gray-200 p-4 sm:p-5 md:p-6 space-y-4 w-full">
       <div className="flex items-center justify-between">
-        <div className="flex gap-2 p-1 bg-gray-100 rounded-lg text-sm">
-          <button onClick={() => setMode('quick')} className={`px-3 py-1 rounded ${mode==='quick' ? 'bg-white shadow-sm' : ''}`}>Quick</button>
-          <button onClick={() => setMode('planning')} className={`px-3 py-1 rounded ${mode==='planning' ? 'bg-white shadow-sm' : ''}`}>Planning</button>
+        <div className="flex gap-2 p-1 bg-gray-100 text-sm">
+          <button onClick={() => setMode('quick')} className={`px-3 py-1 ${mode==='quick' ? 'bg-white shadow-sm' : ''}`}>Quick</button>
+          <button onClick={() => setMode('planning')} className={`px-3 py-1 ${mode==='planning' ? 'bg-white shadow-sm' : ''}`}>Planning</button>
         </div>
         {!permissionState.granted && (
-          <button onClick={requestLocation} className="text-xs px-3 py-1 rounded bg-blue-600 text-white">Enable location</button>
+          <button onClick={requestLocation} className="text-xs px-3 py-1 bg-blue-600 text-white">Enable location</button>
         )}
       </div>
 
       {/* Quick mode category selector */}
-      <div className="flex flex-wrap gap-2 text-xs">
+  <div className="flex flex-wrap gap-2 text-xs">
         {['dining','groceries','gas','hotels','travel'].map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1 rounded-full border ${selectedCategory===cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
+    className={`px-3 py-1 border ${selectedCategory===cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
           >
             {cat.charAt(0).toUpperCase()+cat.slice(1)}
           </button>
@@ -248,15 +248,17 @@ export default function BusinessAssistant() {
         />
       )}
 
-      <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
+      <div className="text-base">
+        <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
+      </div>
 
   <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
 
   {/* Recommendations are now shown directly in the chat above */}
 
       <div className="flex gap-2">
-        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the best card…" className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm" />
-        <button onClick={() => input && send(input)} className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm">Send</button>
+        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the best card…" className="flex-1 border border-gray-300 px-3 py-3 text-base" />
+        <button onClick={() => input && send(input)} className="px-5 py-3 bg-blue-600 text-white text-sm">Send</button>
       </div>
     </div>
   );
