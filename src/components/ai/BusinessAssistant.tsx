@@ -54,7 +54,7 @@ export default function BusinessAssistant() {
           'Audit my current cards and find overlaps',
         ]);
       } else if (mode === 'quick') {
-        const intro = `Quick picks the best card for right now. Flip on location for instant nearby picks, or tell me where you are (e.g., Starbucks, Whole Foods).\n\nTry:`;
+        const intro = `Quick calls the best card for right now. Flip on location for instant nearby picks, or tell me where you are (e.g., Starbucks, Whole Foods).\n\nTry:`;
         setTurns([{ role: 'assistant', content: `${intro}\n• What’s the best card at Starbucks right now?\n• Show me the top 3 nearby places\n• Best card for groceries today\n• Compare gas vs groceries\n• I’m at Costco — what should I use?` } as ChatTurn]);
         setSuggestions([
           'What’s the best card at Starbucks right now?',
@@ -67,6 +67,14 @@ export default function BusinessAssistant() {
     }
     prevModeRef.current = mode;
   }, [mode]);
+
+  // If category changes in quick mode, refresh the nearby prompt list
+  useEffect(() => {
+    if (mode === 'quick') {
+      setShowedNearbyPrompt(false);
+      setNearbyPromptList([]);
+    }
+  }, [selectedCategory, mode]);
 
   useEffect(() => {
     if (!turns.length) {
@@ -228,17 +236,19 @@ export default function BusinessAssistant() {
       </div>
 
       {/* Quick mode category selector */}
-  <div className="flex flex-wrap gap-2 text-xs">
-        {['dining','groceries','gas','hotels','travel'].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-    className={`px-3 py-1 border ${selectedCategory===cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
-          >
-            {cat.charAt(0).toUpperCase()+cat.slice(1)}
-          </button>
-        ))}
-      </div>
+      {mode === 'quick' && (
+        <div className="flex flex-wrap gap-2 text-xs">
+          {['dining','groceries','gas','hotels','travel'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1 border ${selectedCategory===cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
+            >
+              {cat.charAt(0).toUpperCase()+cat.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
 
       {showLocationPrompt && (
         <LocationConfirmation
