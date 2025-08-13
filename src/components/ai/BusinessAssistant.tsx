@@ -36,21 +36,34 @@ export default function BusinessAssistant() {
   const [nearbyPromptList, setNearbyPromptList] = useState<typeof businesses>([]);
   const prevModeRef = useRef(mode);
 
-  // When switching from quick -> planning: clear chat and provide planning intro and advanced prompts
+  // When switching modes: clear chat and show mode-specific intro and prompts
   useEffect(() => {
     const prev = prevModeRef.current;
-    if (mode === 'planning' && prev !== 'planning') {
+    if (prev !== mode) {
       setInput('');
-      const intro = `Planning mode helps you design a card strategy for bigger goals (trips, new cards, or optimizing your setup).\n\nHere’s how I can help:\n• Compare cards and explain trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Create a simple step‑by‑step plan\n\nTo get a complete picture, a few quick questions (answer freely, we can skip any):\n1) Top 1–2 goals in the next 6–12 months? (e.g., Hawaii trip in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)?\n3) Preference: cash back vs. points/miles? Any favorite programs (Chase/Amex/Citi/CapOne, Marriott/Hyatt/AA/UA/Delta)?\n4) Upcoming big purchases or trips (dates, destinations, travelers)?\n5) Current cards/issuers and any rules to consider (e.g., 5/24)?\n6) Annual fee comfort and business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
-      setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
-      setSuggestions([
-        'Plan a two‑card strategy for the next 12 months',
-        'Optimize my travel setup for 3 domestic trips and 1 international',
-        'Compare Amex Gold vs Citi Strata Premier vs CSP',
-        'Map welcome bonuses to a Hawaii trip in March',
-        'Design a grocery + gas combo for $800/mo spend',
-        'Audit my current cards and find overlaps',
-      ]);
+      setShowedNearbyPrompt(false);
+      if (mode === 'planning') {
+        const intro = `Planning mode helps you design a card strategy for bigger goals (trips, new cards, or optimizing your setup).\n\nHere’s how I can help:\n• Compare cards and explain trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Create a simple step‑by‑step plan\n\nTo get a complete picture, a few quick questions (answer freely, we can skip any):\n1) Top 1–2 goals in the next 6–12 months? (e.g., Hawaii trip in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)?\n3) Preference: cash back vs. points/miles? Any favorite programs (Chase/Amex/Citi/CapOne, Marriott/Hyatt/AA/UA/Delta)?\n4) Upcoming big purchases or trips (dates, destinations, travelers)?\n5) Current cards/issuers and any rules to consider (e.g., 5/24)?\n6) Annual fee comfort and business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
+        setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
+        setSuggestions([
+          'Plan a two‑card strategy for the next 12 months',
+          'Optimize my travel setup for 3 domestic trips and 1 international',
+          'Compare Amex Gold vs Citi Strata Premier vs CSP',
+          'Map welcome bonuses to a Hawaii trip in March',
+          'Design a grocery + gas combo for $800/mo spend',
+          'Audit my current cards and find overlaps',
+        ]);
+      } else if (mode === 'quick') {
+        const intro = `Quick mode helps you pick the best card for right now. Enable location to see nearby places, or tell me where you are (e.g., Starbucks, Whole Foods).\n\nTry one of these prompts to get started:`;
+        setTurns([{ role: 'assistant', content: `${intro}\n• What’s the best card at Starbucks right now?\n• Show me the top 3 nearby places\n• Best card for groceries today\n• Compare gas vs. groceries for me\n• I’m at Costco — what should I use?` } as ChatTurn]);
+        setSuggestions([
+          'What’s the best card at Starbucks right now?',
+          'Show me the top 3 nearby places',
+          'Best card for groceries today',
+          'Compare gas vs groceries',
+          'I’m at Costco — what should I use?',
+        ]);
+      }
     }
     prevModeRef.current = mode;
   }, [mode]);
