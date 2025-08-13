@@ -21,10 +21,12 @@ export default function BusinessAssistant() {
   });
 
   const [mode, setMode] = useState<'quick' | 'planning'>('quick');
+  const [selectedCategory, setSelectedCategory] = useState<string>('dining');
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const [topRecs, setTopRecs] = useState<Recommendation[]>([]);
+  const [planningRecs, setPlanningRecs] = useState<Recommendation[]>([]);
   const place = useMemo(() => businesses?.[0]?.name, [businesses]);
 
   useEffect(() => {
@@ -50,13 +52,22 @@ export default function BusinessAssistant() {
     if (mode === 'quick') {
       try {
         const recs = await fetchTopRecommendations({
-          category: 'dining',
+          category: selectedCategory,
           businessName: place,
           lat: location?.latitude,
           lng: location?.longitude,
           limit: 3,
         });
         setTopRecs(recs);
+      } catch {}
+    } else {
+      // Planning mode: pull top category comps (no business needed)
+      try {
+        const recs = await fetchTopRecommendations({
+          category: selectedCategory,
+          limit: 3,
+        });
+        setPlanningRecs(recs);
       } catch {}
     }
   };
@@ -73,6 +84,19 @@ export default function BusinessAssistant() {
         )}
       </div>
 
+      {/* Quick mode category selector */}
+      <div className="flex flex-wrap gap-2 text-xs">
+        {['dining','groceries','gas','hotels','travel'].map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-3 py-1 rounded-full border ${selectedCategory===cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
+          >
+            {cat.charAt(0).toUpperCase()+cat.slice(1)}
+          </button>
+        ))}
+      </div>
+
       <LocationConfirmation place={place} onConfirm={() => place && setInput(`I am at ${place}. Best card?`)} />
 
       <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
@@ -83,6 +107,13 @@ export default function BusinessAssistant() {
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-900">Top picks nearby</h4>
           <CardComparisonCards items={topRecs} />
+        </div>
+      )}
+
+      {mode === 'planning' && planningRecs.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-gray-900">Planning comparison (Top 3 for {selectedCategory})</h4>
+          <CardComparisonCards items={planningRecs} />
         </div>
       )}
 
