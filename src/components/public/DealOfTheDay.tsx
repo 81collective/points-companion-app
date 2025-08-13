@@ -116,7 +116,7 @@ export default function DealOfTheDay() {
       </div>
 
       <div className="mt-6">
-        <button className="inline-flex items-center px-5 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">Learn more</button>
+        <a href="/bonuses" className="inline-flex items-center px-5 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">See all bonuses</a>
       </div>
     </div>
   );

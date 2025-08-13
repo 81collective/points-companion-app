@@ -1,0 +1,198 @@
+# AI Assistant Nearby Business Module - VSCode Agent Implementation Guide
+
+## 🎯 Project Overview
+Create an intelligent, conversational AI assistant for the Points Companion app that helps users optimize credit card usage for nearby businesses. Focus on **accuracy**, **confidence**, and **discovery** as core pillars.
+
+## 📋 Implementation Requirements
+
+### 1. Core Components to Create
+
+```
+src/components/ai/
+├── BusinessAssistant.tsx          # Main AI assistant component
+├── QuickModeInterface.tsx         # Fast in-store decisions
+├── PlanningModeInterface.tsx      # Deep exploration conversations
+├── ConversationDisplay.tsx        # Chat bubbles + visual cards
+├── SuggestionChips.tsx           # Guided exploration options
+├── CardComparisonCards.tsx       # Visual card comparisons
+└── LocationConfirmation.tsx      # Business detection confirmation
+
+src/lib/ai/
+├── conversationEngine.ts         # OpenAI integration & conversation logic
+├── businessRecommendations.ts    # Card recommendation algorithms
+├── responseFormatter.ts          # Format AI responses with transparency
+└── contextManager.ts            # Manage conversation state & context
+
+src/types/
+└── ai-assistant.ts              # TypeScript interfaces for AI system
+```
+
+### 2. Key Features & User Flows
+
+#### Quick Mode (In-Store Decisions)
+- **Trigger**: User confirms location or manually selects business
+- **Input**: Voice, quick-select buttons, or GPS detection with confirmation
+- **Output**: Fast card recommendation with transparent math
+- **Example**: "Chase Sapphire Reserve - 3x points on dining, earns 60 points worth $1.20 vs Discover's 15 points worth $0.15"
+
+#### Planning Mode (Deep Conversations)
+- **Trigger**: User asks complex questions about travel, strategy, etc.
+- **Personality**: Exploratory friend who asks follow-up questions
+- **UI**: Chat bubbles + visual comparison cards + suggestion chips
+- **Example**: "Planning Europe trip? Tell me more about your travel style..."
+
+### 3. Recommendation Logic
+
+#### Anonymous Users (Homepage)
+```typescript
+// Show absolute best card available for maximum optimization demo
+getOptimalCardForBusiness(businessType: string): CardRecommendation
+```
+
+#### Authenticated Users
+```typescript
+// Recommend from user's wallet + suggest better options
+getBestUserCard(userCards: Card[], businessType: string): {
+  recommended: Card;
+  betterOptions?: Card[];
+  educationalTip?: string;
+}
+```
+
+### 4. Technical Specifications
+
+#### Core Types
+```typescript
+interface AIAssistantProps {
+  mode: 'quick' | 'planning';
+  userLocation?: Coordinates;
+  userCards?: UserCard[];
+  isAuthenticated: boolean;
+  businessContext?: DetectedBusiness;
+}
+
+interface ConversationState {
+  context: 'in-store' | 'planning' | 'general';
+  businessType?: string;
+  userIntent?: string;
+  recommendations: CardRecommendation[];
+  followUpSuggestions: string[];
+  conversationHistory: Message[];
+}
+
+interface CardRecommendation {
+  card: Card;
+  reasoning: string;
+  earnedPoints: number;
+  earnedValue: number;
+  alternatives: Card[];
+  educationalContext?: string;
+}
+```
+
+#### OpenAI Integration
+```typescript
+// Use existing OpenAI setup, enhance for conversation management
+const conversationPrompt = `
+You are a knowledgeable friend helping with credit card optimization.
+- Be exploratory and curious, ask follow-up questions
+- Always explain your reasoning transparently  
+- Start simple, go deep only if user wants details
+- For quick decisions: be fast and clear
+- For planning: be thorough and educational
+`;
+```
+
+### 5. UI/UX Requirements
+
+#### Multi-Modal Interface
+- **Chat Interface**: Conversational flow with message bubbles
+- **Visual Cards**: Pop-up comparison cards for complex decisions
+- **Suggestion Chips**: Clickable quick actions like "Tell me about lounge access"
+- **Voice Input**: Optional voice activation for hands-free use
+
+#### Transparency Features
+- Show mathematical reasoning behind all recommendations
+- Display opportunity costs and alternatives
+- Include relevant fees, terms, limitations
+- Provide confidence indicators
+
+#### Progressive Disclosure
+- Start with simple recommendations
+- Offer deeper explanation on request
+- Use suggestion chips to guide exploration
+- Never overwhelm with too much initial information
+
+### 6. Integration Points
+
+#### Location Services
+```typescript
+// Enhance existing useLocation hook
+interface BusinessDetection {
+  detectNearbyBusinesses(): Promise<Business[]>;
+  confirmBusinessSelection(business: Business): void;
+  getBusinessContext(business: Business): BusinessContext;
+}
+```
+
+#### Card Database
+```typescript
+// Use existing card data, enhance with AI context
+interface EnhancedCard extends Card {
+  aiRecommendationContext: string;
+  competitiveAdvantages: string[];
+  idealUseCase: string;
+}
+```
+
+### 7. Implementation Priorities
+
+1. **Core Conversation Engine** - OpenAI integration with context management
+2. **Quick Mode Interface** - Fast in-store recommendations with location confirmation
+3. **Multi-Modal UI Components** - Chat + cards + suggestion chips
+4. **Transparent Recommendation Logic** - Show math and reasoning
+5. **Planning Mode Interface** - Deep exploratory conversations
+6. **Anonymous vs Authenticated Flow** - Different recommendation strategies
+7. **Voice Input Integration** - Hands-free operation capability
+
+### 8. Success Criteria
+
+- **Accuracy**: Never provide incorrect financial advice
+- **Confidence**: Users trust and act on recommendations
+- **Discovery**: Surface better card options users didn't know about
+- **Speed**: Quick mode responds under 3 seconds
+- **Engagement**: Users continue conversations and ask follow-ups
+
+### 9. Technical Constraints
+
+- Use existing app architecture (Next.js 15, TypeScript, Tailwind CSS)
+- Integrate with current Supabase auth and database
+- Maintain existing design system and component patterns
+- No user spending pattern tracking (privacy-first approach)
+- Leverage existing Google Maps and location services
+
+### 10. Example Conversation Flows
+
+#### Quick Mode
+```
+User: *at Starbucks location*
+AI: "I notice you might be at Starbucks. Want card recommendations?"
+User: "Yes"
+AI: "Chase Sapphire Reserve - 3x points on dining/coffee, earns 45 points worth $0.67. Your Discover would only earn 15 points worth $0.15."
+```
+
+#### Planning Mode
+```
+User: "I'm planning a Europe trip, what cards should I use?"
+AI: "Exciting! Tell me more - how long is the trip and what's your travel style?"
+User: "2 weeks, mix of hotels and dining"
+AI: "For 2 weeks in Europe, I'd start with Chase Sapphire Reserve - no foreign fees and great travel perks. Want to explore why this beats other options?"
+[Shows visual comparison cards]
+[Suggestion chips: "Tell me about lounge access" | "What about hotel perks" | "Show me alternatives"]
+```
+
+## 🚀 Ready to Build
+
+This system should feel like having a knowledgeable friend in your pocket who happens to be a credit card optimization expert. Focus on building trust through transparency, enabling discovery of better options, and making every recommendation accurate and actionable.
+
+Start with the core conversation engine and quick mode, then iterate based on user feedback. The goal is to make credit card optimization effortless and intelligent.

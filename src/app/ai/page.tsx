@@ -2,6 +2,7 @@ import React from 'react';
 import AIRecommendationEngine from '@/components/ai/AIRecommendationEngine';
 import SmartInsights from '@/components/ai/SmartInsights';
 import NaturalLanguageChat from '@/components/ai/NaturalLanguageChat';
+import BusinessAssistant from '@/components/ai/BusinessAssistant';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 
 export default function AIPage() {
@@ -19,6 +20,17 @@ export default function AIPage() {
 
           {/* Main Content - Tab Layout */}
           <div className="space-y-8">
+            {/* New Business Assistant (Quick/Planning modes) */}
+            <section>
+              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+                <div className="mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-900">Business Assistant</h2>
+                  <p className="text-gray-600">Fast in-store decisions and deeper planning conversations.</p>
+                </div>
+                <BusinessAssistant />
+              </div>
+            </section>
+
             {/* AI Chat Assistant */}
             <section>
               <div className="bg-white rounded-lg border border-gray-200 p-6">
