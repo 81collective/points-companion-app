@@ -43,19 +43,19 @@ export default function BusinessAssistant() {
       setInput('');
       setShowedNearbyPrompt(false);
       if (mode === 'planning') {
-        const intro = `Planning mode helps you design a card strategy for bigger goals (trips, new cards, or optimizing your setup).\n\nHere’s how I can help:\n• Compare cards and explain trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Create a simple step‑by‑step plan\n\nTo get a complete picture, a few quick questions (answer freely, we can skip any):\n1) Top 1–2 goals in the next 6–12 months? (e.g., Hawaii trip in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)?\n3) Preference: cash back vs. points/miles? Any favorite programs (Chase/Amex/Citi/CapOne, Marriott/Hyatt/AA/UA/Delta)?\n4) Upcoming big purchases or trips (dates, destinations, travelers)?\n5) Current cards/issuers and any rules to consider (e.g., 5/24)?\n6) Annual fee comfort and business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
+        const intro = `Planning designs a winning card strategy for your bigger goals.\n\nWhat I’ll do:\n• Compare cards and call the trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Hand you a simple step‑by‑step plan\n\nTo get the full picture, quick hits (answer freely, skip anything):\n1) Top 1–2 goals in the next 6–12 months (e.g., Hawaii in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)\n3) Preference: cash back vs points/miles; any favorite programs (Chase/Amex/Citi/CapOne; Marriott/Hyatt/AA/UA/Delta)\n4) Upcoming big purchases/trips (dates, destinations, travelers)\n5) Current cards/issuers and rules to consider (e.g., 5/24)\n6) Annual fee comfort; business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
         setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
         setSuggestions([
-          'Plan a two‑card strategy for the next 12 months',
-          'Optimize my travel setup for 3 domestic trips and 1 international',
+          'Plan a 2‑card strategy for the next 12 months',
+          'Optimize my travel setup for 3 domestic trips + 1 international',
           'Compare Amex Gold vs Citi Strata Premier vs CSP',
           'Map welcome bonuses to a Hawaii trip in March',
-          'Design a grocery + gas combo for $800/mo spend',
+          'Design a grocery + gas combo for $800/mo',
           'Audit my current cards and find overlaps',
         ]);
       } else if (mode === 'quick') {
-        const intro = `Quick mode helps you pick the best card for right now. Enable location to see nearby places, or tell me where you are (e.g., Starbucks, Whole Foods).\n\nTry one of these prompts to get started:`;
-        setTurns([{ role: 'assistant', content: `${intro}\n• What’s the best card at Starbucks right now?\n• Show me the top 3 nearby places\n• Best card for groceries today\n• Compare gas vs. groceries for me\n• I’m at Costco — what should I use?` } as ChatTurn]);
+        const intro = `Quick picks the best card for right now. Flip on location for instant nearby picks, or tell me where you are (e.g., Starbucks, Whole Foods).\n\nTry:`;
+        setTurns([{ role: 'assistant', content: `${intro}\n• What’s the best card at Starbucks right now?\n• Show me the top 3 nearby places\n• Best card for groceries today\n• Compare gas vs groceries\n• I’m at Costco — what should I use?` } as ChatTurn]);
         setSuggestions([
           'What’s the best card at Starbucks right now?',
           'Show me the top 3 nearby places',
@@ -70,7 +70,7 @@ export default function BusinessAssistant() {
 
   useEffect(() => {
     if (!turns.length) {
-      const first: ChatTurn = { role: 'assistant', content: 'How can I help with your card choice today?' };
+      const first: ChatTurn = { role: 'assistant', content: 'I’m your rewards co‑pilot — what should we optimize right now?' };
       setTurns([first]);
     }
   }, [turns.length]);
@@ -113,12 +113,12 @@ export default function BusinessAssistant() {
       );
     const top = sorted.slice(0, 5);
     setNearbyPromptList(top);
-    const lines = top.map((b, i) => {
+  const lines = top.map((b, i) => {
       const miles = distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude);
       const mi = Number.isFinite(miles) ? `${miles.toFixed(1)} mi` : '';
       return `${i + 1}) ${b.name}${mi ? ` • ${mi}` : ''}`;
     });
-    const msg = `I found nearby places:\n${lines.join('\n')}\n\nReply with a number (1-${top.length}) and I'll show the best card for that place. Or ask a different question.`;
+  const msg = `Closest options:\n${lines.join('\n')}\n\nReply 1–${top.length} to pick one, or ask anything else.`;
     const assistantTurn: ChatTurn = { role: 'assistant', content: msg };
     setTurns((prev) => [...prev, assistantTurn]);
     setShowedNearbyPrompt(true);
@@ -138,7 +138,7 @@ export default function BusinessAssistant() {
       const chosen = list[idx];
       if (chosen?.name) {
         setSelectedPlaceName(chosen.name);
-        const confirmTurn: ChatTurn = { role: 'assistant', content: `Great — let's look at ${chosen.name}.` };
+  const confirmTurn: ChatTurn = { role: 'assistant', content: `Locked in: ${chosen.name}. Pulling your top cards…` };
         setTurns((prev) => [...prev, confirmTurn]);
         try {
           const recs = await fetchTopRecommendations({
@@ -172,48 +172,47 @@ export default function BusinessAssistant() {
   setTurns([...nextTurns, assistantTurn]);
   setSuggestions(suggestions || []);
 
-    // In quick mode, also pull top recommendations for the detected business/category
-    if (mode === 'quick') {
-      try {
-        const recs = await fetchTopRecommendations({
-          category: selectedCategory,
-          businessName: place,
-          lat: location?.latitude,
-          lng: location?.longitude,
-          limit: 3,
-        });
-        setTopRecs(recs);
-        publish(recs, { mode, category: selectedCategory, place });
-        const lines = recs.map((rec, i) => {
-          const math = formatTransparentMath(rec);
-          const reasons = (math.reasons || []).slice(0, 3);
-          const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
-          const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
-          return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
-        });
-        const recMsg: ChatTurn = { role: 'assistant', content: `Top picks${place ? ` for ${place}` : ''}:\n${lines.join('\n')}` };
-        setTurns(prev => [...prev, recMsg]);
-      } catch {}
-    } else {
-      // Planning mode: pull top category comps (no business needed)
-      try {
-        const recs = await fetchTopRecommendations({
-          category: selectedCategory,
-          limit: 3,
-        });
-        setPlanningRecs(recs);
-        publish(recs, { mode, category: selectedCategory, place });
-        const lines = recs.map((rec, i) => {
-          const math = formatTransparentMath(rec);
-          const reasons = (math.reasons || []).slice(0, 3);
-          const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
-          const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
-          return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
-        });
-        const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${selectedCategory}:\n${lines.join('\n')}` };
-        setTurns(prev => [...prev, recMsg]);
-      } catch {}
-    }
+  // Also pull top recommendations based on mode
+  if (mode === 'quick') {
+    try {
+      const recs = await fetchTopRecommendations({
+        category: selectedCategory,
+        businessName: place,
+        lat: location?.latitude,
+        lng: location?.longitude,
+        limit: 3,
+      });
+      setTopRecs(recs);
+      publish(recs, { mode, category: selectedCategory, place });
+      const lines = recs.map((rec, i) => {
+        const math = formatTransparentMath(rec);
+        const reasons = (math.reasons || []).slice(0, 3);
+        const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+        const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+        return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+      });
+      const recMsg: ChatTurn = { role: 'assistant', content: `Top picks${place ? ` for ${place}` : ''}:\n${lines.join('\n')}` };
+      setTurns(prev => [...prev, recMsg]);
+    } catch {}
+  } else {
+    try {
+      const recs = await fetchTopRecommendations({
+        category: selectedCategory,
+        limit: 3,
+      });
+      setPlanningRecs(recs);
+      publish(recs, { mode, category: selectedCategory, place });
+      const lines = recs.map((rec, i) => {
+        const math = formatTransparentMath(rec);
+        const reasons = (math.reasons || []).slice(0, 3);
+        const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+        const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+        return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+      });
+      const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${selectedCategory}:\n${lines.join('\n')}` };
+      setTurns(prev => [...prev, recMsg]);
+    } catch {}
+  }
   };
 
   return (
