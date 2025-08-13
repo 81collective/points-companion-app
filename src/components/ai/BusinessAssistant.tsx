@@ -30,6 +30,8 @@ export default function BusinessAssistant() {
   const [planningRecs, setPlanningRecs] = useState<Recommendation[]>([]);
   const publish = useAssistantStore(s => s.setPicks);
   const place = useMemo(() => businesses?.[0]?.name, [businesses]);
+  const [pendingConfirmAfterLocation, setPendingConfirmAfterLocation] = useState(false);
+  const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(() => !permissionState.granted);
 
   useEffect(() => {
     if (!turns.length) {
@@ -37,6 +39,19 @@ export default function BusinessAssistant() {
       setTurns([first]);
     }
   }, [turns.length]);
+
+  // If user clicked Yes before granting, auto-complete once permission is granted (and place is available if applicable)
+  useEffect(() => {
+    if (permissionState.granted) {
+      setShowLocationPrompt(false);
+      if (pendingConfirmAfterLocation) {
+        if (place) {
+          setInput(`I am at ${place}. Best card?`);
+        }
+        setPendingConfirmAfterLocation(false);
+      }
+    }
+  }, [permissionState.granted, pendingConfirmAfterLocation, place]);
 
   const send = async (text: string) => {
     const userTurn: ChatTurn = { role: 'user', content: text };
@@ -101,19 +116,25 @@ export default function BusinessAssistant() {
         ))}
       </div>
 
-      <LocationConfirmation
-        place={place}
-        needsLocation={!permissionState.granted}
-        onEnableLocation={requestLocation}
-        onConfirm={() => {
-          if (!permissionState.granted) {
-            // If still not granted, request it; otherwise proceed
+      {showLocationPrompt && (
+        <LocationConfirmation
+          place={place}
+          needsLocation={!permissionState.granted}
+          onEnableLocation={() => {
+            setPendingConfirmAfterLocation(true);
             requestLocation();
-          } else if (place) {
-            setInput(`I am at ${place}. Best card?`);
-          }
-        }}
-      />
+          }}
+          onConfirm={() => {
+            if (!permissionState.granted) {
+              setPendingConfirmAfterLocation(true);
+              requestLocation();
+            } else if (place) {
+              setInput(`I am at ${place}. Best card?`);
+            }
+            setShowLocationPrompt(false);
+          }}
+        />
+      )}
 
       <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
 
