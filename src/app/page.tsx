@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import SmartFinderWidget from '@/components/public/SmartFinderWidget';
+import BusinessAssistant from '@/components/ai/BusinessAssistant';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
 
 export default function HomePage() {
@@ -72,9 +72,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Smart Finder: combines search, nearby, and recommendations */}
+      {/* AI Assistant replaces ask and category selection with a conversational flow */}
       <section className="rounded-2xl bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
-        <SmartFinderWidget />
+        <div className="mb-3">
+          <h2 className="text-lg font-semibold text-white">AI Assistant</h2>
+          <p className="text-sm text-gray-300">Ask about the best card right now. Enable location for nearby picks.</p>
+        </div>
+        <BusinessAssistant />
       </section>
 
       {/* Deal of the Day replaces the features grid */}
