@@ -33,6 +33,7 @@ export default function BusinessAssistant() {
   const [pendingConfirmAfterLocation, setPendingConfirmAfterLocation] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(() => !permissionState.granted);
   const [showedNearbyPrompt, setShowedNearbyPrompt] = useState(false);
+  const [nearbyPromptList, setNearbyPromptList] = useState<typeof businesses>([]);
 
   useEffect(() => {
     if (!turns.length) {
@@ -52,20 +53,43 @@ export default function BusinessAssistant() {
     }
   }, [permissionState.granted, pendingConfirmAfterLocation, place]);
 
-  // After location available, prompt user with closest businesses in quick mode
+  // Haversine distance in miles
+  const distanceMiles = (la1?: number, lo1?: number, la2?: number, lo2?: number) => {
+    if (!la1 || !lo1 || !la2 || !lo2) return Number.POSITIVE_INFINITY;
+    const toRad = (v: number) => (v * Math.PI) / 180;
+    const R = 3959; // miles
+    const dLat = toRad(la2 - la1);
+    const dLon = toRad(lo2 - lo1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(la1)) * Math.cos(toRad(la2)) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  // After location available, prompt user with closest businesses in quick mode (top 5 with distance)
   useEffect(() => {
     if (mode !== 'quick') return;
     if (!permissionState.granted) return;
     if (!businesses || businesses.length === 0) return;
     if (showedNearbyPrompt) return;
 
-    const top = businesses.slice(0, 5);
-    const lines = top.map((b, i) => `${i + 1}) ${b.name}`);
-    const msg = `I found some nearby places:\n${lines.join('\n')}\n\nReply with a number (1-${top.length}) and I'll show the best card for that place. Or ask a different question.`;
+    const sorted = businesses
+      .slice()
+      .sort((a, b) =>
+        distanceMiles(location?.latitude, location?.longitude, a.latitude, a.longitude) -
+        distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude)
+      );
+    const top = sorted.slice(0, 5);
+    setNearbyPromptList(top);
+    const lines = top.map((b, i) => {
+      const miles = distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude);
+      const mi = Number.isFinite(miles) ? `${miles.toFixed(1)} mi` : '';
+      return `${i + 1}) ${b.name}${mi ? ` • ${mi}` : ''}`;
+    });
+    const msg = `I found nearby places:\n${lines.join('\n')}\n\nReply with a number (1-${top.length}) and I'll show the best card for that place. Or ask a different question.`;
     const assistantTurn: ChatTurn = { role: 'assistant', content: msg };
     setTurns((prev) => [...prev, assistantTurn]);
     setShowedNearbyPrompt(true);
-  }, [mode, permissionState.granted, businesses, showedNearbyPrompt]);
+  }, [mode, permissionState.granted, businesses, showedNearbyPrompt, location?.latitude, location?.longitude]);
 
   const send = async (text: string) => {
     const userTurn: ChatTurn = { role: 'user', content: text };
@@ -74,9 +98,11 @@ export default function BusinessAssistant() {
 
     // If user typed a number selecting one of the listed businesses in quick mode
     const numMatch = text.trim().match(/^([1-9]\d*)$/);
-    if (mode === 'quick' && numMatch && businesses.length > 0) {
-      const idx = Math.max(1, Math.min(businesses.length, parseInt(numMatch[1], 10))) - 1;
-      const chosen = businesses[idx];
+    if (mode === 'quick' && numMatch) {
+      const list = nearbyPromptList && nearbyPromptList.length > 0 ? nearbyPromptList : businesses;
+      if (!list || list.length === 0) return;
+      const idx = Math.max(1, Math.min(list.length, parseInt(numMatch[1], 10))) - 1;
+      const chosen = list[idx];
       if (chosen?.name) {
         setSelectedPlaceName(chosen.name);
         const confirmTurn: ChatTurn = { role: 'assistant', content: `Great — let's look at ${chosen.name}.` };
