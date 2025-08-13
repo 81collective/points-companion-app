@@ -9,6 +9,7 @@ import { LocationConfirmation } from './LocationConfirmation';
 import { fetchTopRecommendations } from '@/lib/ai/businessRecommendations';
 import { formatTransparentMath, type Recommendation } from '@/lib/ai/responseFormatter';
 import { useAssistantStore } from '@/stores/assistantStore';
+import { useRef } from 'react';
 
 export default function BusinessAssistant() {
   const { location, permissionState, requestLocation } = useLocation();
@@ -33,6 +34,26 @@ export default function BusinessAssistant() {
   const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(() => !permissionState.granted);
   const [showedNearbyPrompt, setShowedNearbyPrompt] = useState(false);
   const [nearbyPromptList, setNearbyPromptList] = useState<typeof businesses>([]);
+  const prevModeRef = useRef(mode);
+
+  // When switching from quick -> planning: clear chat and provide planning intro and advanced prompts
+  useEffect(() => {
+    const prev = prevModeRef.current;
+    if (mode === 'planning' && prev !== 'planning') {
+      setInput('');
+      const intro = `Planning mode helps you design a card strategy for bigger goals (trips, new cards, or optimizing your setup).\n\nHere’s how I can help:\n• Compare cards and explain trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Create a simple step‑by‑step plan\n\nTo get a complete picture, a few quick questions (answer freely, we can skip any):\n1) Top 1–2 goals in the next 6–12 months? (e.g., Hawaii trip in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)?\n3) Preference: cash back vs. points/miles? Any favorite programs (Chase/Amex/Citi/CapOne, Marriott/Hyatt/AA/UA/Delta)?\n4) Upcoming big purchases or trips (dates, destinations, travelers)?\n5) Current cards/issuers and any rules to consider (e.g., 5/24)?\n6) Annual fee comfort and business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
+      setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
+      setSuggestions([
+        'Plan a two‑card strategy for the next 12 months',
+        'Optimize my travel setup for 3 domestic trips and 1 international',
+        'Compare Amex Gold vs Citi Strata Premier vs CSP',
+        'Map welcome bonuses to a Hawaii trip in March',
+        'Design a grocery + gas combo for $800/mo spend',
+        'Audit my current cards and find overlaps',
+      ]);
+    }
+    prevModeRef.current = mode;
+  }, [mode]);
 
   useEffect(() => {
     if (!turns.length) {
