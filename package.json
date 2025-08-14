@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint --max-warnings=0",
     "prepare": "husky",
+    "icons": "node scripts/generate-icons.mjs",
     "update-cards": "node scripts/update-cards.mjs",
     "check-cards": "node scripts/check-cards.mjs",
     "analyze": "ANALYZE=true npm run build",
@@ -85,6 +86,7 @@
     "lint-staged": "^15.5.2",
     "postcss": "^8.4.32",
     "postcss-nesting": "^13.0.2",
+    "sharp": "^0.33.5",
     "tailwindcss": "^3.4.0",
     "typescript": "^5",
     "webpack-bundle-analyzer": "^4.10.2"
