@@ -32,7 +32,7 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
               )}
               <div className={`
                 text-[16px] leading-snug whitespace-pre-wrap px-3 py-2 rounded-2xl shadow-sm text-left
-                ${isUser ? 'bg-[#007AFF] text-white' : 'bg-[#E5E5EA] text-gray-900'}
+                ${isUser ? 'bg-[#1976D2] text-white' : 'bg-[#E5E5EA] text-gray-900'}
                 ${isUser ? (firstOfGroup ? 'rounded-br-sm' : 'rounded-br-2xl') : (firstOfGroup ? 'rounded-bl-sm' : 'rounded-bl-2xl')}
               `}>
                 {isUser ? (
