@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOpenAIClient, isOpenAIConfigured } from '@/lib/openai-server';
+import fs from 'fs/promises';
+import path from 'path';
 
 const baseSystem = `You are a knowledgeable, friendly assistant helping users optimize credit card rewards.
 - Be transparent and explain simple math when recommending cards
@@ -7,6 +9,18 @@ const baseSystem = `You are a knowledgeable, friendly assistant helping users op
 - When location/business context is present, tailor suggestions to that merchant type
 - Never invent fees/terms; if unsure, say so and suggest verifying
 `;
+
+let uxSpecCache: string | null = null;
+async function getUxSpec(): Promise<string> {
+  if (uxSpecCache !== null) return uxSpecCache;
+  try {
+    const filePath = path.join(process.cwd(), 'docs', 'AI_CHAT_ASSISTANT_UX_SPEC.md');
+    uxSpecCache = await fs.readFile(filePath, 'utf-8');
+  } catch {
+    uxSpecCache = '';
+  }
+  return uxSpecCache;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,8 +34,11 @@ export async function POST(req: NextRequest) {
     const openai = getOpenAIClient();
     if (!openai) return NextResponse.json({ reply: 'AI unavailable right now.' });
 
-    const messages = [
-      { role: 'system', content: baseSystem },
+  const uxSpec = await getUxSpec();
+  const systemPrompt = uxSpec ? `${baseSystem}\n\nUX SPECIFICATION:\n${uxSpec}` : baseSystem;
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
       ...turns,
     ] as { role: 'system' | 'user' | 'assistant'; content: string }[];
 

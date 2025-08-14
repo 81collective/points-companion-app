@@ -39,6 +39,8 @@ export default function BusinessAssistant() {
   const [isThinking, setIsThinking] = useState(false);
   const typingTimerRef = useRef<number | null>(null);
   const nearbyMsgIndexRef = useRef<number | null>(null);
+  const cancelRef = useRef<boolean>(false);
+  const hydratingRef = useRef<boolean>(false);
 
   const clearTyping = () => {
     if (typingTimerRef.current) {
@@ -53,6 +55,7 @@ export default function BusinessAssistant() {
   };
 
   const typeOutReply = async (text: string, conversational: boolean) => {
+    cancelRef.current = false;
     const typingIndex = turns.length + 1; // after we push user turn and maybe other items
     // Insert empty assistant bubble
     setTurns(prev => [...prev, { role: 'assistant', content: '' }]);
@@ -71,6 +74,11 @@ export default function BusinessAssistant() {
       let i = 0;
       clearTyping();
       typingTimerRef.current = window.setInterval(() => {
+        if (cancelRef.current) {
+          clearTyping();
+          resolve();
+          return;
+        }
         if (i >= sentence.length) {
           clearTyping();
           resolve();
@@ -84,10 +92,13 @@ export default function BusinessAssistant() {
     if (conversational) {
   const sentences = splitSentences(text);
   for (const s of sentences) {
+        if (cancelRef.current) break;
         await typeSentence(s);
         // slight pause and newline
-        appendChar('\n');
-        await new Promise(r => setTimeout(r, 180));
+        if (!cancelRef.current) {
+          appendChar('\n');
+          await new Promise(r => setTimeout(r, 180));
+        }
       }
     } else {
       await typeSentence(text);
@@ -99,6 +110,7 @@ export default function BusinessAssistant() {
     const prev = prevModeRef.current;
     if (prev !== mode) {
       clearTyping();
+  cancelRef.current = true;
       setInput('');
       setShowedNearbyPrompt(false);
   nearbyMsgIndexRef.current = null;
@@ -138,11 +150,45 @@ export default function BusinessAssistant() {
   }, [selectedCategory, mode]);
 
   useEffect(() => {
-    if (!turns.length) {
+    // Hydrate from localStorage on first mount
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('businessAssistant:v1') : null;
+      if (raw) {
+        const saved = JSON.parse(raw) as { mode?: 'quick'|'planning'; selectedCategory?: string; turns?: ChatTurn[] };
+        hydratingRef.current = true;
+        if (saved.mode) {
+          // Prevent mode switch effect from nuking restored chat
+          prevModeRef.current = saved.mode;
+          setMode(saved.mode);
+        }
+        if (saved.selectedCategory) setSelectedCategory(saved.selectedCategory);
+        if (Array.isArray(saved.turns) && saved.turns.length) setTurns(saved.turns);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    // Seed first message if empty and not hydrating
+    if (!turns.length && !hydratingRef.current) {
       const first: ChatTurn = { role: 'assistant', content: 'I’m your rewards co‑pilot — what should we optimize right now?' };
       setTurns([first]);
     }
   }, [turns.length]);
+
+  useEffect(() => {
+    // End hydration after initial render pass
+    if (hydratingRef.current) {
+      hydratingRef.current = false;
+    }
+  }, [mode, selectedCategory, turns.length]);
+
+  useEffect(() => {
+    // Persist minimal state for session continuity
+    try {
+      const payload = JSON.stringify({ mode, selectedCategory, turns });
+      localStorage.setItem('businessAssistant:v1', payload);
+    } catch {}
+  }, [mode, selectedCategory, turns]);
 
   // If user clicked Yes before granting, once permission is granted show nearby prompt (no second tap)
   useEffect(() => {
@@ -203,6 +249,7 @@ export default function BusinessAssistant() {
   }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude]);
 
   const send = async (text: string) => {
+  cancelRef.current = false;
     const userTurn: ChatTurn = { role: 'user', content: text };
     const nextTurns: ChatTurn[] = [...turns, userTurn];
     setTurns(nextTurns);
@@ -345,10 +392,25 @@ export default function BusinessAssistant() {
         <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
       </div>
 
-      {mode === 'planning' && isThinking && (
-        <div className="inline-flex items-center gap-2 p-3 border bg-gray-50 text-gray-700 text-sm">
+      {(mode === 'planning' && isThinking) && (
+        <div className="inline-flex items-center gap-3 p-3 border bg-gray-50 text-gray-700 text-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
           Thinking…
+          <button
+            onClick={() => { cancelRef.current = true; clearTyping(); setIsThinking(false); }}
+            className="px-2 py-1 text-xs bg-red-600 text-white"
+          >Stop</button>
+        </div>
+      )}
+
+      {/* Stop control while streaming typed replies in any mode */}
+      {typingTimerRef.current && (
+        <div className="inline-flex items-center gap-2 p-2 border bg-gray-50 text-gray-700 text-xs">
+          <span>Streaming…</span>
+          <button
+            onClick={() => { cancelRef.current = true; clearTyping(); setIsThinking(false); }}
+            className="px-2 py-0.5 bg-red-600 text-white"
+          >Stop</button>
         </div>
       )}
 

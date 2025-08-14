@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import fs from 'fs/promises';
+import path from 'path';
 
 const apiKey = process.env.OPENAI_API_KEY;
 const openai = apiKey ? new OpenAI({ apiKey }) : null;
@@ -8,7 +10,16 @@ export async function POST(request: NextRequest) {
   try {
     const { message, context } = await request.json();
 
-    const systemPrompt = `You are a knowledgeable credit card optimization assistant.
+    const uxSpec = await (async () => {
+      try {
+        const p = path.join(process.cwd(), 'docs', 'AI_CHAT_ASSISTANT_UX_SPEC.md');
+        return await fs.readFile(p, 'utf-8');
+      } catch {
+        return '';
+      }
+    })();
+
+    const basePrompt = `You are a knowledgeable credit card optimization assistant.
     You help users:
     - Choose the best credit cards for specific purchases
     - Optimize rewards and points earnings
@@ -25,6 +36,7 @@ export async function POST(request: NextRequest) {
     Always explain your reasoning transparently.
     For quick mode: be fast and direct.
     For planning mode: be exploratory and ask follow-up questions.`;
+    const systemPrompt = uxSpec ? `${basePrompt}\n\nUX SPECIFICATION:\n${uxSpec}` : basePrompt;
 
     type HistMsg = { sender: 'user' | 'assistant'; content: string };
     const history: HistMsg[] = Array.isArray(context?.conversationHistory)
