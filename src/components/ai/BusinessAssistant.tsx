@@ -490,8 +490,9 @@ Examples:
         });
         const header = place ? `Top picks for ${place}:` : `Top picks for ${selectedCategory}:`;
         setTurns(prev => [...prev, { role: 'assistant', content: `${header}\n${lines.join('\n')}` } as ChatTurn]);
-        const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
-        setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
+  const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
+  const payload = { items: simple, meta: { label: place || selectedCategory, updatedAt: new Date().toISOString() } };
+  setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(payload)}` } as ChatTurn]);
       } catch {
         setIsThinking(false);
       }

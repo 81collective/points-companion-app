@@ -82,7 +82,9 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }:
 function AssistantContent({ content, onViewCard, onAddCard }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void }) {
   if (content.startsWith('RECS_JSON:')) {
     try {
-  const data = JSON.parse(content.slice('RECS_JSON:'.length)) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
+      const raw = JSON.parse(content.slice('RECS_JSON:'.length));
+      const data = (Array.isArray(raw) ? raw : (raw?.items || [])) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
+      const meta = Array.isArray(raw) ? undefined : raw?.meta as { label?: string; updatedAt?: string } | undefined;
       return (
   <div className="space-y-2 text-left">
           {data.map((d, i) => (
@@ -102,6 +104,11 @@ function AssistantContent({ content, onViewCard, onAddCard }: { content: string;
               </div>
             </div>
           ))}
+          {meta && (
+            <div className="text-[12px] text-gray-500 pt-1">
+              Updated for {meta.label || 'this plan'} just now
+            </div>
+          )}
         </div>
       );
     } catch {}
