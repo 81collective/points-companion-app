@@ -2,12 +2,14 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Msg = { role: 'user' | 'assistant'; content: string; id: string };
 
-export function ConversationDisplay({ messages }: { messages: Msg[] }) {
+export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typing?: boolean }) {
   return (
     <div className="flex flex-col gap-0 px-2 sm:px-0">
+      <AnimatePresence initial={false}>
       {messages.map((m, i) => {
         const prev = messages[i - 1];
         const next = messages[i + 1];
@@ -15,7 +17,15 @@ export function ConversationDisplay({ messages }: { messages: Msg[] }) {
         const firstOfGroup = !prev || prev.role !== m.role;
         const lastOfGroup = !next || next.role !== m.role;
         return (
-          <div key={m.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${firstOfGroup ? 'mt-3' : 'mt-0.5'} transition-all duration-200`}>
+          <motion.div
+            key={m.id}
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${firstOfGroup ? 'mt-3' : 'mt-0.5'}`}
+          >
             <div className={`max-w-[70%] relative ${isUser ? 'items-end' : 'items-start'} flex flex-col`}> 
               {firstOfGroup && (
                 <span className="text-[13px] text-gray-600 mb-1 select-none">{isUser ? 'You' : 'Assistant'}</span>
@@ -70,9 +80,22 @@ export function ConversationDisplay({ messages }: { messages: Msg[] }) {
                 <span className="text-[12px] text-[#8E8E93] mt-1 opacity-0 hover:opacity-100 transition-opacity select-none">{/* 12:34 PM */}</span>
               )}
             </div>
-          </div>
+          </motion.div>
         );
       })}
+      </AnimatePresence>
+      {typing && (
+        <div className="flex justify-start mt-2">
+          <div className="max-w-[70%]">
+            <div className="px-3 py-2 rounded-2xl rounded-bl-sm bg-[#E5E5EA] text-gray-700 inline-flex items-center gap-1">
+              <span className="sr-only">Assistant is typing</span>
+              <span className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '100ms' }} />
+              <span className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '200ms' }} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

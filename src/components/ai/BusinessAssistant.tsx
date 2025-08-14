@@ -593,8 +593,8 @@ Examples:
         />
       )}
 
-  <div className="text-base">
-  <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
+      <div className="text-base">
+        <ConversationDisplay typing={Boolean(typingTimerRef.current) || isThinking} messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
   <div ref={endRef} />
       </div>
 
