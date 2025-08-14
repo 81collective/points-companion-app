@@ -5,6 +5,7 @@ import { CreditCard } from './types'
 import CardSelector from './CardSelector'
 import { autoPopulateRewards, validateRewardStructure } from '@/lib/cardAutoPopulation'
 import { CreditCardTemplate, RewardStructure, RewardCategory } from '@/types/creditCards'
+import { creditCardDatabase } from '@/data/creditCardDatabase'
 import { createClient } from '@/lib/supabase'
 import * as Dialog from '@radix-ui/react-dialog'
 
@@ -13,12 +14,14 @@ interface AddCardModalProps {
   onClose: () => void
   onAdd: (card: CreditCard) => void
   userId: string | undefined
+  initialName?: string
+  initialIssuer?: string
 }
 
 // const rewardOptions = ["1x", "1.5x", "2x", "3x", "5x"];
 
 
-const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userId }) => {
+const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userId, initialName, initialIssuer }) => {
   const [selectedCard, setSelectedCard] = React.useState<CreditCardTemplate | null>(null);
   const [rewards, setRewards] = React.useState<RewardStructure[]>([]);
   const [customMode, setCustomMode] = React.useState(false);
@@ -32,6 +35,24 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userI
       setModified(false);
     }
   }, [selectedCard, customMode]);
+
+  // Prefill selection when opened with initialName/issuer
+  React.useEffect(() => {
+    if (!open) return;
+    if (!initialName) return;
+    try {
+      const found = creditCardDatabase.find((c: CreditCardTemplate) => {
+        const nameMatch = c.name.toLowerCase() === initialName.toLowerCase();
+        const issuerOk = initialIssuer ? c.issuer.toLowerCase() === initialIssuer.toLowerCase() : true;
+        return nameMatch && issuerOk;
+      });
+      if (found) {
+        setSelectedCard(found);
+        setCustomMode(false);
+        setRewards(autoPopulateRewards(found.id));
+      }
+    } catch {}
+  }, [open, initialName, initialIssuer]);
 
   const handleRewardChange = (idx: number, field: keyof RewardStructure, value: number | string) => {
     setRewards(prev => {

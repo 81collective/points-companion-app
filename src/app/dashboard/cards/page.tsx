@@ -1,7 +1,7 @@
 // /dashboard/cards page: displays user's credit cards
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import CardList from '@/components/cards/CardList'
@@ -13,6 +13,11 @@ import { CreditCard } from '@/components/cards/types'
 
 export default function CardsPage() {
   const { user } = useAuth()
+  const qs = useMemo(() => (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null), [])
+  const viewName = useMemo(() => qs?.get('name') || null, [qs])
+  const preselectIssuer = useMemo(() => qs?.get('issuer') || null, [qs])
+  const intentAdd = useMemo(() => qs?.get('add') === 'card', [qs])
+  const intentView = useMemo(() => qs?.get('view') === 'card', [qs])
   const [cards, setCards] = useState<CreditCard[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -38,6 +43,19 @@ export default function CardsPage() {
     fetchCards()
     // eslint-disable-next-line
   }, [user])
+
+  // Open Add modal if navigated with add=card
+  useEffect(() => {
+    if (intentAdd && user) {
+      setShowAddModal(true)
+      setFeedback(viewName ? `Prefilling "${viewName}" — confirm details and save.` : 'Add a recommended card to your wallet.')
+    }
+    if (intentView && viewName) {
+      setFeedback(`Viewing details: ${viewName}${preselectIssuer ? ` — ${preselectIssuer}` : ''}`)
+      // In a future update, this can open a dedicated details modal
+    }
+     
+  }, [intentAdd, intentView, viewName, preselectIssuer, user])
 
   const handleAddCard = async (newCard: CreditCard) => {
     setCards([newCard, ...cards])
@@ -118,7 +136,7 @@ export default function CardsPage() {
         </div>
       </div>
   )}
-      <AddCardModal open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddCard} userId={user?.id} />
+  <AddCardModal open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddCard} userId={user?.id} initialName={viewName ?? undefined} initialIssuer={preselectIssuer ?? undefined} />
       <EditCardModal open={!!editCard} onClose={() => setEditCard(null)} card={editCard} onUpdate={handleEditCard} />
       <DeleteCardDialog open={!!deleteCard} onClose={() => setDeleteCard(null)} onDelete={handleDeleteCard} loading={!!actionLoadingId} />
     </div>

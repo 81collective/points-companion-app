@@ -1,12 +1,14 @@
 'use client';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Msg = { role: 'user' | 'assistant'; content: string; id: string };
-
-export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typing?: boolean }) {
+export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }: { messages: Msg[]; typing?: boolean; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void }) {
+  const tsMapRef = useRef<Map<string, Date>>(new Map());
+  const [shownTs, setShownTs] = useState<Set<string>>(new Set());
+  const fmt = (d: Date) => new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
   return (
     <div className="flex flex-col gap-0 px-2 sm:px-0">
       <AnimatePresence initial={false}>
@@ -16,6 +18,9 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
         const isUser = m.role === 'user';
         const firstOfGroup = !prev || prev.role !== m.role;
         const lastOfGroup = !next || next.role !== m.role;
+        if (!tsMapRef.current.has(m.id)) tsMapRef.current.set(m.id, new Date());
+        const ts = tsMapRef.current.get(m.id)!;
+        const isTsShown = shownTs.has(m.id);
         return (
           <motion.div
             key={m.id}
@@ -26,7 +31,7 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${firstOfGroup ? 'mt-3' : 'mt-0.5'}`}
           >
-            <div className={`max-w-[70%] relative ${isUser ? 'items-end' : 'items-start'} flex flex-col`}> 
+            <div className={`max-w-[70%] relative ${isUser ? 'items-end' : 'items-start'} flex flex-col group`}> 
               {firstOfGroup && (
                 <span className="text-[13px] text-gray-600 mb-1 select-none">{isUser ? 'You' : 'Assistant'}</span>
               )}
@@ -34,11 +39,15 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
                 text-[16px] leading-snug whitespace-pre-wrap px-3 py-2 rounded-2xl shadow-sm text-left
                 ${isUser ? 'bg-[#1976D2] text-white' : 'bg-[#E5E5EA] text-gray-900'}
                 ${isUser ? (firstOfGroup ? 'rounded-br-sm' : 'rounded-br-2xl') : (firstOfGroup ? 'rounded-bl-sm' : 'rounded-bl-2xl')}
-              `}>
+              `}
+                role="button" aria-label="Toggle timestamp" tabIndex={0}
+                onClick={() => setShownTs(prev => { const n = new Set(prev); if (n.has(m.id)) { n.delete(m.id); } else { n.add(m.id); } return n; })}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShownTs(prev => { const n = new Set(prev); if (n.has(m.id)) { n.delete(m.id); } else { n.add(m.id); } return n; }); } }}
+              >
                 {isUser ? (
                   <p className="text-left">{m.content}</p>
                 ) : (
-                  <AssistantContent content={m.content} />
+                  <AssistantContent content={m.content} onViewCard={onViewCard} onAddCard={onAddCard} />
                 )}
                 {/* Tail */}
                 {firstOfGroup && (
@@ -47,7 +56,7 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
               </div>
               {/* Timestamp placeholder (hidden by default, could show on hover) */}
               {lastOfGroup && (
-                <span className="text-[12px] text-[#8E8E93] mt-1 opacity-0 hover:opacity-100 transition-opacity select-none">{/* 12:34 PM */}</span>
+                <span className={`text-[12px] text-[#8E8E93] mt-1 transition-opacity select-none ${isTsShown ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>{fmt(ts)}</span>
               )}
             </div>
           </motion.div>
@@ -70,10 +79,10 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
   );
 }
 
-function AssistantContent({ content }: { content: string }) {
+function AssistantContent({ content, onViewCard, onAddCard }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void }) {
   if (content.startsWith('RECS_JSON:')) {
     try {
-      const data = JSON.parse(content.slice('RECS_JSON:'.length)) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
+  const data = JSON.parse(content.slice('RECS_JSON:'.length)) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
       return (
   <div className="space-y-2 text-left">
           {data.map((d, i) => (
@@ -88,8 +97,8 @@ function AssistantContent({ content }: { content: string }) {
                 <div className="text-xs text-gray-500 mt-1">Est. value per $100: ${d.est_value_usd}</div>
               )}
               <div className="flex gap-2 mt-3">
-                <button className="px-3 py-1.5 text-sm rounded-full border border-gray-300 hover:bg-gray-50">View Details</button>
-                <button className="px-3 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700">Add to Wallet</button>
+        <button onClick={() => onViewCard?.(d.card.card_name, d.card.issuer)} className="px-3 py-1.5 text-sm rounded-full border border-gray-300 hover:bg-gray-50">View Details</button>
+        <button onClick={() => onAddCard?.(d.card.card_name, d.card.issuer)} className="px-3 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700">Add to Wallet</button>
               </div>
             </div>
           ))}

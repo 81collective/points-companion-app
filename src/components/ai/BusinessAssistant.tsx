@@ -240,6 +240,41 @@ export default function BusinessAssistant() {
     }
   };
 
+  // Helper to compute and display the closest options message
+  const showClosestOptions = React.useCallback((list?: typeof businesses) => {
+    if (mode !== 'quick') return;
+    if (!permissionState.granted) return;
+    const src = list && list.length ? list : businesses;
+    if (!src || src.length === 0) return;
+
+    const sorted = src
+      .slice()
+      .sort((a, b) =>
+        distanceMiles(location?.latitude, location?.longitude, a.latitude, a.longitude) -
+        distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude)
+      );
+    const top = sorted.slice(0, 5);
+    setNearbyPromptList(top);
+    const lines = top.map((b, i) => {
+      const miles = distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude);
+      const mi = Number.isFinite(miles) ? `${miles.toFixed(1)} mi` : '';
+      return `${i + 1}. ${b.name}${mi ? ` • ${mi}` : ''}`;
+    });
+    const msg = `Closest options:\n${lines.join('\n')}\n\nReply 1–${top.length} to pick one, or ask anything else.`;
+
+    setTurns((prev) => {
+      if (nearbyMsgIndexRef.current != null && prev[nearbyMsgIndexRef.current]) {
+        const copy = [...prev];
+        copy[nearbyMsgIndexRef.current] = { role: 'assistant', content: msg } as ChatTurn;
+        return copy;
+      }
+      const newIdx = prev.length;
+      nearbyMsgIndexRef.current = newIdx;
+      setShowedNearbyPrompt(true);
+      return [...prev, { role: 'assistant', content: msg } as ChatTurn];
+    });
+  }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude]);
+
   // Simple savings teaser for common categories (spec demo only)
   const getSavingsTeaser = (category?: string) => {
     const cat = (category || selectedCategory || '').toLowerCase();
@@ -250,6 +285,23 @@ export default function BusinessAssistant() {
       return 'Quick insight: $600/mo groceries → right card ≈ $288–$432/yr vs $72/yr basic.';
     }
     return '';
+  };
+
+  const handleSelectCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    if (mode === 'quick') {
+      const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+      setTurns(prev => [...prev, { role: 'user', content: `Selected category: ${label}` } as ChatTurn]);
+      // Assistant hint and category-tailored suggestions
+      setTurns(prev => [...prev, { role: 'assistant', content: `Got it — set to ${label}. Ask for a store (e.g., Starbucks) or say “Show top 3 nearby places.”` } as ChatTurn]);
+      setSuggestions([
+        `Best card for ${label.toLowerCase()} today`,
+        'Show me the top 3 nearby places',
+        `Compare ${label.toLowerCase()} vs groceries`,
+      ]);
+  // Immediately refresh closest options (using current data) for better responsiveness
+  try { showClosestOptions(); } catch {}
+    }
   };
 
   // Slash commands: /help, /wallet, /best [place], /missing, /compare, /simulate
@@ -383,35 +435,8 @@ Examples:
     if (mode !== 'quick') return;
     if (!permissionState.granted) return;
     if (!businesses || businesses.length === 0) return;
-
-    const sorted = businesses
-      .slice()
-      .sort((a, b) =>
-        distanceMiles(location?.latitude, location?.longitude, a.latitude, a.longitude) -
-        distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude)
-      );
-    const top = sorted.slice(0, 5);
-    setNearbyPromptList(top);
-    const lines = top.map((b, i) => {
-      const miles = distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude);
-      const mi = Number.isFinite(miles) ? `${miles.toFixed(1)} mi` : '';
-      return `${i + 1}. ${b.name}${mi ? ` • ${mi}` : ''}`;
-    });
-    const msg = `Closest options:\n${lines.join('\n')}\n\nReply 1–${top.length} to pick one, or ask anything else.`;
-
-    setTurns((prev) => {
-      // Update existing nearby message if present, else append
-      if (nearbyMsgIndexRef.current != null && prev[nearbyMsgIndexRef.current]) {
-        const copy = [...prev];
-        copy[nearbyMsgIndexRef.current] = { role: 'assistant', content: msg } as ChatTurn;
-        return copy;
-      }
-      const newIdx = prev.length;
-      nearbyMsgIndexRef.current = newIdx;
-      setShowedNearbyPrompt(true);
-      return [...prev, { role: 'assistant', content: msg } as ChatTurn];
-    });
-  }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude]);
+  showClosestOptions(businesses);
+  }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude, showClosestOptions]);
 
   const send = async (text: string, opts?: { silentUser?: boolean }) => {
   cancelRef.current = false;
@@ -570,12 +595,12 @@ Examples:
       </div>
 
       {/* Quick mode category selector */}
-      {mode === 'quick' && (
+  {mode === 'quick' && (
         <div className="flex flex-wrap gap-2 text-xs">
           {['dining','groceries','gas','hotels','travel'].map((cat) => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+      onClick={() => handleSelectCategory(cat)}
               className={`px-3 py-1 border ${selectedCategory===cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
             >
               {cat.charAt(0).toUpperCase()+cat.slice(1)}
@@ -605,7 +630,28 @@ Examples:
       )}
 
       <div className="text-base">
-        <ConversationDisplay typing={Boolean(typingTimerRef.current) || isThinking} messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
+        <ConversationDisplay
+          typing={Boolean(typingTimerRef.current) || isThinking}
+          messages={turns.map((t, i) => ({ ...t, id: String(i) }))}
+          onViewCard={(name, issuer) => {
+            try {
+              const params = new URLSearchParams({ view: 'card', name });
+              if (issuer) params.set('issuer', issuer);
+              router.push(`/dashboard/cards?${params.toString()}`);
+            } catch {
+              router.push('/dashboard/cards');
+            }
+          }}
+          onAddCard={(name, issuer) => {
+            try {
+              const params = new URLSearchParams({ add: 'card', name });
+              if (issuer) params.set('issuer', issuer);
+              router.push(`/dashboard/cards?${params.toString()}`);
+            } catch {
+              router.push('/dashboard/cards');
+            }
+          }}
+        />
   <div ref={endRef} />
       </div>
 
