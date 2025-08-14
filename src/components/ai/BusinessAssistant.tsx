@@ -33,11 +33,12 @@ export default function BusinessAssistant() {
   const place = useMemo(() => selectedPlaceName || businesses?.[0]?.name, [selectedPlaceName, businesses]);
   const [pendingConfirmAfterLocation, setPendingConfirmAfterLocation] = useState(false);
   const [showLocationPrompt, setShowLocationPrompt] = useState<boolean>(() => !permissionState.granted);
-  const [showedNearbyPrompt, setShowedNearbyPrompt] = useState(false);
+  const [_showedNearbyPrompt, setShowedNearbyPrompt] = useState(false);
   const [nearbyPromptList, setNearbyPromptList] = useState<typeof businesses>([]);
   const prevModeRef = useRef(mode);
   const [isThinking, setIsThinking] = useState(false);
   const typingTimerRef = useRef<number | null>(null);
+  const nearbyMsgIndexRef = useRef<number | null>(null);
 
   const clearTyping = () => {
     if (typingTimerRef.current) {
@@ -100,6 +101,7 @@ export default function BusinessAssistant() {
       clearTyping();
       setInput('');
       setShowedNearbyPrompt(false);
+  nearbyMsgIndexRef.current = null;
       if (mode === 'planning') {
         const intro = `Planning designs a winning card strategy for your bigger goals.\n\nWhat I’ll do:\n• Compare cards and call the trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Hand you a simple step‑by‑step plan\n\nTo get the full picture, quick hits (answer freely, skip anything):\n1) Top 1–2 goals in the next 6–12 months (e.g., Hawaii in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)\n3) Preference: cash back vs points/miles; any favorite programs (Chase/Amex/Citi/CapOne; Marriott/Hyatt/AA/UA/Delta)\n4) Upcoming big purchases/trips (dates, destinations, travelers)\n5) Current cards/issuers and rules to consider (e.g., 5/24)\n6) Annual fee comfort; business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
         setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
@@ -131,6 +133,7 @@ export default function BusinessAssistant() {
     if (mode === 'quick') {
       setShowedNearbyPrompt(false);
       setNearbyPromptList([]);
+  nearbyMsgIndexRef.current = null;
     }
   }, [selectedCategory, mode]);
 
@@ -164,12 +167,11 @@ export default function BusinessAssistant() {
     return R * c;
   };
 
-  // After location available, prompt user with closest businesses in quick mode (top 5 with distance)
+  // After location available, show/refresh closest businesses in quick mode (top 5 with distance)
   useEffect(() => {
     if (mode !== 'quick') return;
     if (!permissionState.granted) return;
     if (!businesses || businesses.length === 0) return;
-    if (showedNearbyPrompt) return;
 
     const sorted = businesses
       .slice()
@@ -179,16 +181,26 @@ export default function BusinessAssistant() {
       );
     const top = sorted.slice(0, 5);
     setNearbyPromptList(top);
-  const lines = top.map((b, i) => {
+    const lines = top.map((b, i) => {
       const miles = distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude);
       const mi = Number.isFinite(miles) ? `${miles.toFixed(1)} mi` : '';
       return `${i + 1}) ${b.name}${mi ? ` • ${mi}` : ''}`;
     });
-  const msg = `Closest options:\n${lines.join('\n')}\n\nReply 1–${top.length} to pick one, or ask anything else.`;
-    const assistantTurn: ChatTurn = { role: 'assistant', content: msg };
-    setTurns((prev) => [...prev, assistantTurn]);
-    setShowedNearbyPrompt(true);
-  }, [mode, permissionState.granted, businesses, showedNearbyPrompt, location?.latitude, location?.longitude]);
+    const msg = `Closest options:\n${lines.join('\n')}\n\nReply 1–${top.length} to pick one, or ask anything else.`;
+
+    setTurns((prev) => {
+      // Update existing nearby message if present, else append
+      if (nearbyMsgIndexRef.current != null && prev[nearbyMsgIndexRef.current]) {
+        const copy = [...prev];
+        copy[nearbyMsgIndexRef.current] = { role: 'assistant', content: msg } as ChatTurn;
+        return copy;
+      }
+      const newIdx = prev.length;
+      nearbyMsgIndexRef.current = newIdx;
+      setShowedNearbyPrompt(true);
+      return [...prev, { role: 'assistant', content: msg } as ChatTurn];
+    });
+  }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude]);
 
   const send = async (text: string) => {
     const userTurn: ChatTurn = { role: 'user', content: text };
