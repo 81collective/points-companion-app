@@ -111,7 +111,7 @@ export default function SignupForm({ onToggleMode }: SignupFormProps) {
                 type="text"
                 value={formData.firstName}
                 onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400 bg-white"
                 placeholder="First name"
               />
             </div>
@@ -127,7 +127,7 @@ export default function SignupForm({ onToggleMode }: SignupFormProps) {
               type="text"
               value={formData.lastName}
               onChange={handleChange}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400 bg-white"
               placeholder="Last name"
             />
           </div>
@@ -148,7 +148,7 @@ export default function SignupForm({ onToggleMode }: SignupFormProps) {
               value={formData.email}
               onChange={handleChange}
               required
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400 bg-white"
               placeholder="Enter your email"
             />
           </div>
@@ -169,7 +169,7 @@ export default function SignupForm({ onToggleMode }: SignupFormProps) {
               value={formData.password}
               onChange={handleChange}
               required
-              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400 bg-white"
               placeholder="Create a password"
             />
             <button
@@ -201,7 +201,7 @@ export default function SignupForm({ onToggleMode }: SignupFormProps) {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400 bg-white"
               placeholder="Confirm your password"
             />
             <button
