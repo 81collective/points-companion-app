@@ -463,6 +463,40 @@ Examples:
       const handled = await handleSlashCommand(text);
       if (handled) return;
     }
+
+    // Planning-mode: intercept explicit rec request chip to fetch picks tied to current plan
+    const lc = text.trim().toLowerCase();
+    if (mode === 'planning' && (lc === 'show recommendations for this plan' || lc === 'show recommendations')) {
+      try {
+        setIsThinking(true);
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+        const recs = await fetchTopRecommendations({
+          category: selectedCategory,
+          businessName: place,
+          lat: location?.latitude,
+          lng: location?.longitude,
+          limit: 3,
+        }, { signal: abortRef.current.signal });
+        setIsThinking(false);
+        setTopRecs(recs);
+        publish(recs, { mode, category: selectedCategory, place });
+        const lines = recs.map((rec, i) => {
+          const math = formatTransparentMath(rec);
+          const reasons = (math.reasons || []).slice(0, 3);
+          const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+          const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+          return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+        });
+        const header = place ? `Top picks for ${place}:` : `Top picks for ${selectedCategory}:`;
+        setTurns(prev => [...prev, { role: 'assistant', content: `${header}\n${lines.join('\n')}` } as ChatTurn]);
+        const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
+        setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
+      } catch {
+        setIsThinking(false);
+      }
+      return;
+    }
     if (mode === 'planning') setIsThinking(true);
 
     // If user typed a number selecting one of the listed businesses in quick mode
@@ -514,6 +548,13 @@ Examples:
   setIsThinking(false);
   await typeOutReply(reply, mode === 'planning');
   setSuggestions(suggestions || []);
+  // Nudge with a lightweight, opt-in recs chip in Planning mode
+  if (mode === 'planning') {
+    setSuggestions(prev => {
+      const chip = 'Show recommendations for this plan';
+      return prev.includes(chip) ? prev : [chip, ...prev].slice(0, 6);
+    });
+  }
   // Append soft signup suggestion for anonymous users after a few queries
   try {
     if (!isUserAuthed() && anonQueryCount + 1 >= 3) {
