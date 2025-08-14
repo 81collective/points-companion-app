@@ -1,4 +1,4 @@
-# Points Companion App - Startup & Troubleshooting Guide
+# PointAdvisor App - Startup & Troubleshooting Guide
 
 ## Quick Start Instructions
 

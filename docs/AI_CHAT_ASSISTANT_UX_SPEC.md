@@ -1,5 +1,5 @@
 # AI Chat Assistant UX Specification
-## Points Companion - Real-Time Card Selection Optimizer
+## PointAdvisor - Real-Time Card Selection Optimizer
 
 ---
 

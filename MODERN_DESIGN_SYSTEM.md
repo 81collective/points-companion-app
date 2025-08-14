@@ -1,4 +1,4 @@
-# Points Companion - Modern Design System Documentation
+# PointAdvisor - Modern Design System Documentation
 
 ## 🎨 Design Philosophy
 

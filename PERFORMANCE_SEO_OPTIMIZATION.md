@@ -1,7 +1,7 @@
 # Performance and SEO Optimization Implementation
 
 ## 🚀 Overview
-This document outlines the comprehensive performance and SEO optimizations implemented in the Points Companion app as part of Feature #9 from the improvement plan.
+This document outlines the comprehensive performance and SEO optimizations implemented in the PointAdvisor app as part of Feature #9 from the improvement plan.
 
 ## ✅ Implemented Features
 

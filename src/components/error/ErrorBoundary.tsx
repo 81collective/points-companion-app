@@ -354,7 +354,7 @@ class ErrorBoundary extends Component<Props, State> {
               <p className="text-sm text-gray-500">
                 If this problem persists, please{' '}
                 <a
-                  href="mailto:support@pointscompanion.com"
+                  href="mailto:support@pointadvisor.app"
                   className="text-blue-600 hover:text-blue-500"
                 >
                   contact support
