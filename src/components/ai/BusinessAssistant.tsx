@@ -465,8 +465,8 @@ Examples:
     }
 
     // Planning-mode: intercept explicit rec request chip to fetch picks tied to current plan
-    const lc = text.trim().toLowerCase();
-    if (mode === 'planning' && (lc === 'show recommendations for this plan' || lc === 'show recommendations')) {
+  const lc = text.trim().toLowerCase();
+  if (mode === 'planning' && (lc === 'show recommendations for this plan' || lc === 'show recommendations' || lc.startsWith('show recommendations for'))) {
       try {
         setIsThinking(true);
         abortRef.current?.abort();
@@ -551,8 +551,12 @@ Examples:
   // Nudge with a lightweight, opt-in recs chip in Planning mode
   if (mode === 'planning') {
     setSuggestions(prev => {
-      const chip = 'Show recommendations for this plan';
-      return prev.includes(chip) ? prev : [chip, ...prev].slice(0, 6);
+      const label = place
+        ? `Show recommendations for ${place}`
+        : `Show recommendations for ${selectedCategory}`;
+      // Remove any prior rec chips to avoid duplicates when context changes
+      const filtered = prev.filter(s => !s.toLowerCase().startsWith('show recommendations'));
+      return [label, ...filtered].slice(0, 6);
     });
   }
   // Append soft signup suggestion for anonymous users after a few queries
