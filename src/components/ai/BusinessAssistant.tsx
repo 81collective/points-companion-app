@@ -47,6 +47,8 @@ export default function BusinessAssistant() {
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRefReact<HTMLDivElement | null>(null);
   const inputRef = useRefReact<HTMLInputElement | null>(null);
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const fileInputRef = useRefReact<HTMLInputElement | null>(null);
 
   const clearTyping = () => {
     if (typingTimerRef.current) {
@@ -463,6 +465,9 @@ Examples:
           });
           const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${chosen.name}:\n${lines.join('\n')}` };
           setTurns(prev => [...prev, recMsg]);
+          // Embedded cards bubble data (lightweight fields)
+          const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
+          setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
         } catch {}
         return;
       }
@@ -509,6 +514,8 @@ Examples:
       });
       const recMsg: ChatTurn = { role: 'assistant', content: `Top picks${place ? ` for ${place}` : ''}:\n${lines.join('\n')}` };
       setTurns(prev => [...prev, recMsg]);
+  const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
+  setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
     } catch {}
     // Surface a small savings teaser for anonymous users
     try {
@@ -536,6 +543,8 @@ Examples:
       });
       const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${selectedCategory}:\n${lines.join('\n')}` };
       setTurns(prev => [...prev, recMsg]);
+  const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
+  setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
     } catch {}
   }
   };
@@ -630,6 +639,7 @@ Examples:
             className="h-10 w-10 rounded-full grid place-items-center text-gray-600 hover:bg-gray-200"
             aria-label="More actions"
             title="More actions"
+            onClick={() => setShowQuickActions(true)}
           >
             +
           </button>
@@ -663,6 +673,34 @@ Examples:
           )}
         </div>
       </div>
+      {/* Quick Actions Bottom Sheet */}
+      {showQuickActions && (
+        <div className="fixed inset-0 z-40" aria-modal="true" role="dialog" aria-label="Quick actions">
+          <button className="absolute inset-0 bg-black/30" aria-label="Close" onClick={() => setShowQuickActions(false)} />
+          <div className="absolute left-0 right-0 bottom-0 bg-white rounded-t-2xl shadow-xl p-4 space-y-3">
+            <div className="h-1 w-10 bg-gray-300 rounded mx-auto" />
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => { requestLocation(); setShowQuickActions(false); setTurns(prev=>[...prev,{role:'assistant',content:'Using your location to improve nearby picks.'} as ChatTurn]); }} className="p-3 border rounded-xl text-left hover:bg-gray-50">
+                <div className="text-base">Share location</div>
+                <div className="text-xs text-gray-500">Get nearby recommendations</div>
+              </button>
+              <button onClick={() => { fileInputRef.current?.click(); }} className="p-3 border rounded-xl text-left hover:bg-gray-50">
+                <div className="text-base">Upload receipt</div>
+                <div className="text-xs text-gray-500">Analyze rewards opportunities</div>
+              </button>
+              <button onClick={() => { setShowQuickActions(false); try { (window as unknown as { __routerPush?: (p:string)=>void }).__routerPush?.('/dashboard/cards'); } catch {}; }} className="p-3 border rounded-xl text-left hover:bg-gray-50">
+                <div className="text-base">View card wallet</div>
+                <div className="text-xs text-gray-500">See your saved cards</div>
+              </button>
+              <button onClick={() => { setMode('planning'); setShowQuickActions(false); setTurns(prev=>[...prev,{role:'assistant',content:'Switched to Planning — tell me your goals, spend, and timeline.'} as ChatTurn]); }} className="p-3 border rounded-xl text-left hover:bg-gray-50">
+                <div className="text-base">Start planning</div>
+                <div className="text-xs text-gray-500">Design a step‑by‑step strategy</div>
+              </button>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={() => { setShowQuickActions(false); setTurns(prev=>[...prev,{role:'assistant',content:'Thanks — receipt analysis is coming soon.'} as ChatTurn]); }} />
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
