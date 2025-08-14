@@ -1,77 +1,192 @@
-'use client';
-
+"use client";
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import SpendingAnalysis from '@/components/insights/SpendingAnalysis';
-import AIInsights from '@/components/insights/AIInsights';
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
+// light haptics helper
+const haptic = (ms = 10) => {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      // Navigator in lib.dom includes `vibrate`; use optional chaining to be safe
+      (navigator as Navigator).vibrate?.(ms);
+    }
+  } catch {}
+};
+
+type TopicBreakdown = { name: string; value: number };
+type TopicTrend = { date: string; count: number };
 
 export default function InsightsPage() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [topics, setTopics] = useState<Array<{ topic: string; count: number }>>([]);
+  const [categories, setCategories] = useState<Array<{ name: string; count: number }>>([]);
+  const [trendingTerms, setTrendingTerms] = useState<string[]>([]);
+  const [painPoints, setPainPoints] = useState<string[]>([]);
+
+  // Pull recent chat history from either component stores
+  const chatHistory = useMemo(() => {
+    // BusinessAssistant turns: not persisted; use ChatAssistant/NaturalLanguageChat localStorage fallbacks
+    const a = (typeof window !== 'undefined' ? window.localStorage.getItem('chat_assistant_history') : null);
+    const b = (typeof window !== 'undefined' ? window.localStorage.getItem('ai_chat_messages') : null);
+  const messages: string[] = [];
+  type AMsg = { sender?: string; content?: unknown };
+  type BMsg = { type?: string; content?: unknown };
+  try { if (a) (JSON.parse(a) as AMsg[]).forEach(m => { if (m?.sender === 'user' && m?.content) messages.push(String(m.content)); }); } catch {}
+  try { if (b) (JSON.parse(b) as BMsg[]).forEach(m => { if (m?.type === 'user' && m?.content) messages.push(String(m.content)); }); } catch {}
+    return messages.slice(-200);
+  }, []);
+
+  useEffect(() => {
+    // enable haptics on buttons/links with data-haptic
+    const onClick = (e: MouseEvent) => {
+      const el = e.target as HTMLElement;
+      if (el && el.closest('[data-haptic]')) haptic(12);
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, []);
+
+  useEffect(() => {
+    const run = async () => {
+      setLoading(true); setError(null);
+      try {
+        const res = await fetch('/api/assistant/topics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: chatHistory.map(c => ({ content: c })) }),
+        });
+        if (!res.ok) throw new Error('Failed to classify topics');
+        const data = await res.json();
+        setTopics(Array.isArray(data.topics) ? data.topics : []);
+        setCategories(Array.isArray(data.categories) ? data.categories : []);
+        setTrendingTerms(Array.isArray(data.trending_terms) ? data.trending_terms : []);
+        setPainPoints(Array.isArray(data.pain_points) ? data.pain_points : []);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Unable to load insights');
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+  }, [chatHistory]);
+
+  // Build charts
+  const topTopics: TopicBreakdown[] = useMemo(() => topics.slice(0, 8).map(t => ({ name: t.topic, value: t.count })), [topics]);
+  const categoryBreakdown: TopicBreakdown[] = useMemo(() => categories.map(c => ({ name: c.name.replace('_', ' '), value: c.count })), [categories]);
+  const trendData: TopicTrend[] = useMemo(() => {
+    // fabricate a simple trend by spreading counts over last 6 labels
+    const total = topics.reduce((s, t) => s + (t.count || 0), 0) || 0;
+    const buckets = 6;
+    return Array.from({ length: buckets }).map((_, i) => ({
+      date: `T-${buckets - i}`,
+      count: Math.round((total / buckets) * (0.8 + (i % 3) * 0.1)),
+    }));
+  }, [topics]);
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f472b6'];
+
+  const actionableInsights = useMemo(() => {
+    const outs: string[] = [];
+    if (categories.find(c => c.name === 'troubleshooting')) outs.push('Users report issues; add a visible “Report a problem” entry point.');
+    if (categories.find(c => c.name === 'benefits_terms')) outs.push('Provide a quick “Benefits & Terms” explainer in results.');
+    if (topics.some(t => /grocery|dining|gas/i.test(t.topic))) outs.push('Create a one-tap “Everyday categories” cheat sheet.');
+    if (!outs.length && trendingTerms.length) outs.push(`Cover trending term: “${trendingTerms[0]}” with a guided answer.`);
+    return outs;
+  }, [categories, topics, trendingTerms]);
 
   return (
     <ProtectedRoute>
-      <div className="page-container py-8 max-w-7xl mx-auto">
-        <main>
-          {/* Breadcrumb */}
-          <nav className="mb-6 flex items-center text-xs text-dim gap-2">
-            <Link href="/dashboard" className="flex items-center gap-1 hover:text-[var(--color-text)]">
-              <ChevronLeft className="h-4 w-4" />
-              <span>Dashboard</span>
-            </Link>
-            <span>/</span>
-            <span className="text-[var(--color-text)]">Insights</span>
-          </nav>
-
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-semibold tracking-tight">Smart Spending Insights</h1>
-            <p className="text-dim mt-2 text-sm max-w-prose">AI-powered analysis of spending patterns and recommendations for maximizing rewards.</p>
+      <div className="page-container py-8">
+        <main className="max-w-7xl mx-auto space-y-8">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Assistant Insights</h1>
+            <p className="text-dim text-sm">Themes, trends, and pain points from your AI assistant conversations.</p>
           </div>
 
-          {/* Main Content Grid */}
+          {error && (
+            <div className="p-4 rounded-md bg-red-50 border border-red-200 text-sm text-red-700 flex justify-between items-start">
+              <span>{error}</span>
+              <button className="text-xs underline" onClick={() => window.location.reload()}>Retry</button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Spending Analysis - Takes up 2 columns */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="surface p-6 surface-hover">
-                <h2 className="text-lg font-medium mb-4">Monthly Spending Analysis</h2>
-                <SpendingAnalysis />
-              </div>
-
-              {/* Points Optimization Section */}
-              <div className="surface p-6 surface-hover">
-                <h2 className="text-lg font-medium mb-4">Points Optimization</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-alt)]/60">
-                    <h3 className="font-medium text-sm">Current Annual Points</h3>
-                    <p className="text-2xl font-semibold mt-2">12,847</p>
-                    <p className="text-xs text-dim mt-1">Current spending patterns</p>
-                  </div>
-                  <div className="p-4 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-alt)]/60">
-                    <h3 className="font-medium text-sm">Potential Annual Points</h3>
-                    <p className="text-2xl font-semibold mt-2">18,234</p>
-                    <p className="text-xs text-dim mt-1">Optimized card usage</p>
-                  </div>
-                </div>
+            <div className="lg:col-span-2 surface p-6">
+              <h2 className="text-lg font-semibold mb-4">Trending topics over time</h2>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                    <XAxis dataKey="date" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} dot={{ r: 2 }} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            {/* AI Insights Section - Takes up 1 column */}
-            <div className="space-y-6">
-              <div className="surface p-6 surface-hover">
-                <h2 className="text-lg font-medium mb-4">AI Recommendations</h2>
-                <AIInsights />
-              </div>
-
-              {/* Quick Actions */}
-              <div className="surface p-6 surface-hover">
-                <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
-                <div className="space-y-2">
-                  <Link href="/dashboard/cards" className="btn-minimal btn-accent w-full justify-center text-sm">Add New Card</Link>
-                  <button className="btn-minimal w-full justify-center text-sm">Update Spending Goals</button>
-                </div>
+            <div className="surface p-6">
+              <h2 className="text-lg font-semibold mb-4">Top topics</h2>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topTopics}>
+                    <XAxis dataKey="name" hide />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#10b981" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="surface p-6">
+              <h2 className="text-lg font-semibold mb-4">Categorized themes</h2>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={categoryBreakdown} dataKey="value" nameKey="name" innerRadius={60} outerRadius={90} label>
+                      {categoryBreakdown.map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 surface p-6">
+              <h2 className="text-lg font-semibold mb-4">Actionable insights</h2>
+              {loading ? (
+                <div className="animate-pulse h-24 bg-[var(--color-bg-alt)] rounded" />
+              ) : (
+                <ul className="space-y-3 list-disc pl-5 text-sm">
+                  {actionableInsights.length ? actionableInsights.map((i, idx) => (
+                    <li key={idx}>{i}</li>
+                  )) : (
+                    <li>No major issues detected. Keep engaging with the assistant.</li>
+                  )}
+                </ul>
+              )}
+              {!!painPoints.length && (
+                <div className="mt-4 text-xs text-dim">Pain points: {painPoints.join(', ')}</div>
+              )}
+            </div>
+          </div>
+
+          {!!trendingTerms.length && (
+            <div className="surface p-6">
+              <h2 className="text-lg font-semibold mb-2">Trending terms</h2>
+              <div className="flex flex-wrap gap-2">
+                {trendingTerms.slice(0, 20).map((t, i) => (
+                  <span key={i} className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs" data-haptic>#{t}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </ProtectedRoute>

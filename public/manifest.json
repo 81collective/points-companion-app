@@ -64,7 +64,7 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "View your rewards dashboard",
+      "description": "Open Dashboard",
       "url": "/dashboard",
       "icons": [
         {
@@ -72,6 +72,15 @@
           "sizes": "96x96",
           "type": "image/png"
         }
+      ]
+    },
+    {
+      "name": "Insights",
+      "short_name": "Insights",
+      "description": "Assistant Insights",
+      "url": "/dashboard/insights",
+      "icons": [
+        { "src": "/icons/shortcut-insights.png", "sizes": "96x96", "type": "image/png" }
       ]
     },
     {
@@ -88,29 +97,25 @@
       ]
     },
     {
-      "name": "AI Assistant",
-      "short_name": "AI",
-      "description": "Get AI recommendations",
-      "url": "/ai",
-      "icons": [
-        {
-          "src": "/icons/shortcut-ai.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
       "name": "Analytics",
       "short_name": "Analytics",
-      "description": "View spending analytics",
-      "url": "/analytics",
+      "description": "Analytics Dashboard",
+      "url": "/dashboard/analytics",
       "icons": [
         {
           "src": "/icons/shortcut-analytics.png",
           "sizes": "96x96",
           "type": "image/png"
         }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "Profile & Settings",
+      "url": "/dashboard/profile",
+      "icons": [
+        { "src": "/icons/shortcut-profile.png", "sizes": "96x96", "type": "image/png" }
       ]
     }
   ],
