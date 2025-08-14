@@ -541,7 +541,13 @@ Examples:
   };
 
   return (
-    <div className="bg-white border border-gray-200 p-4 sm:p-5 md:p-6 space-y-4 w-full">
+    <div className="bg-[#F7F7F7] border border-gray-200 p-0 sm:p-0 md:p-0 w-full">
+      {/* Header */}
+      <div className="px-4 py-3 border-b bg-white">
+        <div className="text-sm font-medium">AI Assistant</div>
+        <div className="text-xs text-gray-500">Online{(typingTimerRef.current || isThinking) ? ' • Typing…' : ''}</div>
+      </div>
+      <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex gap-2 p-1 bg-gray-100 text-sm">
           <button onClick={() => setMode('quick')} className={`px-3 py-1 ${mode==='quick' ? 'bg-white shadow-sm' : ''}`}>Quick</button>
@@ -587,7 +593,7 @@ Examples:
         />
       )}
 
-      <div className="text-base">
+  <div className="text-base">
   <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
   <div ref={endRef} />
       </div>
@@ -616,11 +622,47 @@ Examples:
 
   <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
 
-  {/* Recommendations are now shown directly in the chat above */}
-
-      <div className="flex gap-2">
-  <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the best card…" className="flex-1 border border-gray-300 px-3 py-3 text-base" />
-        <button onClick={() => input && send(input)} className="px-5 py-3 bg-blue-600 text-white text-sm">Send</button>
+      {/* Recommendations are now shown directly in the chat above */}
+      <div className="sticky bottom-0 left-0 right-0 bg-[#F7F7F7] pt-2">
+        <div className="flex items-end gap-2">
+          <button
+            type="button"
+            className="h-10 w-10 rounded-full grid place-items-center text-gray-600 hover:bg-gray-200"
+            aria-label="More actions"
+            title="More actions"
+          >
+            +
+          </button>
+          <div className="flex-1 bg-white border border-[#E0E0E0] rounded-3xl px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
+            <textarea
+              ref={inputRef as unknown as React.RefObject<HTMLTextAreaElement>}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message…"
+              rows={1}
+              className="w-full resize-none outline-none text-base placeholder:text-gray-400 max-h-[120px]"
+            />
+          </div>
+          {input?.trim() ? (
+            <button
+              onClick={() => input && send(input)}
+              className="h-10 px-4 rounded-full bg-[#007AFF] text-white text-sm active:scale-95 transition-transform"
+              aria-label="Send"
+            >
+              Send
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="h-10 w-10 rounded-full grid place-items-center text-gray-600 hover:bg-gray-200"
+              aria-label="Voice input"
+              title="Voice input"
+            >
+              🎤
+            </button>
+          )}
+        </div>
+      </div>
       </div>
     </div>
   );
