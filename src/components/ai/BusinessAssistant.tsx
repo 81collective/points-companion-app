@@ -11,8 +11,10 @@ import { formatTransparentMath, type Recommendation } from '@/lib/ai/responseFor
 import { useAssistantStore } from '@/stores/assistantStore';
 import { useRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function BusinessAssistant() {
+  const router = useRouter();
   const { location, permissionState, requestLocation } = useLocation();
   const [mode, setMode] = useState<'quick' | 'planning'>('quick');
   const [selectedCategory, setSelectedCategory] = useState<string>('dining');
@@ -248,6 +250,132 @@ export default function BusinessAssistant() {
     return '';
   };
 
+  // Slash commands: /help, /wallet, /best [place], /missing, /compare, /simulate
+  const handleSlashCommand = async (raw: string): Promise<boolean> => {
+    const trimmed = (raw || '').trim();
+    if (!trimmed.startsWith('/')) return false;
+    const parts = trimmed.slice(1).split(/\s+/);
+    const cmd = (parts.shift() || '').toLowerCase();
+    const arg = parts.join(' ').trim();
+
+    // Stop any streaming/thinking
+    cancelRef.current = true;
+    clearTyping();
+    setIsThinking(false);
+
+    switch (cmd) {
+      case 'help': {
+        const help = `Slash commands you can use:
+• /help — show this menu
+• /wallet — open your Wallet (cards) in the dashboard
+• /best [place] — quick pick for a specific store/merchant
+• /missing — report missing data (business or card)
+• /compare — compare cards, categories, or setups
+• /simulate — simulate a plan given your spend/goals`;
+        setTurns(prev => [...prev, { role: 'assistant', content: help } as ChatTurn]);
+        setSuggestions([
+          '/best Starbucks',
+          'Compare Amex Gold vs Citi Strata Premier',
+          'Design a grocery + gas combo for $800/mo',
+          'Open my Wallet',
+        ]);
+        return true;
+      }
+      case 'wallet': {
+        setTurns(prev => [...prev, { role: 'assistant', content: 'Opening your Wallet…' } as ChatTurn]);
+        try {
+          router.push('/dashboard/cards');
+        } catch {}
+        return true;
+      }
+      case 'best': {
+        const placeName = arg || '';
+        if (!placeName) {
+          setTurns(prev => [...prev, { role: 'assistant', content: 'Usage: /best [place]. Example: /best Whole Foods' } as ChatTurn]);
+          setSuggestions(['/best Starbucks', 'Best card for groceries today']);
+          return true;
+        }
+        setMode('quick');
+        setSelectedPlaceName(placeName);
+        const confirm: ChatTurn = { role: 'assistant', content: `Locked in: ${placeName}. Pulling your top cards…` } as ChatTurn;
+        setTurns(prev => [...prev, confirm]);
+        try {
+          abortRef.current?.abort();
+          abortRef.current = new AbortController();
+          const recs = await fetchTopRecommendations({
+            category: selectedCategory,
+            businessName: placeName,
+            lat: location?.latitude,
+            lng: location?.longitude,
+            limit: 3,
+          }, { signal: abortRef.current.signal });
+          setTopRecs(recs);
+          publish(recs, { mode: 'quick', category: selectedCategory, place: placeName });
+          const lines = recs.map((rec, i) => {
+            const math = formatTransparentMath(rec);
+            const reasons = (math.reasons || []).slice(0, 3);
+            const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
+            const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
+            return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
+          });
+          const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${placeName}:\n${lines.join('\n')}` } as ChatTurn;
+          setTurns(prev => [...prev, recMsg]);
+          // Savings teaser for anonymous users
+          try {
+            const teaser = getSavingsTeaser(selectedCategory);
+            if (!isUserAuthed() && teaser) {
+              setTurns(prev => [...prev, { role: 'assistant', content: `💡 ${teaser}` } as ChatTurn]);
+            }
+          } catch {}
+        } catch {}
+        return true;
+      }
+      case 'missing': {
+        const msg = `Tell me what's missing and I'll flag it:
+• Business: name + city/state (e.g., “Joe's Coffee, Austin TX”)
+• Card: which card and what's off/missing (benefit, multiplier, terms)
+I’ll log this for review and improve future results.`;
+        setTurns(prev => [...prev, { role: 'assistant', content: msg } as ChatTurn]);
+        setSuggestions(['Report missing business: [name, city]', 'Report card issue: [card] [what’s wrong]']);
+        return true;
+      }
+      case 'compare': {
+        setMode('planning');
+        const msg = `What would you like to compare?
+Examples:
+• Amex Gold vs Citi Strata Premier vs Chase Sapphire Preferred
+• Gas vs Groceries for $600/mo
+• My current setup vs a 2‑card alternative`;
+        setTurns(prev => [...prev, { role: 'assistant', content: msg } as ChatTurn]);
+        setSuggestions([
+          'Compare Amex Gold vs Citi Strata Premier vs CSP',
+          'Compare gas vs groceries',
+          'Audit my current cards and find overlaps',
+        ]);
+        return true;
+      }
+      case 'simulate': {
+        setMode('planning');
+        const msg = `Give me a quick brief and I’ll simulate a plan:
+• Monthly spend by category (dining, groceries, gas, travel, online, other)
+• Goals and timing (e.g., Hawaii in March, 2 travelers)
+• Preferences (cash back vs points/miles, favorite programs)
+• Current cards and constraints (e.g., 5/24)
+• Annual fee comfort`;
+        setTurns(prev => [...prev, { role: 'assistant', content: msg } as ChatTurn]);
+        setSuggestions([
+          'Simulate: $800 groceries, $200 gas; plan 2‑card setup',
+          'Plan welcome bonuses for Hawaii in March',
+        ]);
+        return true;
+      }
+      default: {
+        setTurns(prev => [...prev, { role: 'assistant', content: 'Unknown command. Type /help to see options.' } as ChatTurn]);
+        return true;
+      }
+    }
+  };
+
   // After location available, show/refresh closest businesses in quick mode (top 5 with distance)
   useEffect(() => {
     if (mode !== 'quick') return;
@@ -295,7 +423,12 @@ export default function BusinessAssistant() {
     const userTurn: ChatTurn = { role: 'user', content: text };
     const nextTurns: ChatTurn[] = [...turns, userTurn];
     setTurns(nextTurns);
-  if (mode === 'planning') setIsThinking(true);
+    // Slash command short-circuit
+    if (text.trim().startsWith('/')) {
+      const handled = await handleSlashCommand(text);
+      if (handled) return;
+    }
+    if (mode === 'planning') setIsThinking(true);
 
     // If user typed a number selecting one of the listed businesses in quick mode
     const numMatch = text.trim().match(/^([1-9]\d*)$/);
