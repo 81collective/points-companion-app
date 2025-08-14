@@ -36,7 +36,7 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
                 ${isUser ? (firstOfGroup ? 'rounded-br-sm' : 'rounded-br-2xl') : (firstOfGroup ? 'rounded-bl-sm' : 'rounded-bl-2xl')}
               `}>
                 {isUser ? (
-                  <p>{m.content}</p>
+                  <p className="text-left">{m.content}</p>
                 ) : (
                   <AssistantContent content={m.content} />
                 )}
@@ -75,7 +75,7 @@ function AssistantContent({ content }: { content: string }) {
     try {
       const data = JSON.parse(content.slice('RECS_JSON:'.length)) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
       return (
-        <div className="space-y-2">
+  <div className="space-y-2 text-left">
           {data.map((d, i) => (
             <div key={i} className="w-full bg-white rounded-2xl border border-gray-200 p-3 shadow-sm">
               <div className="text-sm font-medium flex items-center gap-2">
@@ -98,7 +98,7 @@ function AssistantContent({ content }: { content: string }) {
     } catch {}
   }
   return (
-    <div className="prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:px-1 prose-code:py-0.5 prose-code:bg-gray-100 prose-code:rounded">
+  <div className="prose prose-sm max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0 prose-code:px-1 prose-code:py-0.5 prose-code:bg-gray-100 prose-code:rounded text-left">
       <ReactMarkdown remarkPlugins={[remarkGfm]}
         components={{
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

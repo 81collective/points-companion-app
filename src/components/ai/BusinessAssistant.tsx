@@ -57,13 +57,6 @@ export default function BusinessAssistant() {
     }
   };
 
-  // Send flow for suggestion chips: do not create a user message; respond as assistant
-  const sendFromChip = async (text: string) => {
-    cancelRef.current = false;
-    if (!text) return;
-    await send(text, { silentUser: true });
-  };
-
   const splitSentences = (text: string) => {
     const parts = text.match(/[^.!?\n]+[.!?]?/g) || [text];
     return parts.map(s => s.trim()).filter(Boolean);
@@ -638,7 +631,7 @@ Examples:
         </div>
       )}
 
-  <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); sendFromChip(s); }} />
+  <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
 
       {/* Recommendations are now shown directly in the chat above */}
       <div className="sticky bottom-0 left-0 right-0 bg-[#F7F7F7] pt-2">
