@@ -57,6 +57,13 @@ export default function BusinessAssistant() {
     }
   };
 
+  // Send flow for suggestion chips: do not create a user message; respond as assistant
+  const sendFromChip = async (text: string) => {
+    cancelRef.current = false;
+    if (!text) return;
+    await send(text, { silentUser: true });
+  };
+
   const splitSentences = (text: string) => {
     const parts = text.match(/[^.!?\n]+[.!?]?/g) || [text];
     return parts.map(s => s.trim()).filter(Boolean);
@@ -395,7 +402,7 @@ Examples:
     const lines = top.map((b, i) => {
       const miles = distanceMiles(location?.latitude, location?.longitude, b.latitude, b.longitude);
       const mi = Number.isFinite(miles) ? `${miles.toFixed(1)} mi` : '';
-      return `${i + 1}) ${b.name}${mi ? ` • ${mi}` : ''}`;
+      return `${i + 1}. ${b.name}${mi ? ` • ${mi}` : ''}`;
     });
     const msg = `Closest options:\n${lines.join('\n')}\n\nReply 1–${top.length} to pick one, or ask anything else.`;
 
@@ -413,7 +420,7 @@ Examples:
     });
   }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude]);
 
-  const send = async (text: string) => {
+  const send = async (text: string, opts?: { silentUser?: boolean }) => {
   cancelRef.current = false;
     // Track soft conversion triggers (anonymous sessions only)
     // Heuristic: increment on each user message; after 3, surface a signup CTA
@@ -424,9 +431,11 @@ Examples:
     } catch {}
     const userTurn: ChatTurn = { role: 'user', content: text };
     const nextTurns: ChatTurn[] = [...turns, userTurn];
-    setTurns(nextTurns);
+    if (!opts?.silentUser) {
+      setTurns(nextTurns);
+    }
     // Slash command short-circuit
-    if (text.trim().startsWith('/')) {
+  if (text.trim().startsWith('/')) {
       const handled = await handleSlashCommand(text);
       if (handled) return;
     }
@@ -629,7 +638,7 @@ Examples:
         </div>
       )}
 
-  <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
+  <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); sendFromChip(s); }} />
 
       {/* Recommendations are now shown directly in the chat above */}
       <div className="sticky bottom-0 left-0 right-0 bg-[#F7F7F7] pt-2">
