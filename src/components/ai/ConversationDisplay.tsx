@@ -24,15 +24,16 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`flex justify-start ${firstOfGroup ? 'mt-3' : 'mt-0.5'}`}
+            className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${firstOfGroup ? 'mt-3' : 'mt-0.5'}`}
           >
             <div className={`max-w-[70%] relative ${isUser ? 'items-end' : 'items-start'} flex flex-col`}> 
               {firstOfGroup && (
                 <span className="text-[13px] text-gray-600 mb-1 select-none">{isUser ? 'You' : 'Assistant'}</span>
               )}
               <div className={`
-                text-[16px] leading-snug whitespace-pre-wrap px-3 py-2 rounded-2xl shadow-sm
-                bg-[#E5E5EA] text-gray-900 ${firstOfGroup ? 'rounded-bl-sm' : 'rounded-bl-2xl'}
+                text-[16px] leading-snug whitespace-pre-wrap px-3 py-2 rounded-2xl shadow-sm text-left
+                ${isUser ? 'bg-[#007AFF] text-white' : 'bg-[#E5E5EA] text-gray-900'}
+                ${isUser ? (firstOfGroup ? 'rounded-br-sm' : 'rounded-br-2xl') : (firstOfGroup ? 'rounded-bl-sm' : 'rounded-bl-2xl')}
               `}>
                 {isUser ? (
                   <p>{m.content}</p>
@@ -41,7 +42,7 @@ export function ConversationDisplay({ messages, typing }: { messages: Msg[]; typ
                 )}
                 {/* Tail */}
                 {firstOfGroup && (
-                  <span className={`absolute -bottom-1 -left-1 w-2 h-2 bg-current rounded-sm rotate-45`} aria-hidden="true" />
+                  <span className={`absolute -bottom-1 ${isUser ? '-right-1' : '-left-1'} w-2 h-2 bg-current rounded-sm rotate-45`} aria-hidden="true" />
                 )}
               </div>
               {/* Timestamp placeholder (hidden by default, could show on hover) */}
