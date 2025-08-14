@@ -18,6 +18,7 @@ export default function BusinessAssistant() {
   const [selectedCategory, setSelectedCategory] = useState<string>('dining');
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [anonQueryCount, setAnonQueryCount] = useState(0);
   const [input, setInput] = useState('');
   const [_topRecs, setTopRecs] = useState<Recommendation[]>([]); // kept for publishing to store
   const [_planningRecs, setPlanningRecs] = useState<Recommendation[]>([]); // kept for publishing to store
@@ -225,6 +226,28 @@ export default function BusinessAssistant() {
     return R * c;
   };
 
+  const isUserAuthed = () => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const w = window as unknown as { __USER_ID__?: unknown };
+      return Boolean(w.__USER_ID__);
+    } catch {
+      return false;
+    }
+  };
+
+  // Simple savings teaser for common categories (spec demo only)
+  const getSavingsTeaser = (category?: string) => {
+    const cat = (category || selectedCategory || '').toLowerCase();
+    if (cat.includes('dining')) {
+      return 'Quick insight: $500/mo dining → right card ≈ $300/yr vs $60/yr basic.';
+    }
+    if (cat.includes('grocer')) {
+      return 'Quick insight: $600/mo groceries → right card ≈ $288–$432/yr vs $72/yr basic.';
+    }
+    return '';
+  };
+
   // After location available, show/refresh closest businesses in quick mode (top 5 with distance)
   useEffect(() => {
     if (mode !== 'quick') return;
@@ -262,6 +285,13 @@ export default function BusinessAssistant() {
 
   const send = async (text: string) => {
   cancelRef.current = false;
+    // Track soft conversion triggers (anonymous sessions only)
+    // Heuristic: increment on each user message; after 3, surface a signup CTA
+    try {
+      if (!isUserAuthed()) {
+        setAnonQueryCount((n) => n + 1);
+      }
+    } catch {}
     const userTurn: ChatTurn = { role: 'user', content: text };
     const nextTurns: ChatTurn[] = [...turns, userTurn];
     setTurns(nextTurns);
@@ -313,6 +343,15 @@ export default function BusinessAssistant() {
   setIsThinking(false);
   await typeOutReply(reply, mode === 'planning');
   setSuggestions(suggestions || []);
+  // Append soft signup suggestion for anonymous users after a few queries
+  try {
+    if (!isUserAuthed() && anonQueryCount + 1 >= 3) {
+      setSuggestions((prev) => {
+        const plus = 'Save my picks to a profile';
+        return prev.includes(plus) ? prev : [plus, ...prev].slice(0, 6);
+      });
+    }
+  } catch {}
 
   // Also pull top recommendations based on mode
   if (mode === 'quick') {
@@ -337,6 +376,13 @@ export default function BusinessAssistant() {
       });
       const recMsg: ChatTurn = { role: 'assistant', content: `Top picks${place ? ` for ${place}` : ''}:\n${lines.join('\n')}` };
       setTurns(prev => [...prev, recMsg]);
+    } catch {}
+    // Surface a small savings teaser for anonymous users
+    try {
+      const teaser = getSavingsTeaser(selectedCategory);
+      if (!isUserAuthed() && teaser) {
+        setTurns(prev => [...prev, { role: 'assistant', content: `💡 ${teaser}` }]);
+      }
     } catch {}
   } else {
     try {

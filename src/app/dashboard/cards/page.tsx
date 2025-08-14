@@ -71,6 +71,16 @@ export default function CardsPage() {
 
   return (
     <div className="page-container py-8">
+      {!user && !loading ? (
+        <div className="max-w-xl mx-auto surface p-6 rounded-lg text-center space-y-4">
+          <h1 className="text-xl font-semibold">Sign in to manage your wallet</h1>
+          <p className="text-sm text-dim">Your saved cards live in your dashboard. Create a free account to add, edit, and optimize your wallet.</p>
+          <div className="flex justify-center gap-3">
+            <a href="/auth" className="px-4 py-2 bg-blue-600 text-white text-sm rounded">Sign in / Create account</a>
+            <a href="/dashboard" className="px-4 py-2 border text-sm rounded">Back to dashboard</a>
+          </div>
+        </div>
+      ) : (
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -107,6 +117,7 @@ export default function CardsPage() {
           )}
         </div>
       </div>
+  )}
       <AddCardModal open={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddCard} userId={user?.id} />
       <EditCardModal open={!!editCard} onClose={() => setEditCard(null)} card={editCard} onUpdate={handleEditCard} />
       <DeleteCardDialog open={!!deleteCard} onClose={() => setDeleteCard(null)} onDelete={handleDeleteCard} loading={!!actionLoadingId} />
