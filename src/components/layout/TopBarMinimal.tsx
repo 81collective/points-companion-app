@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, PanelLeftOpen, PanelLeftClose, User } from 'lucide-react';
 import { useNavigationStore } from '@/stores/navigationStore';
@@ -50,7 +51,7 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
         </button>
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-          <img src="/pointadvisor-mark.svg" alt="PointAdvisor" className="w-7 h-7 rounded-lg" />
+          <Image src="/pointadvisor-mark.svg" alt="PointAdvisor" width={28} height={28} className="rounded-lg" priority />
           <span className="hidden sm:inline">PointAdvisor</span>
         </Link>
         <nav className="hidden md:flex items-center gap-1 ml-4">

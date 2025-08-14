@@ -5,7 +5,8 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'
-import { CreditCard, User, Menu, Search } from 'lucide-react';
+import { User, Menu, Search } from 'lucide-react';
+import Image from 'next/image';
 import RealTimeSystemClean from '@/components/realtime/RealTimeSystemClean';
 // NotificationCenter temporarily disabled
 import { navigationItems } from '@/config/navigation'
@@ -44,7 +45,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-75 transition-opacity">
-            <img src="/pointadvisor-mark.svg" alt="PointAdvisor" className="w-8 h-8 rounded-lg" />
+            <Image src="/pointadvisor-mark.svg" alt="PointAdvisor" width={32} height={32} className="rounded-lg" priority />
             <span className="text-lg font-semibold text-gray-900 hidden sm:block">
               PointAdvisor
             </span>
