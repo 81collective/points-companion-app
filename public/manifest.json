@@ -1,7 +1,7 @@
 {
-  "name": "Points Companion",
-  "short_name": "Points",
-  "description": "Your intelligent credit card rewards companion",
+  "name": "PointAdvisor",
+  "short_name": "PointAdvisor",
+  "description": "Your intelligent credit card rewards advisor",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

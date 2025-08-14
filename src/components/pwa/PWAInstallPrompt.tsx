@@ -118,7 +118,7 @@ const PWAInstallPrompt: React.FC = () => {
               <Download className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Install Points Companion</h3>
+              <h3 className="font-semibold text-gray-900">Install PointAdvisor</h3>
               <p className="text-sm text-gray-600">Get the full app experience</p>
             </div>
           </div>

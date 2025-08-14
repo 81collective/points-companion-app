@@ -50,8 +50,8 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
         </button>
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-xs font-bold">PC</div>
-          <span className="hidden sm:inline">Points Companion</span>
+          <img src="/pointadvisor-mark.svg" alt="PointAdvisor" className="w-7 h-7 rounded-lg" />
+          <span className="hidden sm:inline">PointAdvisor</span>
         </Link>
         <nav className="hidden md:flex items-center gap-1 ml-4">
           {navLinks.map(l => (

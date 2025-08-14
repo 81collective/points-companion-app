@@ -1,4 +1,4 @@
-# Points Companion App
+# PointAdvisor App
 
 ## Overview
 

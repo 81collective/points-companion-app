@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import LoyaltyDashboard from '@/components/loyalty/LoyaltyDashboard';
 
 export const metadata: Metadata = {
-  title: 'Loyalty Dashboard - Points Companion',
+  title: 'Loyalty Dashboard - PointAdvisor',
   description: 'Track your points, miles, and elite status across all loyalty programs',
 };
 

@@ -5,7 +5,7 @@ test.describe('Home Page', () => {
     await page.goto('/')
     
     // Check that the page loads
-    await expect(page).toHaveTitle(/Points Companion/)
+  await expect(page).toHaveTitle(/PointAdvisor/)
     
     // Check for main navigation
     await expect(page.locator('nav')).toBeVisible()

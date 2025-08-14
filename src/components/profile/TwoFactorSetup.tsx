@@ -29,7 +29,7 @@ export default function TwoFactorSetup() {
     const { default: QRCode } = await import('qrcode')
     const newSecret = authenticator.generateSecret()
     setSecret(newSecret)
-    const otpauth = authenticator.keyuri(user.email || '', 'Points Companion', newSecret)
+  const otpauth = authenticator.keyuri(user.email || '', 'PointAdvisor', newSecret)
     const dataUrl = await QRCode.toDataURL(otpauth, { width: 180 })
     setQr(dataUrl)
   }

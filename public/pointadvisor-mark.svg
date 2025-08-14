@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PointAdvisor mark">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0b1324" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <!-- Compass/Pin outer -->
+  <g filter="url(#shadow)">
+    <path d="M512 128c176 0 320 144 320 320 0 214-236 404-302 453a28 28 0 0 1-36 0c-66-49-302-239-302-453 0-176 144-320 320-320z" fill="url(#g)"/>
+  </g>
+  <!-- Inner ring -->
+  <circle cx="512" cy="448" r="192" fill="#0b1220" opacity="0.15"/>
+  <circle cx="512" cy="448" r="148" fill="#ffffff" opacity="0.08"/>
+  <!-- PA monogram -->
+  <g transform="translate(372,308)">
+    <path d="M80 232V48h104c60 0 96 34 96 88s-36 88-96 88H128v8h56l72 88H200l-64-80H128v80H80zm48-120h56c36 0 56-18 56-48s-20-48-56-48H128v96z" fill="#ffffff"/>
+    <path d="M352 232l-40-88h-72l-40 88h-48l116-248h16l116 248h-48zm-76-124h48l-24-54-24 54z" fill="url(#g2)"/>
+  </g>
+</svg>

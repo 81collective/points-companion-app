@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Points Companion",
+    title: "PointAdvisor",
   },
   other: {
     'mobile-web-app-capable': 'yes',

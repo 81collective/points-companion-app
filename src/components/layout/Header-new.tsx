@@ -28,7 +28,7 @@ export default function Header() {
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-semibold text-gray-900 hidden sm:block">
-              Points Companion
+              PointAdvisor
             </span>
           </Link>
 

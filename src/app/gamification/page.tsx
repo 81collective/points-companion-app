@@ -91,7 +91,7 @@ const GamificationDashboard: React.FC = () => {
         <div className="text-center">
           <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Welcome to Points Companion Gamification!
+            Welcome to PointAdvisor Gamification!
           </h2>
           <p className="text-gray-600 mb-6">
             Start using the app to earn points, unlock achievements, and level up!

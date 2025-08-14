@@ -44,11 +44,9 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-3 hover:opacity-75 transition-opacity">
-            <div className="w-8 h-8 bg-gradient-to-r from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-white" />
-            </div>
+            <img src="/pointadvisor-mark.svg" alt="PointAdvisor" className="w-8 h-8 rounded-lg" />
             <span className="text-lg font-semibold text-gray-900 hidden sm:block">
-              Points Companion
+              PointAdvisor
             </span>
           </Link>
 

@@ -25,13 +25,13 @@ export function generateMetadata(config: SEOConfig): Metadata {
   const metadata: Metadata = {
     title: {
       default: title,
-      template: '%s | Points Companion'
+  template: '%s | PointAdvisor'
     },
     description,
     keywords: keywords.join(', '),
-    authors: [{ name: 'Points Companion Team' }],
-    creator: 'Points Companion',
-    publisher: 'Points Companion',
+  authors: [{ name: 'PointAdvisor Team' }],
+  creator: 'PointAdvisor',
+  publisher: 'PointAdvisor',
     robots: {
       index: !noIndex,
       follow: !noIndex,
@@ -48,7 +48,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
       locale: 'en_US',
       title,
       description,
-      siteName: 'Points Companion',
+  siteName: 'PointAdvisor',
       images: [
         {
           url: ogImage,
@@ -63,7 +63,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
       title,
       description,
       images: [ogImage],
-      creator: '@pointscompanion'
+  creator: '@pointadvisor'
     },
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
@@ -71,7 +71,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
       yahoo: process.env.YAHOO_SITE_VERIFICATION
     },
     alternates: {
-      canonical: canonical ? `https://pointscompanion.com${canonical}` : undefined
+  canonical: canonical ? `https://pointadvisor.app${canonical}` : undefined
     }
   };
 
@@ -83,18 +83,18 @@ export function generateOrganizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Points Companion',
-    url: 'https://pointscompanion.com',
-    logo: 'https://pointscompanion.com/images/logo.png',
+  name: 'PointAdvisor',
+  url: 'https://pointadvisor.app',
+  logo: 'https://pointadvisor.app/images/logo.png',
     description: 'Optimize your credit card rewards and maximize points earning potential',
     sameAs: [
-      'https://twitter.com/pointscompanion',
-      'https://facebook.com/pointscompanion'
+  'https://twitter.com/pointadvisor',
+  'https://facebook.com/pointadvisor'
     ],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'support@pointscompanion.com'
+  email: 'support@pointadvisor.app'
     }
   };
 }
@@ -103,9 +103,9 @@ export function generateWebAppSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'Points Companion',
+  name: 'PointAdvisor',
     description: 'Credit card rewards optimization platform',
-    url: 'https://pointscompanion.com',
+  url: 'https://pointadvisor.app',
     applicationCategory: 'FinanceApplication',
     operatingSystem: 'Any',
     offers: {
@@ -115,7 +115,7 @@ export function generateWebAppSchema() {
     },
     author: {
       '@type': 'Organization',
-      name: 'Points Companion Team'
+  name: 'PointAdvisor Team'
     }
   };
 }
@@ -128,7 +128,7 @@ export function generateBreadcrumbSchema(items: Array<{ name: string; url: strin
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: `https://pointscompanion.com${item.url}`
+  item: `https://pointadvisor.app${item.url}`
     }))
   };
 }
@@ -151,33 +151,33 @@ export function generateFAQSchema(faqs: Array<{ question: string; answer: string
 // Page-specific SEO configurations
 export const seoConfigs = {
   home: {
-    title: 'Points Companion - Optimize Your Credit Card Rewards',
+    title: 'PointAdvisor - Optimize Your Credit Card Rewards',
     description: 'Maximize your credit card points and rewards with AI-powered recommendations. Track spending, optimize card usage, and never miss earning opportunities.',
     keywords: ['credit card rewards', 'points optimization', 'travel rewards', 'cashback', 'credit card recommendations'],
     canonical: '/'
   },
   dashboard: {
-    title: 'Dashboard - Points Companion',
+    title: 'Dashboard - PointAdvisor',
     description: 'View your credit card portfolio, track rewards, and get personalized recommendations to maximize your points earning.',
     keywords: ['rewards dashboard', 'credit card portfolio', 'points tracking'],
     canonical: '/dashboard',
     noIndex: true // Private user data
   },
   cards: {
-    title: 'Credit Cards - Points Companion',
+    title: 'Credit Cards - PointAdvisor',
     description: 'Explore our comprehensive database of credit cards with detailed rewards information and expert recommendations.',
     keywords: ['credit cards', 'card database', 'card comparison', 'rewards cards'],
     canonical: '/cards'
   },
   analytics: {
-    title: 'Analytics - Points Companion',
+    title: 'Analytics - PointAdvisor',
     description: 'Analyze your spending patterns and rewards earning with detailed insights and performance metrics.',
     keywords: ['spending analytics', 'rewards analysis', 'financial insights'],
     canonical: '/analytics',
     noIndex: true // Private user data
   },
   recommendations: {
-    title: 'AI Recommendations - Points Companion',
+    title: 'AI Recommendations - PointAdvisor',
     description: 'Get AI-powered credit card recommendations based on your spending patterns and financial goals.',
     keywords: ['AI recommendations', 'smart card suggestions', 'personalized advice'],
     canonical: '/recommendations'
@@ -186,7 +186,7 @@ export const seoConfigs = {
 
 // Generate sitemap data
 export function generateSitemapUrls() {
-  const baseUrl = 'https://pointscompanion.com';
+  const baseUrl = 'https://pointadvisor.app';
   const staticPages = [
     { url: '/', changefreq: 'daily', priority: 1.0 },
     { url: '/cards', changefreq: 'weekly', priority: 0.8 },

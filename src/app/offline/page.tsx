@@ -21,7 +21,7 @@ export default function OfflinePage() {
         </h1>
         
         <p className="text-gray-600 mb-8">
-          It looks like you&apos;ve lost your internet connection. Don&apos;t worry, Points Companion works offline too! 
+          It looks like you&apos;ve lost your internet connection. Don&apos;t worry, PointAdvisor works offline too! 
           Some features may be limited until you&apos;re back online.
         </p>
 

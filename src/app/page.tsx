@@ -34,8 +34,8 @@ export default function HomePage() {
       <header className="w-full border-b border-gray-800 bg-black/90 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-2 font-semibold text-white text-lg">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-700 to-gray-900 flex items-center justify-center text-white text-base font-bold">PC</div>
-            <span className="hidden sm:inline">Points Companion</span>
+            <img src="/pointadvisor-mark.svg" alt="PointAdvisor" className="w-8 h-8 rounded-lg" />
+            <span className="hidden sm:inline">PointAdvisor</span>
           </div>
           <button
             onClick={() => router.push('/auth')}

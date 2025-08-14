@@ -265,7 +265,7 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     
     const options = {
-      body: data.body || 'New notification from Points Companion',
+  body: data.body || 'New notification from PointAdvisor',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-96x96.png',
       vibrate: [100, 50, 100],
@@ -286,7 +286,7 @@ self.addEventListener('push', (event) => {
     
     event.waitUntil(
       self.registration.showNotification(
-        data.title || 'Points Companion',
+  data.title || 'PointAdvisor',
         options
       )
     );
