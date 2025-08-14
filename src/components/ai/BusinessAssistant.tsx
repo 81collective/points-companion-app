@@ -10,6 +10,7 @@ import { fetchTopRecommendations } from '@/lib/ai/businessRecommendations';
 import { formatTransparentMath, type Recommendation } from '@/lib/ai/responseFormatter';
 import { useAssistantStore } from '@/stores/assistantStore';
 import { useRef } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export default function BusinessAssistant() {
   const { location, permissionState, requestLocation } = useLocation();
@@ -35,11 +36,68 @@ export default function BusinessAssistant() {
   const [showedNearbyPrompt, setShowedNearbyPrompt] = useState(false);
   const [nearbyPromptList, setNearbyPromptList] = useState<typeof businesses>([]);
   const prevModeRef = useRef(mode);
+  const [isThinking, setIsThinking] = useState(false);
+  const typingTimerRef = useRef<number | null>(null);
+
+  const clearTyping = () => {
+    if (typingTimerRef.current) {
+      window.clearInterval(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+  };
+
+  const splitSentences = (text: string) => {
+    const parts = text.match(/[^.!?\n]+[.!?]?/g) || [text];
+    return parts.map(s => s.trim()).filter(Boolean);
+  };
+
+  const typeOutReply = async (text: string, conversational: boolean) => {
+    const typingIndex = turns.length + 1; // after we push user turn and maybe other items
+    // Insert empty assistant bubble
+    setTurns(prev => [...prev, { role: 'assistant', content: '' }]);
+
+    const appendChar = (ch: string) => {
+      setTurns(prev => {
+        const copy = [...prev];
+        const idx = typingIndex - 1; // zero-based
+        if (!copy[idx]) return prev;
+        copy[idx] = { ...copy[idx], content: copy[idx].content + ch } as ChatTurn;
+        return copy;
+      });
+    };
+
+    const typeSentence = (sentence: string) => new Promise<void>((resolve) => {
+      let i = 0;
+      clearTyping();
+      typingTimerRef.current = window.setInterval(() => {
+        if (i >= sentence.length) {
+          clearTyping();
+          resolve();
+          return;
+        }
+        appendChar(sentence[i]);
+        i += 1;
+      }, 14); // ~70 chars/sec
+    });
+
+    if (conversational) {
+  const sentences = splitSentences(text);
+  for (const s of sentences) {
+        await typeSentence(s);
+        // slight pause and newline
+        appendChar('\n');
+        await new Promise(r => setTimeout(r, 180));
+      }
+    } else {
+      await typeSentence(text);
+    }
+  };
 
   // When switching modes: clear chat and show mode-specific intro and prompts
   useEffect(() => {
     const prev = prevModeRef.current;
     if (prev !== mode) {
+      clearTyping();
       setInput('');
       setShowedNearbyPrompt(false);
       if (mode === 'planning') {
@@ -136,6 +194,7 @@ export default function BusinessAssistant() {
     const userTurn: ChatTurn = { role: 'user', content: text };
     const nextTurns: ChatTurn[] = [...turns, userTurn];
     setTurns(nextTurns);
+  if (mode === 'planning') setIsThinking(true);
 
     // If user typed a number selecting one of the listed businesses in quick mode
     const numMatch = text.trim().match(/^([1-9]\d*)$/);
@@ -176,8 +235,8 @@ export default function BusinessAssistant() {
     if (location) ctx.location = location;
     if (place) ctx.business = place;
   const { reply, suggestions } = await converse(nextTurns, ctx);
-  const assistantTurn: ChatTurn = { role: 'assistant', content: reply };
-  setTurns([...nextTurns, assistantTurn]);
+  setIsThinking(false);
+  await typeOutReply(reply, mode === 'planning');
   setSuggestions(suggestions || []);
 
   // Also pull top recommendations based on mode
@@ -273,6 +332,13 @@ export default function BusinessAssistant() {
       <div className="text-base">
         <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
       </div>
+
+      {mode === 'planning' && isThinking && (
+        <div className="inline-flex items-center gap-2 p-3 border bg-gray-50 text-gray-700 text-sm">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Thinking…
+        </div>
+      )}
 
   <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
 
