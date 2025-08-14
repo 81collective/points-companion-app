@@ -23,7 +23,7 @@ export default function BusinessAssistant() {
   const [anonQueryCount, setAnonQueryCount] = useState(0);
   const [input, setInput] = useState('');
   const [_topRecs, setTopRecs] = useState<Recommendation[]>([]); // kept for publishing to store
-  const [_planningRecs, setPlanningRecs] = useState<Recommendation[]>([]); // kept for publishing to store
+  // Planning mode no longer auto-injects picks; keep state lean
   const publish = useAssistantStore(s => s.setPicks);
   const [selectedPlaceName, setSelectedPlaceName] = useState<string | null>(null);
   const { businesses } = useNearbyBusinesses({
@@ -41,6 +41,7 @@ export default function BusinessAssistant() {
   const prevModeRef = useRef(mode);
   const [isThinking, setIsThinking] = useState(false);
   const typingTimerRef = useRef<number | null>(null);
+  const lastInteractionWasChipRef = useRef<boolean>(false);
   const nearbyMsgIndexRef = useRef<number | null>(null);
   const cancelRef = useRef<boolean>(false);
   const hydratingRef = useRef<boolean>(false);
@@ -218,7 +219,9 @@ export default function BusinessAssistant() {
 
   // Auto-scroll to latest and refocus input after updates
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    const behavior: ScrollBehavior = lastInteractionWasChipRef.current ? 'auto' : 'smooth';
+    endRef.current?.scrollIntoView({ behavior, block: 'end' });
+    lastInteractionWasChipRef.current = false;
   }, [turns.length, isThinking, endRef]);
 
   // Haversine distance in miles
@@ -554,28 +557,6 @@ Examples:
         setTurns(prev => [...prev, { role: 'assistant', content: `💡 ${teaser}` }]);
       }
     } catch {}
-  } else {
-    try {
-  abortRef.current?.abort();
-  abortRef.current = new AbortController();
-  const recs = await fetchTopRecommendations({
-        category: selectedCategory,
-        limit: 3,
-  }, { signal: abortRef.current.signal });
-      setPlanningRecs(recs);
-      publish(recs, { mode, category: selectedCategory, place });
-      const lines = recs.map((rec, i) => {
-        const math = formatTransparentMath(rec);
-        const reasons = (math.reasons || []).slice(0, 3);
-        const reasonsLine = reasons.length ? `\n   Why: ${reasons.join(', ')}` : '';
-        const match = typeof rec.match_score === 'number' ? ` (${Math.round(rec.match_score)} match)` : '';
-        return `${i + 1}) ${rec.card.card_name} — ${rec.card.issuer}${match}\n   Est. value per $100: $${math.estValueUSD}; Monthly net: $${math.netMonthlyUSD}${reasonsLine}`;
-      });
-      const recMsg: ChatTurn = { role: 'assistant', content: `Top picks for ${selectedCategory}:\n${lines.join('\n')}` };
-      setTurns(prev => [...prev, recMsg]);
-  const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
-  setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
-    } catch {}
   }
   };
 
@@ -687,6 +668,7 @@ Examples:
       setInput('');
       setTurns(prev => [...prev, { role: 'user', content: s } as ChatTurn]);
       // Call send with silent user so we don't duplicate the user message
+      lastInteractionWasChipRef.current = true;
       send(s, { silentUser: true });
     }}
   />
