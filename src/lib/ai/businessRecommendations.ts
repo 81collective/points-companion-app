@@ -7,14 +7,14 @@ export async function fetchTopRecommendations(params: {
   lat?: number;
   lng?: number;
   limit?: number;
-}) {
+}, opts?: { signal?: AbortSignal }) {
   const qs = new URLSearchParams();
   if (params.category) qs.set('category', params.category);
   if (params.businessId) qs.set('businessId', params.businessId);
   if (params.businessName) qs.set('businessName', params.businessName);
   if (params.lat != null) qs.set('lat', String(params.lat));
   if (params.lng != null) qs.set('lng', String(params.lng));
-  const res = await fetch(`/api/cards/recommendations?${qs.toString()}`);
+  const res = await fetch(`/api/cards/recommendations?${qs.toString()}` , { signal: opts?.signal });
   if (!res.ok) throw new Error('Failed to load recommendations');
   const data = await res.json();
   const recs: Recommendation[] = data?.recommendations || [];

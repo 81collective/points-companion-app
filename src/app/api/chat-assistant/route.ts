@@ -3,6 +3,18 @@ import OpenAI from 'openai';
 import fs from 'fs/promises';
 import path from 'path';
 
+let UX_SPEC_CACHE: string | null = null;
+async function getUxSpec(): Promise<string> {
+  if (UX_SPEC_CACHE !== null) return UX_SPEC_CACHE;
+  try {
+    const p = path.join(process.cwd(), 'docs', 'AI_CHAT_ASSISTANT_UX_SPEC.md');
+    UX_SPEC_CACHE = await fs.readFile(p, 'utf-8');
+  } catch {
+    UX_SPEC_CACHE = '';
+  }
+  return UX_SPEC_CACHE;
+}
+
 const apiKey = process.env.OPENAI_API_KEY;
 const openai = apiKey ? new OpenAI({ apiKey }) : null;
 
@@ -10,14 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     const { message, context } = await request.json();
 
-    const uxSpec = await (async () => {
-      try {
-        const p = path.join(process.cwd(), 'docs', 'AI_CHAT_ASSISTANT_UX_SPEC.md');
-        return await fs.readFile(p, 'utf-8');
-      } catch {
-        return '';
-      }
-    })();
+  const uxSpec = await getUxSpec();
 
     const basePrompt = `You are a knowledgeable credit card optimization assistant.
     You help users:

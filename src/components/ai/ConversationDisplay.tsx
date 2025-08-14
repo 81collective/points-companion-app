@@ -16,12 +16,22 @@ export function ConversationDisplay({ messages }: { messages: { role: 'user' | '
               <ReactMarkdown remarkPlugins={[remarkGfm]}
                 components={{
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  code({node, inline, className, children, ...props}: any) {
+                  code({_node, inline, className, children, ...props}: any) {
                     const match = /language-(\w+)/.exec(className || '');
                     return inline ? (
                       <code className={className} {...props}>{children}</code>
                     ) : (
-                      <pre className="overflow-auto bg-gray-900 text-gray-100 p-3 rounded text-sm"><code className={match ? `language-${match[1]}` : ''} {...props}>{children}</code></pre>
+                      <div className="relative group">
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard?.writeText(String(children ?? ''))}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs px-2 py-1 bg-gray-700 text-white rounded"
+                          aria-label="Copy code"
+                        >Copy</button>
+                        <pre className="overflow-auto bg-gray-900 text-gray-100 p-3 rounded text-sm">
+                          <code className={match ? `language-${match[1]}` : ''} {...props}>{children}</code>
+                        </pre>
+                      </div>
                     );
                   },
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any

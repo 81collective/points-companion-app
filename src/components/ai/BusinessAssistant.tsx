@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef as useRefReact } from 'react';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
 import { converse, type ChatTurn } from '@/lib/ai/conversationEngine';
@@ -41,6 +41,9 @@ export default function BusinessAssistant() {
   const nearbyMsgIndexRef = useRef<number | null>(null);
   const cancelRef = useRef<boolean>(false);
   const hydratingRef = useRef<boolean>(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const endRef = useRefReact<HTMLDivElement | null>(null);
+  const inputRef = useRefReact<HTMLInputElement | null>(null);
 
   const clearTyping = () => {
     if (typingTimerRef.current) {
@@ -111,9 +114,12 @@ export default function BusinessAssistant() {
     if (prev !== mode) {
       clearTyping();
   cancelRef.current = true;
+  abortRef.current?.abort();
       setInput('');
       setShowedNearbyPrompt(false);
   nearbyMsgIndexRef.current = null;
+  // small refocus
+  setTimeout(() => inputRef.current?.focus(), 0);
       if (mode === 'planning') {
         const intro = `Planning designs a winning card strategy for your bigger goals.\n\nWhat I’ll do:\n• Compare cards and call the trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Hand you a simple step‑by‑step plan\n\nTo get the full picture, quick hits (answer freely, skip anything):\n1) Top 1–2 goals in the next 6–12 months (e.g., Hawaii in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)\n3) Preference: cash back vs points/miles; any favorite programs (Chase/Amex/Citi/CapOne; Marriott/Hyatt/AA/UA/Delta)\n4) Upcoming big purchases/trips (dates, destinations, travelers)\n5) Current cards/issuers and rules to consider (e.g., 5/24)\n6) Annual fee comfort; business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
         setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
@@ -138,7 +144,7 @@ export default function BusinessAssistant() {
       }
     }
     prevModeRef.current = mode;
-  }, [mode]);
+  }, [mode, inputRef]);
 
   // If category changes in quick mode, refresh the nearby prompt list
   useEffect(() => {
@@ -185,7 +191,8 @@ export default function BusinessAssistant() {
   useEffect(() => {
     // Persist minimal state for session continuity
     try {
-      const payload = JSON.stringify({ mode, selectedCategory, turns });
+  const cappedTurns = turns.slice(-50);
+  const payload = JSON.stringify({ mode, selectedCategory, turns: cappedTurns });
       localStorage.setItem('businessAssistant:v1', payload);
     } catch {}
   }, [mode, selectedCategory, turns]);
@@ -200,6 +207,11 @@ export default function BusinessAssistant() {
       }
     }
   }, [permissionState.granted, pendingConfirmAfterLocation, place]);
+
+  // Auto-scroll to latest and refocus input after updates
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [turns.length, isThinking, endRef]);
 
   // Haversine distance in miles
   const distanceMiles = (la1?: number, lo1?: number, la2?: number, lo2?: number) => {
@@ -267,13 +279,15 @@ export default function BusinessAssistant() {
   const confirmTurn: ChatTurn = { role: 'assistant', content: `Locked in: ${chosen.name}. Pulling your top cards…` };
         setTurns((prev) => [...prev, confirmTurn]);
         try {
+          abortRef.current?.abort();
+          abortRef.current = new AbortController();
           const recs = await fetchTopRecommendations({
             category: selectedCategory,
             businessName: chosen.name,
             lat: location?.latitude,
             lng: location?.longitude,
             limit: 3,
-          });
+          }, { signal: abortRef.current.signal });
           setTopRecs(recs);
           publish(recs, { mode, category: selectedCategory, place: chosen.name });
           // Append recommendations as a chat message
@@ -293,7 +307,9 @@ export default function BusinessAssistant() {
   const ctx: Record<string, unknown> = { mode };
     if (location) ctx.location = location;
     if (place) ctx.business = place;
-  const { reply, suggestions } = await converse(nextTurns, ctx);
+  abortRef.current?.abort();
+  abortRef.current = new AbortController();
+  const { reply, suggestions } = await converse(nextTurns, ctx, { signal: abortRef.current.signal });
   setIsThinking(false);
   await typeOutReply(reply, mode === 'planning');
   setSuggestions(suggestions || []);
@@ -301,13 +317,15 @@ export default function BusinessAssistant() {
   // Also pull top recommendations based on mode
   if (mode === 'quick') {
     try {
-      const recs = await fetchTopRecommendations({
+  abortRef.current?.abort();
+  abortRef.current = new AbortController();
+  const recs = await fetchTopRecommendations({
         category: selectedCategory,
         businessName: place,
         lat: location?.latitude,
         lng: location?.longitude,
         limit: 3,
-      });
+  }, { signal: abortRef.current.signal });
       setTopRecs(recs);
       publish(recs, { mode, category: selectedCategory, place });
       const lines = recs.map((rec, i) => {
@@ -322,10 +340,12 @@ export default function BusinessAssistant() {
     } catch {}
   } else {
     try {
-      const recs = await fetchTopRecommendations({
+  abortRef.current?.abort();
+  abortRef.current = new AbortController();
+  const recs = await fetchTopRecommendations({
         category: selectedCategory,
         limit: 3,
-      });
+  }, { signal: abortRef.current.signal });
       setPlanningRecs(recs);
       publish(recs, { mode, category: selectedCategory, place });
       const lines = recs.map((rec, i) => {
@@ -389,7 +409,8 @@ export default function BusinessAssistant() {
       )}
 
       <div className="text-base">
-        <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
+  <ConversationDisplay messages={turns.map((t, i) => ({ ...t, id: String(i) }))} />
+  <div ref={endRef} />
       </div>
 
       {(mode === 'planning' && isThinking) && (
@@ -397,7 +418,7 @@ export default function BusinessAssistant() {
           <Loader2 className="h-4 w-4 animate-spin" />
           Thinking…
           <button
-            onClick={() => { cancelRef.current = true; clearTyping(); setIsThinking(false); }}
+            onClick={() => { cancelRef.current = true; abortRef.current?.abort(); clearTyping(); setIsThinking(false); }}
             className="px-2 py-1 text-xs bg-red-600 text-white"
           >Stop</button>
         </div>
@@ -408,7 +429,7 @@ export default function BusinessAssistant() {
         <div className="inline-flex items-center gap-2 p-2 border bg-gray-50 text-gray-700 text-xs">
           <span>Streaming…</span>
           <button
-            onClick={() => { cancelRef.current = true; clearTyping(); setIsThinking(false); }}
+            onClick={() => { cancelRef.current = true; abortRef.current?.abort(); clearTyping(); setIsThinking(false); }}
             className="px-2 py-0.5 bg-red-600 text-white"
           >Stop</button>
         </div>
@@ -419,7 +440,7 @@ export default function BusinessAssistant() {
   {/* Recommendations are now shown directly in the chat above */}
 
       <div className="flex gap-2">
-        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the best card…" className="flex-1 border border-gray-300 px-3 py-3 text-base" />
+  <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about the best card…" className="flex-1 border border-gray-300 px-3 py-3 text-base" />
         <button onClick={() => input && send(input)} className="px-5 py-3 bg-blue-600 text-white text-sm">Send</button>
       </div>
     </div>
