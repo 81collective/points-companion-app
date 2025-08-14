@@ -14,6 +14,7 @@ import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
 import { generateMetadata, seoConfigs, generateOrganizationSchema } from "@/lib/seo";
 import Script from "next/script";
 import ForceLightMode from "@/components/layout/ForceLightMode";
+import { Haptics } from "@/components/pwa/Haptics";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -84,6 +85,7 @@ export default function RootLayout({
       </head>
   <body>
         <ForceLightMode />
+  <Haptics />
         <PerformanceMonitor />
         <ErrorBoundary>
           <ErrorProvider>
