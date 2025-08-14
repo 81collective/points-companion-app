@@ -64,15 +64,18 @@ export default function BusinessAssistant() {
 
   const typeOutReply = async (text: string, conversational: boolean) => {
     cancelRef.current = false;
-    const typingIndex = turns.length + 1; // after we push user turn and maybe other items
-    // Insert empty assistant bubble
-    setTurns(prev => [...prev, { role: 'assistant', content: '' }]);
+    // Insert empty assistant bubble and capture its index reliably
+    let assistantIndex = -1;
+    setTurns(prev => {
+      assistantIndex = prev.length;
+      return [...prev, { role: 'assistant', content: '' }];
+    });
 
     const appendChar = (ch: string) => {
       setTurns(prev => {
         const copy = [...prev];
-        const idx = typingIndex - 1; // zero-based
-        if (!copy[idx]) return prev;
+        const idx = assistantIndex >= 0 ? assistantIndex : copy.findIndex((m, i) => i === copy.length - 1);
+        if (idx < 0 || !copy[idx]) return prev;
         copy[idx] = { ...copy[idx], content: copy[idx].content + ch } as ChatTurn;
         return copy;
       });
@@ -677,7 +680,16 @@ Examples:
         </div>
       )}
 
-  <SuggestionChips items={suggestions} onPick={(s) => { setInput(''); send(s); }} />
+  <SuggestionChips
+    items={suggestions}
+    onPick={(s) => {
+      // Show the chip as a user bubble, then trigger normal send to produce assistant reply
+      setInput('');
+      setTurns(prev => [...prev, { role: 'user', content: s } as ChatTurn]);
+      // Call send with silent user so we don't duplicate the user message
+      send(s, { silentUser: true });
+    }}
+  />
 
       {/* Recommendations are now shown directly in the chat above */}
       <div className="sticky bottom-0 left-0 right-0 bg-[#F7F7F7] pt-2">
