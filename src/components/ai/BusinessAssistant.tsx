@@ -50,6 +50,27 @@ export default function BusinessAssistant() {
   const inputRef = useRefReact<HTMLInputElement | null>(null);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const fileInputRef = useRefReact<HTMLInputElement | null>(null);
+  // Voice input (Web Speech API)
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  // Minimal SpeechRecognition typings to avoid any
+  type SRType = {
+    new(): SRInstance;
+  };
+  type SRResult = { isFinal: boolean; 0: { transcript: string } };
+  type SREvent = { resultIndex: number; results: SRResult[] };
+  interface SRInstance {
+    lang: string;
+    continuous: boolean;
+    interimResults: boolean;
+    onstart?: () => void;
+    onerror?: (e?: unknown) => void;
+    onend?: () => void;
+    onresult?: (e: SREvent) => void;
+    start: () => void;
+    stop: () => void;
+  }
+  const speechRef = useRef<SRInstance | null>(null);
 
   // First-run quick actions and popular stores (client-only helpers)
   const FIRST_RUN_CHIPS = useMemo(() => [
@@ -199,6 +220,15 @@ export default function BusinessAssistant() {
   }, []);
 
   useEffect(() => {
+    // Detect basic speech recognition support
+    try {
+      const w = window as unknown as { SpeechRecognition?: SRType; webkitSpeechRecognition?: SRType };
+      const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+      if (SR) setVoiceSupported(true);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     // Seed first message if empty and not hydrating
     if (!turns.length && !hydratingRef.current) {
       const first: ChatTurn = { role: 'assistant', content: 'I’m your rewards co‑pilot — what should we optimize right now?' };
@@ -303,6 +333,15 @@ export default function BusinessAssistant() {
       setShowedNearbyPrompt(true);
       return [...prev, { role: 'assistant', content: msg } as ChatTurn];
     });
+    // Also surface tappable chips for quick selection
+    try {
+      setSuggestions((prev) => {
+        const names = top.map(b => b.name);
+        // Prepend up to 5 nearby names, avoid duplicates, keep list short
+        const filtered = prev.filter(p => !names.includes(p));
+        return [...names, ...filtered].slice(0, 8);
+      });
+    } catch {}
   }, [mode, permissionState.granted, businesses, location?.latitude, location?.longitude]);
 
   // Simple savings teaser for common categories (spec demo only)
@@ -630,6 +669,52 @@ Examples:
   }
   };
 
+  // Basic voice input using Web Speech API
+  const startVoice = () => {
+    try {
+      const w = window as unknown as { SpeechRecognition?: SRType; webkitSpeechRecognition?: SRType };
+      const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+      if (!SR) {
+        setTurns(prev => [...prev, { role: 'assistant', content: 'Voice input not supported on this device/browser.' } as ChatTurn]);
+        return;
+      }
+      const rec: SRInstance = new SR();
+      speechRef.current = rec;
+      rec.lang = 'en-US';
+      rec.continuous = false;
+      rec.interimResults = true;
+      let finalText = '';
+      rec.onstart = () => setIsListening(true);
+      rec.onerror = () => setIsListening(false);
+      rec.onend = () => {
+        setIsListening(false);
+        if (finalText.trim()) {
+          // Show as user and send
+          setTurns(prev => [...prev, { role: 'user', content: finalText } as ChatTurn]);
+          lastInteractionWasChipRef.current = true;
+          send(finalText, { silentUser: true });
+        }
+      };
+      rec.onresult = (e: SREvent) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const transcript = e.results[i][0].transcript;
+          if (e.results[i].isFinal) finalText += transcript;
+          else interim += transcript;
+        }
+        // Live preview interim in input box
+        setInput((finalText + ' ' + interim).trim());
+      };
+      rec.start();
+    } catch {
+      setIsListening(false);
+    }
+  };
+  const stopVoice = () => {
+    try { speechRef.current?.stop(); } catch {}
+    setIsListening(false);
+  };
+
   return (
     <div className="bg-[#F7F7F7] w-full">
       {/* Header */}
@@ -683,7 +768,7 @@ Examples:
         />
       )}
 
-      <div className="text-base">
+  <div className="text-base">
         <ConversationDisplay
           typing={Boolean(typingTimerRef.current) || isThinking}
           messages={turns.map((t, i) => ({ ...t, id: String(i) }))}
@@ -722,6 +807,45 @@ Examples:
           }}
         />
   <div ref={endRef} />
+      </div>
+
+      {/* Mobile quick actions bar */}
+      <div className="sticky bottom-[72px] left-0 right-0 bg-[#F7F7F7]">
+        <div className="grid grid-cols-4 gap-2 px-2 pb-2 text-xs">
+          <button
+            className={`px-2 py-1 rounded-full border ${isListening ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-gray-200 text-gray-800'}`}
+            onClick={() => (isListening ? stopVoice() : startVoice())}
+            aria-pressed={isListening}
+            aria-label="Voice"
+            title={voiceSupported ? (isListening ? 'Stop voice' : 'Start voice') : 'Voice not supported'}
+          >
+            🎤 Voice
+          </button>
+          <button
+            className="px-2 py-1 rounded-full border bg-white border-gray-200 text-gray-800"
+            onClick={() => { try { requestLocation(); } catch {}; try { showClosestOptions(); } catch {}; }}
+            aria-label="Near me"
+            title="Near me"
+          >
+            📍 Near me
+          </button>
+          <button
+            className="px-2 py-1 rounded-full border bg-white border-gray-200 text-gray-800"
+            onClick={() => { try { (window as unknown as { __routerPush?: (p:string)=>void }).__routerPush?.('/dashboard/cards'); } catch { router.push('/dashboard/cards'); } }}
+            aria-label="Wallet"
+            title="Wallet"
+          >
+            💳 Wallet
+          </button>
+          <button
+            className="px-2 py-1 rounded-full border bg-white border-gray-200 text-gray-800"
+            onClick={() => { setTurns(prev => [...prev, { role: 'assistant', content: 'Popular stores — tap one or ask another:' } as ChatTurn]); setSuggestions(['Starbucks','Target','Whole Foods','Costco','Shell']); lastInteractionWasChipRef.current = true; }}
+            aria-label="Popular"
+            title="Popular"
+          >
+            ⭐ Popular
+          </button>
+        </div>
       </div>
 
       {(mode === 'planning' && isThinking) && (
@@ -824,10 +948,11 @@ Examples:
             <button
               type="button"
               className="h-10 w-10 rounded-full grid place-items-center text-gray-600 hover:bg-gray-200"
-              aria-label="Voice input"
-              title="Voice input"
+              aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
+              title={voiceSupported ? (isListening ? 'Stop voice input' : 'Start voice input') : 'Voice input not supported'}
+              onClick={() => (isListening ? stopVoice() : startVoice())}
             >
-              🎤
+              {isListening ? '⏹' : '🎤'}
             </button>
           )}
         </div>
