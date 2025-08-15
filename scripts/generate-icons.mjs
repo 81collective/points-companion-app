@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 const projectRoot = resolve(__dirname, '..');
 const publicDir = resolve(projectRoot, 'public');
-const srcSvg = resolve(publicDir, 'pointadvisor-mark.svg');
+const srcSvg = resolve(publicDir, 'branding/monogram.svg');
 const outDir = resolve(publicDir, 'icons');
 
 const sizes = [
