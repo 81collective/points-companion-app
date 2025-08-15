@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import Image from 'next/image';
+import TextLogo from '@/components/branding/TextLogo';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Loader2 } from 'lucide-react';
@@ -34,9 +34,8 @@ export default function HomePage() {
       {/* Minimal header for guests */}
       <header className="w-full border-b border-gray-800 bg-black/90 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2 font-semibold text-white text-lg">
-            <Image src="/pointadvisor-mark.svg" alt="PointAdvisor" width={32} height={32} className="rounded-lg" priority />
-            <span className="hidden sm:inline">PointAdvisor</span>
+          <div className="flex items-center gap-2">
+            <TextLogo className="text-xl sm:text-2xl" compact={true} />
           </div>
           <button
             onClick={() => router.push('/auth')}
