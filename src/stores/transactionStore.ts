@@ -14,7 +14,7 @@ import {
 interface TransactionStore {
   // State
   transactions: Transaction[];
-  // Removed Plaid accounts in pre-Plaid baseline
+  // External account integrations removed in pre-integration baseline
   csvImportSessions: CSVImportSession[];
   duplicates: DuplicateTransaction[];
   isLoading: boolean;
@@ -61,7 +61,7 @@ interface TransactionStore {
 
 const initialState = {
   transactions: [],
-  // plaidAccounts removed
+  // account integrations removed
   csvImportSessions: [],
   duplicates: [],
   isLoading: false,
@@ -394,7 +394,7 @@ export const useTransactionStore = create<TransactionStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         transactions: state.transactions,
-  // plaidAccounts removed
+  // account integrations removed
         filter: state.filter
       })
     }
