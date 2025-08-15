@@ -68,6 +68,10 @@ export default function RootLayout({
         <link rel="prefetch" href="/dashboard" />
         <link rel="prefetch" href="/cards" />
         
+  {/* Favicons */}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="mask-icon" href="/branding/monogram.svg" color="#1d4ed8" />
+
         {/* Structured data */}
         <script
           type="application/ld+json"

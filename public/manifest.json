@@ -1,17 +1,17 @@
 {
   "name": "PointAdvisor",
-  "short_name": "PointAdvisor",
+  "short_name": "PA",
   "description": "Your intelligent credit card rewards advisor",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
   "orientation": "portrait",
   "scope": "/",
   "lang": "en",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
-  { "src": "/pointadvisor-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+  { "src": "/branding/monogram.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
   { "src": "/icons/icon-48x48.png", "sizes": "48x48", "type": "image/png", "purpose": "any" },
   { "src": "/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png", "purpose": "any" },
   { "src": "/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png", "purpose": "any" },
@@ -33,7 +33,7 @@
       "description": "Open Dashboard",
       "url": "/dashboard",
       "icons": [
-        { "src": "/pointadvisor-mark.svg", "sizes": "any", "type": "image/svg+xml" }
+  { "src": "/branding/monogram.svg", "sizes": "any", "type": "image/svg+xml" }
       ]
     },
     {
@@ -42,7 +42,7 @@
       "description": "Assistant Insights",
       "url": "/dashboard/insights",
       "icons": [
-        { "src": "/pointadvisor-mark.svg", "sizes": "any", "type": "image/svg+xml" }
+  { "src": "/branding/monogram.svg", "sizes": "any", "type": "image/svg+xml" }
       ]
     },
     {
@@ -51,7 +51,7 @@
       "description": "Add a new credit card",
       "url": "/dashboard/cards",
       "icons": [
-        { "src": "/pointadvisor-mark.svg", "sizes": "any", "type": "image/svg+xml" }
+  { "src": "/branding/monogram.svg", "sizes": "any", "type": "image/svg+xml" }
       ]
     },
     {
@@ -60,7 +60,7 @@
       "description": "Analytics Dashboard",
       "url": "/dashboard/analytics",
       "icons": [
-        { "src": "/pointadvisor-mark.svg", "sizes": "any", "type": "image/svg+xml" }
+  { "src": "/branding/monogram.svg", "sizes": "any", "type": "image/svg+xml" }
       ]
     },
     {
@@ -69,7 +69,7 @@
       "description": "Profile & Settings",
       "url": "/dashboard/profile",
       "icons": [
-        { "src": "/pointadvisor-mark.svg", "sizes": "any", "type": "image/svg+xml" }
+  { "src": "/branding/monogram.svg", "sizes": "any", "type": "image/svg+xml" }
       ]
     }
   ],
