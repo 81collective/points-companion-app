@@ -98,6 +98,22 @@ export const redirectConfig = [
     destination: '/auth/signup',
     permanent: true,
   },
+  // Canonicalize assistant entrypoints to /ai
+  {
+    source: '/dashboard/ai-assistant',
+    destination: '/ai',
+    permanent: false,
+  },
+  {
+    source: '/assistant',
+    destination: '/ai',
+    permanent: false,
+  },
+  {
+    source: '/chat',
+    destination: '/ai',
+    permanent: false,
+  },
   // Dashboard legacy sub-routes now consolidated under /dashboard tabs
   // Use temporary redirects (302) initially to avoid aggressive caching while IA refactor stabilizes
   // (Removed) Tab query redirects retired after navigation simplification
