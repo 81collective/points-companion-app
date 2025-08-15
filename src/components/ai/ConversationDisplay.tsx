@@ -8,6 +8,7 @@ type Msg = { role: 'user' | 'assistant'; content: string; id: string };
 export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion }: { messages: Msg[]; typing?: boolean; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void }) {
   const tsMapRef = useRef<Map<string, Date>>(new Map());
   const [shownTs, setShownTs] = useState<Set<string>>(new Set());
+  const [sheet, setSheet] = useState<null | { name: string; issuer?: string; summary?: string; est_value_usd?: number }>(null);
   const fmt = (d: Date) => new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
   return (
   <div className="flex flex-col gap-0 px-2 sm:px-0">
@@ -47,7 +48,7 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, o
                 {isUser ? (
                   <p className="text-left">{m.content}</p>
                 ) : (
-                  <AssistantContent content={m.content} onViewCard={onViewCard} onAddCard={onAddCard} onSearchOtherLocation={onSearchOtherLocation} onRefreshNearby={onRefreshNearby} onAskQuestion={onAskQuestion} />
+                  <AssistantContent content={m.content} onViewCard={onViewCard} onAddCard={onAddCard} onSearchOtherLocation={onSearchOtherLocation} onRefreshNearby={onRefreshNearby} onAskQuestion={onAskQuestion} onOpenDetails={(name, issuer, summary, est) => setSheet({ name, issuer, summary, est_value_usd: est })} />
                 )}
                 {/* Tail */}
                 {firstOfGroup && (
@@ -63,7 +64,7 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, o
         );
       })}
       </AnimatePresence>
-      {typing && (
+  {typing && (
         <div className="flex justify-start mt-2">
           <div className="max-w-[90%]">
             <div className="px-3 py-2 rounded-2xl rounded-bl-sm bg-[#E5E5EA] text-gray-700 inline-flex items-center gap-1">
@@ -75,35 +76,60 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, o
           </div>
         </div>
       )}
+      {/* Bottom sheet for card details */}
+      <AnimatePresence>
+        {sheet && (
+          <motion.div className="fixed inset-0 z-40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <button className="absolute inset-0 bg-black/30" aria-label="Close" onClick={() => setSheet(null)} />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 180, damping: 22 }}
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 shadow-xl"
+              role="dialog" aria-label="Card details"
+            >
+              <div className="h-1 w-10 bg-gray-300 rounded mx-auto mb-3" />
+              <div className="text-sm font-semibold text-gray-900">{sheet.name}</div>
+              {sheet.issuer && <div className="text-xs text-gray-500 mb-2">{sheet.issuer}</div>}
+              {typeof sheet.est_value_usd === 'number' && (
+                <div className="text-xs text-gray-600">Est. value per $100: ${sheet.est_value_usd}</div>
+              )}
+              {sheet.summary && <div className="text-sm text-gray-700 mt-2">{sheet.summary}</div>}
+              <div className="mt-4 flex gap-2">
+                <button onClick={() => { onViewCard?.(sheet.name, sheet.issuer); }} className="px-3 py-1.5 text-sm rounded-full border border-gray-300 hover:bg-gray-50">Open in Wallet</button>
+                <button onClick={() => { onAddCard?.(sheet.name, sheet.issuer); }} className="px-3 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700">Add to Wallet</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function AssistantContent({ content, onViewCard, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void }) {
+function AssistantContent({ content, onViewCard, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion, onOpenDetails }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void; onOpenDetails?: (name: string, issuer?: string, summary?: string, est?: number) => void }) {
   if (content.startsWith('RECS_JSON:')) {
     try {
       const raw = JSON.parse(content.slice('RECS_JSON:'.length));
       const data = (Array.isArray(raw) ? raw : (raw?.items || [])) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
       const meta = Array.isArray(raw) ? undefined : raw?.meta as { label?: string; updatedAt?: string } | undefined;
       return (
-  <div className="space-y-2 text-left">
-          {data.map((d, i) => (
-            <div key={i} className="w-full bg-white rounded-2xl border border-gray-200 p-3 shadow-sm">
-              <div className="text-sm font-medium flex items-center gap-2">
-                <span role="img" aria-label="card">💳</span>
-                <span>{d.card.card_name}</span>
-                <span className="text-gray-500">— {d.card.issuer}</span>
-              </div>
-              {d.summary && <div className="text-sm text-gray-700 mt-1">{d.summary}</div>}
-              {typeof d.est_value_usd === 'number' && (
-                <div className="text-xs text-gray-500 mt-1">Est. value per $100: ${d.est_value_usd}</div>
-              )}
-              <div className="flex gap-2 mt-3">
-        <button onClick={() => onViewCard?.(d.card.card_name, d.card.issuer)} className="px-3 py-1.5 text-sm rounded-full border border-gray-300 hover:bg-gray-50">View Details</button>
-        <button onClick={() => onAddCard?.(d.card.card_name, d.card.issuer)} className="px-3 py-1.5 text-sm rounded-full bg-blue-600 text-white hover:bg-blue-700">Add to Wallet</button>
-              </div>
-            </div>
-          ))}
+        <div className="space-y-2 text-left">
+          {/* Swipeable row of flippable cards */}
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1">
+            {data.map((d, i) => (
+              <FlippableCard
+                key={i}
+                name={d.card.card_name}
+                issuer={d.card.issuer}
+                summary={d.summary}
+                est={typeof d.est_value_usd === 'number' ? d.est_value_usd : undefined}
+                onView={() => onOpenDetails?.(d.card.card_name, d.card.issuer, d.summary, d.est_value_usd)}
+                onAdd={() => onAddCard?.(d.card.card_name, d.card.issuer)}
+              />
+            ))}
+          </div>
           {/* Under-card quick actions */}
           <div className="flex flex-wrap gap-2 pt-1">
             <button onClick={() => onSearchOtherLocation?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Search other location</button>
@@ -150,6 +176,37 @@ function AssistantContent({ content, onViewCard, onAddCard, onSearchOtherLocatio
       >
         {content}
       </ReactMarkdown>
+    </div>
+  );
+}
+
+function FlippableCard({ name, issuer, summary, est, onView, onAdd }: { name: string; issuer?: string; summary?: string; est?: number; onView: () => void; onAdd: () => void }) {
+  const [flipped, setFlipped] = useState(false);
+  return (
+    <div className="snap-start shrink-0 w-[280px] h-[170px] perspective-1000">
+      <div className={`relative w-full h-full transition-transform duration-300 [transform-style:preserve-3d] ${flipped ? '[transform:rotateY(180deg)]' : ''}`}>
+        <div className="absolute inset-0 bg-white rounded-2xl border border-gray-200 p-3 shadow-sm [backface-visibility:hidden]">
+          <div className="text-sm font-medium flex items-center gap-2">
+            <span role="img" aria-label="card">💳</span>
+            <span className="truncate">{name}</span>
+          </div>
+          {issuer && <div className="text-xs text-gray-500">— {issuer}</div>}
+          {summary && <div className="text-xs text-gray-700 mt-2 line-clamp-3">{summary}</div>}
+          {typeof est === 'number' && <div className="text-[11px] text-gray-500 mt-1">Est. per $100: ${est}</div>}
+          <div className="absolute bottom-3 left-3 right-3 flex gap-2">
+            <button onClick={onView} className="px-2 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Details</button>
+            <button onClick={onAdd} className="px-2 py-1 text-xs rounded-full bg-blue-600 text-white hover:bg-blue-700">Add</button>
+            <button onClick={() => setFlipped(v => !v)} className="ml-auto px-2 py-1 text-xs rounded-full border border-gray-200">Flip</button>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gray-50 rounded-2xl border border-gray-200 p-3 shadow-sm [transform:rotateY(180deg)] [backface-visibility:hidden]">
+          <div className="text-xs text-gray-600 mb-2">Transparent math</div>
+          <div className="text-[11px] text-gray-700">Estimates based on typical point values and category multipliers. Opportunity cost and limits may apply.</div>
+          <div className="absolute bottom-3 left-3 right-3">
+            <button onClick={() => setFlipped(false)} className="px-2 py-1 text-xs rounded-full border border-gray-300">Flip back</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
