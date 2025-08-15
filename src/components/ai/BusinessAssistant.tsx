@@ -51,6 +51,22 @@ export default function BusinessAssistant() {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const fileInputRef = useRefReact<HTMLInputElement | null>(null);
 
+  // First-run quick actions and popular stores (client-only helpers)
+  const FIRST_RUN_CHIPS = useMemo(() => [
+    '🏪 Popular Stores',
+    '🍔 Dining',
+    '⛽ Gas',
+    '✈️ Travel',
+    '🛒 Groceries',
+  ], []);
+  const POPULAR_STORES = useMemo(() => [
+    'Starbucks',
+    'Target',
+    'Whole Foods',
+    'Costco',
+    'Shell',
+  ], []);
+
   const clearTyping = () => {
     if (typingTimerRef.current) {
       window.clearInterval(typingTimerRef.current);
@@ -133,12 +149,12 @@ export default function BusinessAssistant() {
         const intro = `Planning designs a winning card strategy for your bigger goals.\n\nWhat I’ll do:\n• Compare cards and call the trade‑offs\n• Map welcome bonuses to your timeline\n• Optimize category multipliers across your spend\n• Hand you a simple step‑by‑step plan\n\nTo get the full picture, quick hits (answer freely, skip anything):\n1) Top 1–2 goals in the next 6–12 months (e.g., Hawaii in March)\n2) Monthly spend by category (dining, groceries, gas, travel, online, other)\n3) Preference: cash back vs points/miles; any favorite programs (Chase/Amex/Citi/CapOne; Marriott/Hyatt/AA/UA/Delta)\n4) Upcoming big purchases/trips (dates, destinations, travelers)\n5) Current cards/issuers and rules to consider (e.g., 5/24)\n6) Annual fee comfort; business cards okay?\n7) Keep it simple (1–2 cards) or maximize value (3–5)?`;
         setTurns([{ role: 'assistant', content: intro } as ChatTurn]);
         setSuggestions([
+          'Tell me about lounge access',
+          'What about hotel perks',
+          'Show me alternatives',
           'Plan a 2‑card strategy for the next 12 months',
-          'Optimize my travel setup for 3 domestic trips + 1 international',
           'Compare Amex Gold vs Citi Strata Premier vs CSP',
-          'Map welcome bonuses to a Hawaii trip in March',
           'Design a grocery + gas combo for $800/mo',
-          'Audit my current cards and find overlaps',
         ]);
       } else if (mode === 'quick') {
         const intro = `Quick calls the best card for right now. Flip on location for instant nearby picks, or tell me where you are (e.g., Starbucks, Whole Foods).\n\nTry:`;
@@ -189,6 +205,14 @@ export default function BusinessAssistant() {
       setTurns([first]);
     }
   }, [turns.length]);
+
+  // Seed first-run quick actions if only intro present and no chips yet
+  useEffect(() => {
+    const onlyIntro = turns.length === 1 && turns[0]?.role === 'assistant';
+    if (onlyIntro && suggestions.length === 0 && !hydratingRef.current) {
+      setSuggestions(FIRST_RUN_CHIPS);
+    }
+  }, [turns, suggestions.length, FIRST_RUN_CHIPS]);
 
   useEffect(() => {
     // End hydration after initial render pass
@@ -725,10 +749,29 @@ Examples:
   <SuggestionChips
     items={suggestions}
     onPick={(s) => {
-      // Show the chip as a user bubble, then trigger normal send to produce assistant reply
+      // Intercept first-run quick actions and category/popular shortcuts
+      const raw = (s || '').toLowerCase();
+      if (s && s.startsWith('🏪')) {
+        setTurns(prev => [...prev, { role: 'assistant', content: 'Popular stores — tap one or ask another:' } as ChatTurn]);
+        setSuggestions(POPULAR_STORES);
+        lastInteractionWasChipRef.current = true;
+        return;
+      }
+      if (raw.includes('dining')) { handleSelectCategory('dining'); lastInteractionWasChipRef.current = true; return; }
+      if (raw.includes('gas')) { handleSelectCategory('gas'); lastInteractionWasChipRef.current = true; return; }
+      if (raw.includes('travel')) { handleSelectCategory('travel'); lastInteractionWasChipRef.current = true; return; }
+      if (raw.includes('grocer')) { handleSelectCategory('groceries'); lastInteractionWasChipRef.current = true; return; }
+      if (POPULAR_STORES.includes(s)) {
+        setInput('');
+        setTurns(prev => [...prev, { role: 'user', content: s } as ChatTurn]);
+        lastInteractionWasChipRef.current = true;
+        send(`/best ${s}`, { silentUser: true });
+        return;
+      }
+
+      // Default behavior: show the chip as a user bubble and send
       setInput('');
       setTurns(prev => [...prev, { role: 'user', content: s } as ChatTurn]);
-      // Call send with silent user so we don't duplicate the user message
       lastInteractionWasChipRef.current = true;
       send(s, { silentUser: true });
     }}
