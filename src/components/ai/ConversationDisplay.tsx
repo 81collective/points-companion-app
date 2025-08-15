@@ -5,12 +5,12 @@ import remarkGfm from 'remark-gfm';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Msg = { role: 'user' | 'assistant'; content: string; id: string };
-export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }: { messages: Msg[]; typing?: boolean; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void }) {
+export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion }: { messages: Msg[]; typing?: boolean; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void }) {
   const tsMapRef = useRef<Map<string, Date>>(new Map());
   const [shownTs, setShownTs] = useState<Set<string>>(new Set());
   const fmt = (d: Date) => new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
   return (
-    <div className="flex flex-col gap-0 px-2 sm:px-0">
+  <div className="flex flex-col gap-0 px-2 sm:px-0">
       <AnimatePresence initial={false}>
       {messages.map((m, i) => {
         const prev = messages[i - 1];
@@ -29,14 +29,14 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }:
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${firstOfGroup ? 'mt-3' : 'mt-0.5'}`}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} ${firstOfGroup ? 'mt-3' : 'mt-0.5'}`}
           >
-            <div className={`max-w-[70%] relative ${isUser ? 'items-end' : 'items-start'} flex flex-col group`}> 
+      <div className={`max-w-[90%] relative ${isUser ? 'items-end' : 'items-start'} flex flex-col group`}> 
               {firstOfGroup && (
                 <span className="text-[13px] text-gray-600 mb-1 select-none">{isUser ? 'You' : 'Assistant'}</span>
               )}
               <div className={`
-                text-[16px] leading-snug whitespace-pre-wrap px-3 py-2 rounded-2xl shadow-sm text-left
+        text-[16px] leading-snug whitespace-pre-wrap px-3 py-2 rounded-2xl shadow-md text-left
                 ${isUser ? 'bg-[#1976D2] text-white' : 'bg-[#E5E5EA] text-gray-900'}
                 ${isUser ? (firstOfGroup ? 'rounded-br-sm' : 'rounded-br-2xl') : (firstOfGroup ? 'rounded-bl-sm' : 'rounded-bl-2xl')}
               `}
@@ -47,7 +47,7 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }:
                 {isUser ? (
                   <p className="text-left">{m.content}</p>
                 ) : (
-                  <AssistantContent content={m.content} onViewCard={onViewCard} onAddCard={onAddCard} />
+                  <AssistantContent content={m.content} onViewCard={onViewCard} onAddCard={onAddCard} onSearchOtherLocation={onSearchOtherLocation} onRefreshNearby={onRefreshNearby} onAskQuestion={onAskQuestion} />
                 )}
                 {/* Tail */}
                 {firstOfGroup && (
@@ -65,7 +65,7 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }:
       </AnimatePresence>
       {typing && (
         <div className="flex justify-start mt-2">
-          <div className="max-w-[70%]">
+          <div className="max-w-[90%]">
             <div className="px-3 py-2 rounded-2xl rounded-bl-sm bg-[#E5E5EA] text-gray-700 inline-flex items-center gap-1">
               <span className="sr-only">Assistant is typing</span>
               <span className="w-2 h-2 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -79,7 +79,7 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard }:
   );
 }
 
-function AssistantContent({ content, onViewCard, onAddCard }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void }) {
+function AssistantContent({ content, onViewCard, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void }) {
   if (content.startsWith('RECS_JSON:')) {
     try {
       const raw = JSON.parse(content.slice('RECS_JSON:'.length));
@@ -104,6 +104,12 @@ function AssistantContent({ content, onViewCard, onAddCard }: { content: string;
               </div>
             </div>
           ))}
+          {/* Under-card quick actions */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <button onClick={() => onSearchOtherLocation?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Search other location</button>
+            <button onClick={() => onRefreshNearby?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Refresh nearby</button>
+            <button onClick={() => onAskQuestion?.('I have another question about these picks')} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Ask a question</button>
+          </div>
           {meta && (
             <div className="text-[12px] text-gray-500 pt-1">
               Updated for {meta.label || 'this plan'} just now

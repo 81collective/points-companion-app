@@ -607,7 +607,7 @@ Examples:
   };
 
   return (
-    <div className="bg-[#F7F7F7] border border-gray-200 p-0 sm:p-0 md:p-0 w-full">
+    <div className="bg-[#F7F7F7] w-full">
       {/* Header */}
       <div className="px-4 py-3 border-b bg-white">
         <div className="text-sm font-medium">AI Assistant</div>
@@ -681,6 +681,21 @@ Examples:
               router.push('/dashboard/cards');
             }
           }}
+          onSearchOtherLocation={() => {
+            setMode('quick');
+            setShowLocationPrompt(true);
+            setTurns(prev => [...prev, { role: 'assistant', content: 'Search another location — share location or type a store name.' } as ChatTurn]);
+          }}
+          onRefreshNearby={() => {
+            try { showClosestOptions(); } catch {}
+          }}
+          onAskQuestion={(seed?: string) => {
+            const q = seed || 'Can you explain why these were chosen?';
+            setInput('');
+            setTurns(prev => [...prev, { role: 'user', content: q } as ChatTurn]);
+            lastInteractionWasChipRef.current = true;
+            send(q, { silentUser: true });
+          }}
         />
   <div ref={endRef} />
       </div>
@@ -718,6 +733,19 @@ Examples:
       send(s, { silentUser: true });
     }}
   />
+
+      {/* Proactive location enable suggestion when disabled */}
+      {!permissionState.granted && (
+        <div className="mt-2">
+          <SuggestionChips
+            items={["Share my location for nearby picks"]}
+            onPick={() => {
+              setTurns(prev => [...prev, { role: 'assistant', content: 'Using your location to improve nearby picks.' } as ChatTurn]);
+              requestLocation();
+            }}
+          />
+        </div>
+      )}
 
       {/* Recommendations are now shown directly in the chat above */}
       <div className="sticky bottom-0 left-0 right-0 bg-[#F7F7F7] pt-2">

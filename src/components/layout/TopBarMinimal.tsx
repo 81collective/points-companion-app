@@ -2,7 +2,6 @@
 import React from 'react';
 import Link from 'next/link';
 import TextLogo from '@/components/branding/TextLogo';
-import { usePathname } from 'next/navigation';
 import { Menu, PanelLeftOpen, PanelLeftClose, User } from 'lucide-react';
 import { useNavigationStore } from '@/stores/navigationStore';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,25 +18,18 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = React.useState(false);
   // const { preferences } = useDashboardPreferences();
-  const pathname = usePathname();
-
-  const navLinks = React.useMemo(() => ([
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/cards', label: 'Cards' },
-    { href: '/insights', label: 'Insights' },
-    { href: '/analytics', label: 'Analytics' }
-  ]), []);
+  
 
   // Search functionality removed
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
+    <header className="sticky top-0 z-40 bg-black/60 backdrop-blur border-b border-white/10 text-white">
       <div className="h-14 flex items-center px-3 gap-3">
         {/* Sidebar toggle (desktop) */}
         <button
           onClick={toggleSidebar}
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="hidden md:inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-600"
+          className="hidden md:inline-flex items-center justify-center w-9 h-9 rounded-md border border-white/20 hover:bg-white/10 text-white"
         >
           {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
@@ -45,26 +37,17 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
         <button
           onClick={onMobileMenuToggle}
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-          className="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-600"
+          className="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-md border border-white/20 hover:bg-white/10 text-white"
         >
           <Menu className="w-4 h-4" />
         </button>
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-          <TextLogo className="text-lg sm:text-xl text-gray-900" withLink={false} compact />
+        <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-white text-sm">
+          <TextLogo className="text-lg sm:text-xl text-white" withLink={false} compact />
         </Link>
-        <nav className="hidden md:flex items-center gap-1 ml-4">
-          {navLinks.map(l => (
-            <Link
-              key={l.href}
-              href={l.href}
-              aria-current={pathname === l.href ? 'page' : undefined}
-              className={`text-xs font-medium px-3 py-2 rounded-md transition-colors ${pathname === l.href ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}
-            >{l.label}</Link>
-          ))}
-        </nav>
+        {/* Inline nav removed for minimal header */}
         <div className="flex-1" />
-  {/* Search & notifications removed */}
+        {/* Search & notifications removed */}
         {/* User avatar / menu */}
         {user && (
           <div className="relative">
@@ -72,9 +55,9 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
               onClick={() => setMenuOpen(o => !o)}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              className="w-9 h-9 rounded-full border border-gray-300 bg-gray-200 flex items-center justify-center hover:shadow-sm"
+              className="w-9 h-9 rounded-full border border-white/30 bg-white/20 flex items-center justify-center hover:bg-white/30"
             >
-              <User className="w-4 h-4 text-gray-700" />
+              <User className="w-4 h-4 text-white" />
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-md py-2 text-sm z-50">
@@ -94,20 +77,8 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
           </div>
         )}
       </div>
-      {/* Mobile horizontal nav (mirrors primary links) */}
-      {user && (
-        <nav aria-label="Primary" className="md:hidden px-3 pb-2 flex gap-2 overflow-x-auto">
-          {navLinks.map(l => (
-            <Link
-              key={l.href}
-              href={l.href}
-              aria-current={pathname === l.href ? 'page' : undefined}
-              className={`whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-md border transition-colors ${pathname === l.href ? 'bg-gray-100 border-gray-300 text-gray-900' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-            >{l.label}</Link>
-          ))}
-        </nav>
-      )}
-  {/* SearchModal removed */}
+      {/* Mobile horizontal nav removed for minimal header */}
+      {/* SearchModal removed */}
     </header>
   );
 }
