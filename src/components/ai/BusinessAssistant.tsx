@@ -50,6 +50,9 @@ export default function BusinessAssistant() {
   const inputRef = useRefReact<HTMLInputElement | null>(null);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const fileInputRef = useRefReact<HTMLInputElement | null>(null);
+  // Anonymous conversion flow (local-only wallet picks)
+  const [anonWallet, setAnonWallet] = useState<string[]>([]);
+  const [showWalletPicker, setShowWalletPicker] = useState(false);
   // Voice input (Web Speech API)
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -86,6 +89,18 @@ export default function BusinessAssistant() {
     'Whole Foods',
     'Costco',
     'Shell',
+  ], []);
+  const POPULAR_CARDS = useMemo(() => [
+    'Chase Sapphire Preferred',
+    'Chase Sapphire Reserve',
+    'Chase Freedom Unlimited',
+    'Citi Strata Premier',
+    'Citi Double Cash',
+    'Amex Gold',
+    'Amex Blue Cash Preferred',
+    'Capital One SavorOne',
+    'Discover it Cash Back',
+    'US Bank Altitude Go',
   ], []);
 
   const clearTyping = () => {
@@ -554,8 +569,17 @@ Examples:
         const header = place ? `Top picks for ${place}:` : `Top picks for ${selectedCategory}:`;
         setTurns(prev => [...prev, { role: 'assistant', content: `${header}\n${lines.join('\n')}` } as ChatTurn]);
   const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
-  const payload = { items: simple, meta: { label: place || selectedCategory, updatedAt: new Date().toISOString() } };
+  const payload = { items: simple, meta: { label: place || selectedCategory, updatedAt: new Date().toISOString(), ownedNames: anonWallet } };
   setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(payload)}` } as ChatTurn]);
+        // Stage conversion CTA for anonymous users
+        try {
+          if (!isUserAuthed()) {
+            setSuggestions(prev => {
+              const cta = 'See if you have it →';
+              return prev.includes(cta) ? prev : [cta, ...prev].slice(0, 6);
+            });
+          }
+        } catch {}
       } catch {
         setIsThinking(false);
       }
@@ -598,7 +622,16 @@ Examples:
           setTurns(prev => [...prev, recMsg]);
           // Embedded cards bubble data (lightweight fields)
           const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
-          setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
+          const payload = { items: simple, meta: { label: chosen.name, updatedAt: new Date().toISOString(), ownedNames: anonWallet } };
+          setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(payload)}` } as ChatTurn]);
+          try {
+            if (!isUserAuthed()) {
+              setSuggestions(prev => {
+                const cta = 'See if you have it →';
+                return prev.includes(cta) ? prev : [cta, ...prev].slice(0, 6);
+              });
+            }
+          } catch {}
         } catch {}
         return;
       }
@@ -657,7 +690,16 @@ Examples:
       const recMsg: ChatTurn = { role: 'assistant', content: `Top picks${place ? ` for ${place}` : ''}:\n${lines.join('\n')}` };
       setTurns(prev => [...prev, recMsg]);
   const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
-  setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(simple)}` } as ChatTurn]);
+  const payloadQuick = { items: simple, meta: { label: place || selectedCategory, updatedAt: new Date().toISOString(), ownedNames: anonWallet } };
+  setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(payloadQuick)}` } as ChatTurn]);
+      try {
+        if (!isUserAuthed()) {
+          setSuggestions(prev => {
+            const cta = 'See if you have it →';
+            return prev.includes(cta) ? prev : [cta, ...prev].slice(0, 6);
+          });
+        }
+      } catch {}
     } catch {}
     // Surface a small savings teaser for anonymous users
     try {
@@ -721,6 +763,9 @@ Examples:
       <div className="px-4 py-3 border-b bg-white">
         <div className="text-sm font-medium">AI Assistant</div>
         <div className="text-xs text-gray-500">Online{(typingTimerRef.current || isThinking) ? ' • Typing…' : ''}</div>
+        {!isUserAuthed() && (
+          <div className="text-[11px] text-gray-500 mt-1">Anonymous session • Not saved</div>
+        )}
       </div>
       <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -875,6 +920,15 @@ Examples:
     onPick={(s) => {
       // Intercept first-run quick actions and category/popular shortcuts
       const raw = (s || '').toLowerCase();
+      if (s === 'See if you have it →') {
+        setShowWalletPicker(true);
+        lastInteractionWasChipRef.current = true;
+        return;
+      }
+      if (s === 'Save my picks to a profile') {
+        try { router.push('/dashboard/cards'); } catch {}
+        return;
+      }
       if (s && s.startsWith('🏪')) {
         setTurns(prev => [...prev, { role: 'assistant', content: 'Popular stores — tap one or ask another:' } as ChatTurn]);
         setSuggestions(POPULAR_STORES);
@@ -900,6 +954,44 @@ Examples:
       send(s, { silentUser: true });
     }}
   />
+
+      {/* Anonymous quick multi-select wallet picker */}
+      {showWalletPicker && (
+        <div className="rounded-lg border bg-white p-3 text-sm">
+          <div className="font-medium">Which of these cards do you have?</div>
+          <div className="text-xs text-gray-500 mb-2">This helps personalize picks. Not saved unless you create an account.</div>
+          <div className="flex flex-wrap gap-2">
+            {POPULAR_CARDS.map((c) => {
+              const selected = anonWallet.includes(c);
+              return (
+                <button
+                  key={c}
+                  onClick={() => setAnonWallet(prev => selected ? prev.filter(x => x !== c) : [...prev, c])}
+                  className={`px-3 py-1 rounded-full border text-xs ${selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-300'}`}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              className="px-3 py-1.5 text-xs rounded-full bg-blue-600 text-white"
+              onClick={() => {
+                setShowWalletPicker(false);
+                setTurns(prev => [...prev, { role: 'assistant', content: `Got it — saved ${anonWallet.length} card${anonWallet.length === 1 ? '' : 's'} for this session.` } as ChatTurn]);
+                setSuggestions(prev => {
+                  const plus = 'Save my picks to a profile';
+                  return prev.includes(plus) ? prev : [plus, ...prev].slice(0, 6);
+                });
+              }}
+            >
+              Done
+            </button>
+            <button className="px-3 py-1.5 text-xs rounded-full border" onClick={() => setShowWalletPicker(false)}>Skip</button>
+          </div>
+        </div>
+      )}
 
       {/* Proactive location enable suggestion when disabled */}
       {!permissionState.granted && (
