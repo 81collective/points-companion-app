@@ -3,7 +3,6 @@ export interface Transaction {
   id: string;
   userId: string;
   accountId?: string;
-  plaidTransactionId?: string;
   amount: number;
   description: string;
   merchantName?: string;
@@ -34,25 +33,6 @@ export interface TransactionLocation {
   lon?: number;
 }
 
-export interface PlaidAccount {
-  id: string;
-  userId: string;
-  plaidAccountId: string;
-  plaidItemId: string;
-  accessToken: string;
-  institutionId: string;
-  institutionName: string;
-  accountName: string;
-  accountType: PlaidAccountType;
-  accountSubtype: string;
-  mask?: string;
-  balance?: number;
-  isActive: boolean;
-  lastSyncAt?: string;
-  cursor?: string; // For incremental updates
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface CSVImportSession {
   id: string;
@@ -158,20 +138,11 @@ export interface TransactionStats {
 
 // Enums
 export enum TransactionSource {
-  PLAID = 'plaid',
   CSV_IMPORT = 'csv_import',
   MANUAL_ENTRY = 'manual_entry',
   API_IMPORT = 'api_import'
 }
 
-export enum PlaidAccountType {
-  CHECKING = 'checking',
-  SAVINGS = 'savings',
-  CREDIT_CARD = 'credit',
-  INVESTMENT = 'investment',
-  LOAN = 'loan',
-  OTHER = 'other'
-}
 
 export enum ImportStatus {
   PENDING = 'pending',
@@ -282,9 +253,4 @@ export const DUPLICATE_DETECTION_THRESHOLDS = {
   LOW_SIMILARITY: 0.5
 } as const;
 
-export const PLAID_CONFIG = {
-  WEBHOOK_URL: process.env.PLAID_WEBHOOK_URL,
-  REDIRECT_URI: process.env.PLAID_REDIRECT_URI,
-  COUNTRY_CODES: ['US', 'CA'] as const,
-  PRODUCTS: ['transactions', 'accounts'] as const
-} as const;
+// Plaid-related types and constants removed in pre-Plaid baseline.

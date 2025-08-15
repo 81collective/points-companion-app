@@ -6,8 +6,6 @@ const envSchema = z.object({
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1, 'Google Maps API key missing').optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  PLAID_CLIENT_ID: z.string().optional(),
-  PLAID_SECRET: z.string().optional(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
 })

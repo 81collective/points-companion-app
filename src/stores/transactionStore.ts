@@ -8,14 +8,13 @@ import {
   DuplicateTransaction,
   TransactionBulkEdit,
   ImportStatus,
-  PlaidAccount,
   DuplicateAction
 } from '@/types/transactions';
 
 interface TransactionStore {
   // State
   transactions: Transaction[];
-  plaidAccounts: PlaidAccount[];
+  // Removed Plaid accounts in pre-Plaid baseline
   csvImportSessions: CSVImportSession[];
   duplicates: DuplicateTransaction[];
   isLoading: boolean;
@@ -34,10 +33,7 @@ interface TransactionStore {
   updateCSVImportSession: (sessionId: string, updates: Partial<CSVImportSession>) => void;
   getCSVImportSession: (sessionId: string) => CSVImportSession | undefined;
   
-  // Plaid Integration
-  addPlaidAccount: (account: Omit<PlaidAccount, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updatePlaidAccount: (id: string, updates: Partial<PlaidAccount>) => void;
-  syncPlaidTransactions: (accountId: string) => Promise<void>;
+  // Plaid integration removed
   
   // Filtering & Search
   setFilter: (filter: Partial<TransactionFilter>) => void;
@@ -65,7 +61,7 @@ interface TransactionStore {
 
 const initialState = {
   transactions: [],
-  plaidAccounts: [],
+  // plaidAccounts removed
   csvImportSessions: [],
   duplicates: [],
   isLoading: false,
@@ -166,42 +162,7 @@ export const useTransactionStore = create<TransactionStore>()(
         return get().csvImportSessions.find((session) => session.id === sessionId);
       },
 
-      // Plaid Integration
-      addPlaidAccount: (accountData) => {
-        const account: PlaidAccount = {
-          ...accountData,
-          id: crypto.randomUUID(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-
-        set((state) => ({
-          plaidAccounts: [...state.plaidAccounts, account]
-        }));
-      },
-
-      updatePlaidAccount: (id, updates) => {
-        set((state) => ({
-          plaidAccounts: state.plaidAccounts.map((account) =>
-            account.id === id
-              ? { ...account, ...updates, updatedAt: new Date().toISOString() }
-              : account
-          )
-        }));
-      },
-
-      syncPlaidTransactions: async (accountId) => {
-        // Implementation will connect to Plaid API
-        set({ isLoading: true });
-        try {
-          // Plaid sync logic here
-          console.log('Syncing Plaid transactions for account:', accountId);
-  } catch (_error) {
-          set({ error: 'Failed to sync Plaid transactions' });
-        } finally {
-          set({ isLoading: false });
-        }
-      },
+  // Plaid integration removed
 
       // Filtering & Search
       setFilter: (newFilter) => {
@@ -433,7 +394,7 @@ export const useTransactionStore = create<TransactionStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         transactions: state.transactions,
-        plaidAccounts: state.plaidAccounts,
+  // plaidAccounts removed
         filter: state.filter
       })
     }
