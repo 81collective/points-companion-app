@@ -48,7 +48,7 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, o
                 {isUser ? (
                   <p className="text-left">{m.content}</p>
                 ) : (
-                  <AssistantContent content={m.content} onViewCard={onViewCard} onAddCard={onAddCard} onSearchOtherLocation={onSearchOtherLocation} onRefreshNearby={onRefreshNearby} onAskQuestion={onAskQuestion} onOpenDetails={(name, issuer, summary, est) => setSheet({ name, issuer, summary, est_value_usd: est })} />
+                  <AssistantContent content={m.content} onAddCard={onAddCard} onSearchOtherLocation={onSearchOtherLocation} onRefreshNearby={onRefreshNearby} onAskQuestion={onAskQuestion} onOpenDetails={(name, issuer, summary, est) => setSheet({ name, issuer, summary, est_value_usd: est })} />
                 )}
                 {/* Tail */}
                 {firstOfGroup && (
@@ -108,23 +108,25 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, o
   );
 }
 
-function AssistantContent({ content, onViewCard, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion, onOpenDetails }: { content: string; onViewCard?: (name: string, issuer?: string) => void; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void; onOpenDetails?: (name: string, issuer?: string, summary?: string, est?: number) => void }) {
+function AssistantContent({ content, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion, onOpenDetails }: { content: string; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void; onOpenDetails?: (name: string, issuer?: string, summary?: string, est?: number) => void }) {
   if (content.startsWith('RECS_JSON:')) {
     try {
       const raw = JSON.parse(content.slice('RECS_JSON:'.length));
-      const data = (Array.isArray(raw) ? raw : (raw?.items || [])) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
-      const meta = Array.isArray(raw) ? undefined : raw?.meta as { label?: string; updatedAt?: string } | undefined;
+  const data = (Array.isArray(raw) ? raw : (raw?.items || [])) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
+  const meta = Array.isArray(raw) ? undefined : raw?.meta as { label?: string; updatedAt?: string; ownedNames?: string[] } | undefined;
+  const ownedSet = new Set((meta?.ownedNames || []).map((s) => String(s).toLowerCase()));
       return (
         <div className="space-y-2 text-left">
           {/* Swipeable row of flippable cards */}
           <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1">
-            {data.map((d, i) => (
+    {data.map((d, i) => (
               <FlippableCard
                 key={i}
                 name={d.card.card_name}
                 issuer={d.card.issuer}
                 summary={d.summary}
                 est={typeof d.est_value_usd === 'number' ? d.est_value_usd : undefined}
+        owned={ownedSet.has(String(d.card.card_name).toLowerCase())}
                 onView={() => onOpenDetails?.(d.card.card_name, d.card.issuer, d.summary, d.est_value_usd)}
                 onAdd={() => onAddCard?.(d.card.card_name, d.card.issuer)}
               />
@@ -180,7 +182,7 @@ function AssistantContent({ content, onViewCard, onAddCard, onSearchOtherLocatio
   );
 }
 
-function FlippableCard({ name, issuer, summary, est, onView, onAdd }: { name: string; issuer?: string; summary?: string; est?: number; onView: () => void; onAdd: () => void }) {
+function FlippableCard({ name, issuer, summary, est, owned, onView, onAdd }: { name: string; issuer?: string; summary?: string; est?: number; owned?: boolean; onView: () => void; onAdd: () => void }) {
   const [flipped, setFlipped] = useState(false);
   return (
     <div className="snap-start shrink-0 w-[280px] h-[170px] perspective-1000">
@@ -191,11 +193,20 @@ function FlippableCard({ name, issuer, summary, est, onView, onAdd }: { name: st
             <span className="truncate">{name}</span>
           </div>
           {issuer && <div className="text-xs text-gray-500">— {issuer}</div>}
+          {owned && (
+            <div className="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-800 border border-green-200">Owned</div>
+          )}
           {summary && <div className="text-xs text-gray-700 mt-2 line-clamp-3">{summary}</div>}
           {typeof est === 'number' && <div className="text-[11px] text-gray-500 mt-1">Est. per $100: ${est}</div>}
           <div className="absolute bottom-3 left-3 right-3 flex gap-2">
             <button onClick={onView} className="px-2 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Details</button>
-            <button onClick={onAdd} className="px-2 py-1 text-xs rounded-full bg-blue-600 text-white hover:bg-blue-700">Add</button>
+            <button
+              onClick={() => { if (!owned) onAdd(); }}
+              disabled={owned}
+              className={`px-2 py-1 text-xs rounded-full ${owned ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            >
+              {owned ? 'Owned' : 'Add'}
+            </button>
             <button onClick={() => setFlipped(v => !v)} className="ml-auto px-2 py-1 text-xs rounded-full border border-gray-200">Flip</button>
           </div>
         </div>
