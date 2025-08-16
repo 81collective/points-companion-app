@@ -108,42 +108,70 @@ export function ConversationDisplay({ messages, typing, onViewCard, onAddCard, o
   );
 }
 
+function RecsBlock({ data, meta, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion, onOpenDetails }: { data: Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>; meta?: { label?: string; updatedAt?: string; ownedNames?: string[] }; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void; onOpenDetails?: (name: string, issuer?: string, summary?: string, est?: number) => void }) {
+  const ownedSet = React.useMemo(() => new Set((meta?.ownedNames || []).map((s) => String(s).toLowerCase())), [meta?.ownedNames]);
+  const [hideOwned, setHideOwned] = React.useState(false);
+  const visible = React.useMemo(() => hideOwned ? data.filter(d => !ownedSet.has(String(d.card.card_name).toLowerCase())) : data, [data, hideOwned, ownedSet]);
+  const copySummary = async () => {
+    try {
+      const header = meta?.label ? `Top picks for ${meta.label}` : 'Top picks';
+      const lines = visible.map((d, i) => `${i + 1}) ${d.card.card_name} — ${d.card.issuer}${typeof d.est_value_usd === 'number' ? ` (est. $${d.est_value_usd}/$100)` : ''}`);
+      const text = `${header}\n${lines.join('\n')}`;
+      await navigator.clipboard?.writeText(text);
+    } catch {}
+  };
+  return (
+    <div className="space-y-2 text-left">
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1">
+        {visible.map((d, i) => (
+          <FlippableCard
+            key={i}
+            name={d.card.card_name}
+            issuer={d.card.issuer}
+            summary={d.summary}
+            est={typeof d.est_value_usd === 'number' ? d.est_value_usd : undefined}
+            owned={ownedSet.has(String(d.card.card_name).toLowerCase())}
+            onView={() => onOpenDetails?.(d.card.card_name, d.card.issuer, d.summary, d.est_value_usd)}
+            onAdd={() => onAddCard?.(d.card.card_name, d.card.issuer)}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 pt-1">
+        <button onClick={() => onSearchOtherLocation?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Search other location</button>
+        <button onClick={() => onRefreshNearby?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Refresh nearby</button>
+        <button onClick={() => onAskQuestion?.('I have another question about these picks')} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Ask a question</button>
+        {!!ownedSet.size && (
+          <button onClick={() => setHideOwned(v => !v)} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50" aria-pressed={hideOwned} aria-label={hideOwned ? 'Show owned cards' : 'Hide owned cards'}>
+            {hideOwned ? 'Show owned' : 'Hide owned'}
+          </button>
+        )}
+        <button onClick={copySummary} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50" aria-label="Copy summary">Copy summary</button>
+      </div>
+      {meta && (
+        <div className="text-[12px] text-gray-500 pt-1">
+          Updated for {meta.label || 'this plan'} just now
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AssistantContent({ content, onAddCard, onSearchOtherLocation, onRefreshNearby, onAskQuestion, onOpenDetails }: { content: string; onAddCard?: (name: string, issuer?: string) => void; onSearchOtherLocation?: () => void; onRefreshNearby?: () => void; onAskQuestion?: (seed?: string) => void; onOpenDetails?: (name: string, issuer?: string, summary?: string, est?: number) => void }) {
   if (content.startsWith('RECS_JSON:')) {
     try {
       const raw = JSON.parse(content.slice('RECS_JSON:'.length));
   const data = (Array.isArray(raw) ? raw : (raw?.items || [])) as Array<{ card: { card_name: string; issuer: string }; summary?: string; est_value_usd?: number }>;
-  const meta = Array.isArray(raw) ? undefined : raw?.meta as { label?: string; updatedAt?: string; ownedNames?: string[] } | undefined;
-  const ownedSet = new Set((meta?.ownedNames || []).map((s) => String(s).toLowerCase()));
+      const meta = Array.isArray(raw) ? undefined : raw?.meta as { label?: string; updatedAt?: string; ownedNames?: string[] } | undefined;
       return (
-        <div className="space-y-2 text-left">
-          {/* Swipeable row of flippable cards */}
-          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1">
-    {data.map((d, i) => (
-              <FlippableCard
-                key={i}
-                name={d.card.card_name}
-                issuer={d.card.issuer}
-                summary={d.summary}
-                est={typeof d.est_value_usd === 'number' ? d.est_value_usd : undefined}
-        owned={ownedSet.has(String(d.card.card_name).toLowerCase())}
-                onView={() => onOpenDetails?.(d.card.card_name, d.card.issuer, d.summary, d.est_value_usd)}
-                onAdd={() => onAddCard?.(d.card.card_name, d.card.issuer)}
-              />
-            ))}
-          </div>
-          {/* Under-card quick actions */}
-          <div className="flex flex-wrap gap-2 pt-1">
-            <button onClick={() => onSearchOtherLocation?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Search other location</button>
-            <button onClick={() => onRefreshNearby?.()} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Refresh nearby</button>
-            <button onClick={() => onAskQuestion?.('I have another question about these picks')} className="px-3 py-1.5 text-xs rounded-full border border-gray-300 hover:bg-gray-50">Ask a question</button>
-          </div>
-          {meta && (
-            <div className="text-[12px] text-gray-500 pt-1">
-              Updated for {meta.label || 'this plan'} just now
-            </div>
-          )}
-        </div>
+        <RecsBlock
+          data={data}
+          meta={meta}
+          onAddCard={onAddCard}
+          onSearchOtherLocation={onSearchOtherLocation}
+          onRefreshNearby={onRefreshNearby}
+          onAskQuestion={onAskQuestion}
+          onOpenDetails={onOpenDetails}
+        />
       );
     } catch {}
   }
