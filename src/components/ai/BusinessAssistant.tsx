@@ -221,7 +221,7 @@ export default function BusinessAssistant() {
     try {
       const raw = typeof window !== 'undefined' ? localStorage.getItem('businessAssistant:v1') : null;
       if (raw) {
-        const saved = JSON.parse(raw) as { mode?: 'quick'|'planning'; selectedCategory?: string; turns?: ChatTurn[] };
+        const saved = JSON.parse(raw) as { mode?: 'quick'|'planning'; selectedCategory?: string; turns?: ChatTurn[]; anonWallet?: string[] };
         hydratingRef.current = true;
         if (saved.mode) {
           // Prevent mode switch effect from nuking restored chat
@@ -230,6 +230,7 @@ export default function BusinessAssistant() {
         }
         if (saved.selectedCategory) setSelectedCategory(saved.selectedCategory);
         if (Array.isArray(saved.turns) && saved.turns.length) setTurns(saved.turns);
+        if (Array.isArray(saved.anonWallet)) setAnonWallet(saved.anonWallet.filter(Boolean));
       }
     } catch {}
   }, []);
@@ -270,10 +271,10 @@ export default function BusinessAssistant() {
     // Persist minimal state for session continuity
     try {
   const cappedTurns = turns.slice(-50);
-  const payload = JSON.stringify({ mode, selectedCategory, turns: cappedTurns });
+  const payload = JSON.stringify({ mode, selectedCategory, turns: cappedTurns, anonWallet });
       localStorage.setItem('businessAssistant:v1', payload);
     } catch {}
-  }, [mode, selectedCategory, turns]);
+  }, [mode, selectedCategory, turns, anonWallet]);
 
   // If user clicked Yes before granting, once permission is granted show nearby prompt (no second tap)
   useEffect(() => {
@@ -571,12 +572,14 @@ Examples:
   const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
   const payload = { items: simple, meta: { label: place || selectedCategory, updatedAt: new Date().toISOString(), ownedNames: anonWallet } };
   setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(payload)}` } as ChatTurn]);
-        // Stage conversion CTA for anonymous users
+    // Stage conversion CTA for anonymous users
         try {
           if (!isUserAuthed()) {
             setSuggestions(prev => {
               const cta = 'See if you have it →';
-              return prev.includes(cta) ? prev : [cta, ...prev].slice(0, 6);
+      const extras = anonWallet.length ? ['Edit my cards'] : [];
+      const next = prev.includes(cta) ? prev : [cta, ...extras, ...prev];
+      return next.slice(0, 6);
             });
           }
         } catch {}
@@ -692,11 +695,13 @@ Examples:
   const simple = recs.map(r => ({ card: { card_name: r.card.card_name, issuer: r.card.issuer }, summary: (formatTransparentMath(r).reasons || []).slice(0,1).join(', '), est_value_usd: formatTransparentMath(r).estValueUSD }));
   const payloadQuick = { items: simple, meta: { label: place || selectedCategory, updatedAt: new Date().toISOString(), ownedNames: anonWallet } };
   setTurns(prev => [...prev, { role: 'assistant', content: `RECS_JSON:${JSON.stringify(payloadQuick)}` } as ChatTurn]);
-      try {
+  try {
         if (!isUserAuthed()) {
           setSuggestions(prev => {
             const cta = 'See if you have it →';
-            return prev.includes(cta) ? prev : [cta, ...prev].slice(0, 6);
+    const extras = anonWallet.length ? ['Edit my cards'] : [];
+    const next = prev.includes(cta) ? prev : [cta, ...extras, ...prev];
+    return next.slice(0, 6);
           });
         }
       } catch {}
@@ -925,6 +930,7 @@ Examples:
         lastInteractionWasChipRef.current = true;
         return;
       }
+  if (s === 'Edit my cards') { setShowWalletPicker(true); lastInteractionWasChipRef.current = true; return; }
       if (s === 'Save my picks to a profile') {
         try { router.push('/dashboard/cards'); } catch {}
         return;
@@ -1071,6 +1077,10 @@ Examples:
               <button onClick={() => { setMode('planning'); setShowQuickActions(false); setTurns(prev=>[...prev,{role:'assistant',content:'Switched to Planning — tell me your goals, spend, and timeline.'} as ChatTurn]); }} className="p-3 border rounded-xl text-left hover:bg-gray-50">
                 <div className="text-base">Start planning</div>
                 <div className="text-xs text-gray-500">Design a step‑by‑step strategy</div>
+              </button>
+              <button onClick={() => { setShowQuickActions(false); setTurns([]); setSuggestions([]); setAnonWallet([]); try { localStorage.removeItem('businessAssistant:v1'); } catch {}; }} className="p-3 border rounded-xl text-left hover:bg-gray-50">
+                <div className="text-base">Reset session</div>
+                <div className="text-xs text-gray-500">Clear chat and temporary picks</div>
               </button>
             </div>
             <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={() => { setShowQuickActions(false); setTurns(prev=>[...prev,{role:'assistant',content:'Thanks — receipt analysis is coming soon.'} as ChatTurn]); }} />
