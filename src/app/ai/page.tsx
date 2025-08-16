@@ -1,11 +1,11 @@
 'use client';
 import React from 'react';
-import BusinessAssistant from '@/components/ai/BusinessAssistant';
 import ErrorBoundary from '@/components/error/ErrorBoundary';
 import TextLogo from '@/components/branding/TextLogo';
 import { User } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import ChatInterface from '@/components/chat/ChatInterface';
 
 export default function AIPage() {
   const { user } = useAuth();
@@ -33,7 +33,7 @@ export default function AIPage() {
         <main className="flex-1">
           <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
             <div className="rounded-xl overflow-hidden border border-white/10 bg-white">
-              <BusinessAssistant />
+              <ChatInterface mode="quick" isAuthenticated={!!user} />
             </div>
           </div>
         </main>
