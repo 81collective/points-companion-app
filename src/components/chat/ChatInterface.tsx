@@ -8,7 +8,7 @@ import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
 import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import BusinessCardInChat from './BusinessCardInChat';
 import TypingIndicator from './TypingIndicator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MiniSpendingInsights from './MiniSpendingInsights';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavoritesStore } from '@/stores/favoritesStore';
@@ -30,7 +30,7 @@ const initialMessage = (mode: 'quick' | 'planning'): Message => ({
 
 export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated, userCards: _userCards }: ChatInterfaceProps) {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([initialMessage(mode)]);
+  const [, setMessages] = useState<Message[]>([initialMessage(mode)]);
   const [input, setInput] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
   const [category, setCategory] = useState<string>('dining');
@@ -139,7 +139,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
             {/* Favorites for logged-in users */}
             {user && (
               <div className="mt-3">
-                <ChatBubble sender="assistant" message="Your favorites" richContent={<div className="text-xs text-gray-600">Coming soon</div>} />
+                <FavoritesList onSelect={(id) => { setSelectedBusinessId(id); setActiveTab('planning'); }} />
               </div>
             )}
 
@@ -229,5 +229,31 @@ function NearbyRow({ id, name, onSelect }: { id: string; name: string; onSelect:
         <button type="button" onClick={onSelect} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
       </div>
     </div>
+  );
+}
+
+function FavoritesList({ onSelect }: { onSelect: (id: string) => void }) {
+  const { items, remove } = useFavoritesStore();
+  if (!items.length) return (
+    <ChatBubble sender="assistant" message="Your favorites" richContent={<div className="text-xs text-gray-600">No favorites yet</div>} />
+  );
+  return (
+    <ChatBubble
+      sender="assistant"
+      message="Your favorites"
+      richContent={(
+        <div className="mt-1 flex flex-col gap-2">
+          {items.map((b) => (
+            <div key={b.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
+              <span className="truncate max-w-[55%]">{b.name}</span>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => onSelect(b.id)} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
+                <button type="button" onClick={() => remove(b.id)} className="px-2 py-1 text-xs rounded border border-gray-300">Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    />
   );
 }
