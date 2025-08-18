@@ -6,7 +6,7 @@ import TextLogo from '@/components/branding/TextLogo';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Loader2 } from 'lucide-react';
-import BusinessAssistant from '@/components/ai/BusinessAssistant';
+import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
 
 export default function HomePage() {
@@ -56,7 +56,12 @@ export default function HomePage() {
           Smart AI recommendations help you earn more points, cashback, and travel rewards. Never miss out on the best card for each purchase again.
         </p>
         <div className="mt-6">
-          <BusinessAssistant />
+          {/* Embed the same AI assistant chat used on /ai and dashboard to align experiences */}
+          <div className="mx-auto max-w-3xl bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="h-[520px]">
+              <ChatInterface mode="quick" isAuthenticated={false} />
+            </div>
+          </div>
         </div>
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <button
