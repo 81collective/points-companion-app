@@ -43,6 +43,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   const [activeTab, setActiveTab] = useState<'quick' | 'planning'>(mode);
   const [showAllNearby, setShowAllNearby] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | undefined>();
+  const [selectedBusinessName, setSelectedBusinessName] = useState<string | undefined>();
 
   // Persist tab & category (optional)
   React.useEffect(() => {
@@ -79,6 +80,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     latitude: location?.latitude,
     longitude: location?.longitude,
   businessId: selectedBusinessId,
+  businessName: selectedBusinessName,
   enabled: !!category,
   });
 
@@ -144,14 +146,14 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                   message="Nearby places"
                   richContent={(
                     <div className="mt-1 flex flex-col gap-2">
-                      {(showAllNearby ? nearbyBusinesses : nearbyBusinesses.slice(0, 3)).map((b) => (
+            {(showAllNearby ? nearbyBusinesses : nearbyBusinesses.slice(0, 3)).map((b) => (
                         <NearbyRow
                           key={b.id}
                           id={b.id}
                           name={b.name}
                           rating={b.rating}
                           distance={b.distance}
-                          onSelect={() => { setSelectedBusinessId(b.id); setActiveTab('planning'); }}
+              onSelect={() => { setSelectedBusinessId(b.id); setSelectedBusinessName(b.name); setActiveTab('planning'); }}
                         />
                       ))}
                       {nearbyBusinesses.length > 3 && (
@@ -170,9 +172,9 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
             )}
 
             {/* Favorites for logged-in users */}
-            {user && (
+      {user && (
               <div className="mt-3">
-                <FavoritesList onSelect={(id) => { setSelectedBusinessId(id); setActiveTab('planning'); }} />
+        <FavoritesList onSelect={(id, name) => { setSelectedBusinessId(id); setSelectedBusinessName(name); setActiveTab('planning'); }} />
               </div>
             )}
 
@@ -279,7 +281,7 @@ function NearbyRow({ id, name, rating, distance, onSelect }: { id: string; name:
   );
 }
 
-function FavoritesList({ onSelect }: { onSelect: (id: string) => void }) {
+function FavoritesList({ onSelect }: { onSelect: (id: string, name: string) => void }) {
   const { items, remove } = useFavoritesStore();
   if (!items.length) return (
     <ChatBubble sender="assistant" message="Your favorites" richContent={<div className="text-xs text-gray-600">No favorites yet</div>} />
@@ -294,7 +296,7 @@ function FavoritesList({ onSelect }: { onSelect: (id: string) => void }) {
             <div key={b.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
               <span className="truncate max-w-[55%]">{b.name}</span>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => onSelect(b.id)} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
+                <button type="button" onClick={() => onSelect(b.id, b.name)} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
                 <button type="button" onClick={() => remove(b.id)} className="px-2 py-1 text-xs rounded border border-gray-300">Remove</button>
               </div>
             </div>
