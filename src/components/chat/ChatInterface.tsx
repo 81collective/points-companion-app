@@ -76,8 +76,19 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     radius: 5000,
     enabled: permissionState.granted && !!location,
   });
+  // Always sort nearby by distance ascending when available
+  const sortedNearby = React.useMemo(() => {
+    const list = (nearbyBusinesses || []).slice();
+    list.sort((a, b) => {
+      const da = typeof a.distance === 'number' ? a.distance : Number.POSITIVE_INFINITY;
+      const db = typeof b.distance === 'number' ? b.distance : Number.POSITIVE_INFINITY;
+      if (da !== db) return da - db;
+      return a.name.localeCompare(b.name);
+    });
+    return list;
+  }, [nearbyBusinesses]);
   // If no explicit selection, in Planning use the top nearby business name as a fallback context
-  const planningFallbackBusinessName = activeTab === 'planning' ? (selectedBusinessName ?? nearbyBusinesses?.[0]?.name) : selectedBusinessName;
+  const planningFallbackBusinessName = activeTab === 'planning' ? (selectedBusinessName ?? sortedNearby?.[0]?.name) : selectedBusinessName;
   const { recommendations, loading: recLoading } = useCardRecommendations({
     category,
     latitude: location?.latitude,
@@ -92,7 +103,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     category,
     latitude: location?.latitude,
     longitude: location?.longitude,
-    businesses: nearbyBusinesses || [],
+    businesses: sortedNearby || [],
     enabled: activeTab === 'planning' && permissionState.granted && !!location,
     limit: 5,
   });
@@ -159,7 +170,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                   message="Nearby places"
                   richContent={(
                     <div className="mt-1 flex flex-col gap-2">
-            {(showAllNearby ? nearbyBusinesses : nearbyBusinesses.slice(0, 3)).map((b) => (
+                      {(showAllNearby ? sortedNearby : sortedNearby.slice(0, 3)).map((b) => (
                         <NearbyRow
                           key={b.id}
                           id={b.id}
@@ -169,7 +180,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
               onSelect={() => { setSelectedBusinessId(b.id); setSelectedBusinessName(b.name); setActiveTab('planning'); }}
                         />
                       ))}
-                      {nearbyBusinesses.length > 3 && (
+                      {sortedNearby.length > 3 && (
                         <button
                           type="button"
                           onClick={() => setShowAllNearby(s => !s)}
