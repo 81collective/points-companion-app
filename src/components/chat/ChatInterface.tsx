@@ -191,6 +191,18 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
 
         {activeTab === 'planning' && (
           <>
+            {!permissionState.granted && (
+              <div className="mb-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-900 p-2 flex items-center justify-between">
+                <span className="text-sm">Use your location to tailor Planning recommendations</span>
+                <button
+                  type="button"
+                  onClick={requestLocation}
+                  className="px-2 py-1 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700"
+                >
+                  Enable
+                </button>
+              </div>
+            )}
             <div className="mb-2">
               {/* All category chips moved to Planning */}
               <CategoryChips onSelect={(key: string) => {
