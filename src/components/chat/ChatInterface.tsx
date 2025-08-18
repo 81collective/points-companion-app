@@ -151,7 +151,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                           name={b.name}
                           rating={b.rating}
                           distance={b.distance}
-                          onSelect={() => setSelectedBusinessId(b.id)}
+                          onSelect={() => { setSelectedBusinessId(b.id); setActiveTab('planning'); }}
                         />
                       ))}
                       {nearbyBusinesses.length > 3 && (
