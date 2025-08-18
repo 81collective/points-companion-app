@@ -13,6 +13,7 @@ import MiniSpendingInsights from './MiniSpendingInsights';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavoritesStore } from '@/stores/favoritesStore';
 import { MapPin, Star } from 'lucide-react';
+import { useBestCardsForBusinesses } from '@/hooks/useBestCardsForBusinesses';
 
 export interface ChatInterfaceProps {
   mode: 'quick' | 'planning';
@@ -84,6 +85,16 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   businessId: selectedBusinessId,
   businessName: planningFallbackBusinessName,
   enabled: !!category,
+  });
+
+  // In planning with no explicit selection, also compute best card per top nearby business
+  const { items: perBusinessBest, loading: _perBusinessLoading } = useBestCardsForBusinesses({
+    category,
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+    businesses: nearbyBusinesses || [],
+    enabled: activeTab === 'planning' && permissionState.granted && !!location,
+    limit: 5,
   });
 
   const send = (text: string) => {
@@ -220,7 +231,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                 <ChatBubble sender="assistant" message="" richContent={<TypingIndicator />} />
               </div>
             )}
-            {recommendations && recommendations.length > 0 && (
+            {selectedBusinessId && recommendations && recommendations.length > 0 && (
               <div className="mt-4 overflow-x-auto">
                 <div className="flex gap-3 pr-2">
                   {recommendations.slice(0, 5).map((rec, idx) => (
@@ -229,6 +240,22 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                         business={{ name: rec?.business?.name || 'Nearby place', distance: rec?.business?.distance }}
                         recommendedCard={{ name: rec.card.card_name }}
                         rewards={{ text: `${rec.estimated_points} pts (~$${Math.round(rec.annual_value / 12)})` }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!selectedBusinessId && perBusinessBest && perBusinessBest.length > 0 && (
+              <div className="mt-4 overflow-x-auto">
+                <div className="flex gap-3 pr-2">
+                  {perBusinessBest.map((item, idx) => (
+                    <div key={item.business.id || idx} className="min-w-[260px] max-w-[320px]">
+                      <BusinessCardInChat
+                        business={{ name: item.business.name, distance: item.business.distance ? (item.business.distance < 1609.34 ? `${Math.round(item.business.distance * 3.28084)}ft` : `${(item.business.distance * 0.000621371).toFixed(1)}mi`) : undefined }}
+                        recommendedCard={{ name: item.recommendation?.card.card_name || 'Best nearby card' }}
+                        rewards={item.recommendation ? { text: `${item.recommendation.estimated_points} pts (~$${Math.round(item.recommendation.annual_value / 12)})` } : undefined}
+                        onSelect={() => { setSelectedBusinessId(item.business.id); setSelectedBusinessName(item.business.name); }}
                       />
                     </div>
                   ))}
