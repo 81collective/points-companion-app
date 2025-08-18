@@ -12,11 +12,17 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MiniSpendingInsights from './MiniSpendingInsights';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFavoritesStore } from '@/stores/favoritesStore';
+import { MapPin, Star } from 'lucide-react';
 
 export interface ChatInterfaceProps {
   mode: 'quick' | 'planning';
   isAuthenticated: boolean;
   userCards?: UserCard[];
+  /**
+   * When false, the chat will not persist UI state (activeTab/category) to localStorage
+   * and will not read it back on mount. Useful for embedded homepage toggle.
+   */
+  persistUiState?: boolean;
 }
 
 const initialMessage = (mode: 'quick' | 'planning'): Message => ({
@@ -28,7 +34,7 @@ const initialMessage = (mode: 'quick' | 'planning'): Message => ({
   timestamp: Date.now(),
 });
 
-export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated, userCards: _userCards }: ChatInterfaceProps) {
+export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated, userCards: _userCards, persistUiState = true }: ChatInterfaceProps) {
   const { user } = useAuth();
   const [, setMessages] = useState<Message[]>([initialMessage(mode)]);
   const [input, setInput] = useState('');
@@ -38,14 +44,17 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   const [showAllNearby, setShowAllNearby] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | undefined>();
 
-  // Persist tab & category
+  // Persist tab & category (optional)
   React.useEffect(() => {
+    if (!persistUiState) return;
     try { localStorage.setItem('chat.activeTab', activeTab); } catch {}
-  }, [activeTab]);
+  }, [activeTab, persistUiState]);
   React.useEffect(() => {
+    if (!persistUiState) return;
     try { localStorage.setItem('chat.category', category); } catch {}
-  }, [category]);
+  }, [category, persistUiState]);
   React.useEffect(() => {
+    if (!persistUiState) return;
     try {
       const t = localStorage.getItem('chat.activeTab');
       const c = localStorage.getItem('chat.category');
@@ -54,7 +63,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     } catch {}
     // run once on mount only
      
-  }, []);
+  }, [persistUiState]);
 
   // Location and data hooks
   const { location, permissionState, requestLocation } = useLocation();
@@ -85,12 +94,29 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   return (
     <div className="flex flex-col h-full">
       <div className="border-b">
-        <Tabs value={activeTab} onValueChange={(v)=>setActiveTab(v as 'quick'|'planning')} className="px-3 sm:px-4 pt-2">
-          <TabsList className="bg-transparent">
-            <TabsTrigger value="quick">Quick</TabsTrigger>
-            <TabsTrigger value="planning">Planning</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center justify-between px-3 sm:px-4 pt-2">
+          <Tabs value={activeTab} onValueChange={(v)=>setActiveTab(v as 'quick'|'planning')}>
+            <TabsList className="bg-transparent">
+              <TabsTrigger value="quick">Quick</TabsTrigger>
+              <TabsTrigger value="planning">Planning</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {/* Compact toggle to switch modes */}
+          <div className="hidden sm:flex items-center gap-2 text-xs">
+            <span className={activeTab==='quick' ? 'text-blue-700 font-medium' : 'text-gray-500'}>Quick</span>
+            <button
+              type="button"
+              aria-label="Toggle mode"
+              onClick={() => setActiveTab(prev => prev === 'quick' ? 'planning' : 'quick')}
+              className="relative inline-flex h-6 w-10 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${activeTab==='planning' ? 'translate-x-4' : 'translate-x-1'}`}
+              />
+            </button>
+            <span className={activeTab==='planning' ? 'text-blue-700 font-medium' : 'text-gray-500'}>Planning</span>
+          </div>
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto p-3 sm:p-4" ref={listRef}>
   {/* Location helper banner (Quick only) */}
@@ -119,7 +145,14 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                   richContent={(
                     <div className="mt-1 flex flex-col gap-2">
                       {(showAllNearby ? nearbyBusinesses : nearbyBusinesses.slice(0, 3)).map((b) => (
-                        <NearbyRow key={b.id} id={b.id} name={b.name} onSelect={() => setSelectedBusinessId(b.id)} />
+                        <NearbyRow
+                          key={b.id}
+                          id={b.id}
+                          name={b.name}
+                          rating={b.rating}
+                          distance={b.distance}
+                          onSelect={() => setSelectedBusinessId(b.id)}
+                        />
                       ))}
                       {nearbyBusinesses.length > 3 && (
                         <button
@@ -211,12 +244,26 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   );
 }
 
-function NearbyRow({ id, name, onSelect }: { id: string; name: string; onSelect: () => void }) {
+function NearbyRow({ id, name, rating, distance, onSelect }: { id: string; name: string; rating?: number; distance?: number; onSelect: () => void }) {
   const { add, remove, has } = useFavoritesStore();
   const fav = has(id);
   return (
     <div className="flex items-center justify-between rounded-md border p-2 text-sm">
-      <span className="truncate max-w-[55%]">{name}</span>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="truncate max-w-[50%]">{name}</span>
+        {typeof rating === 'number' && (
+          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-200">
+            <Star className="w-3 h-3 fill-current text-yellow-500" />
+            {rating.toFixed(1)}
+          </span>
+        )}
+        {typeof distance === 'number' && (
+          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">
+            <MapPin className="w-3 h-3" />
+            {distance < 1609.34 ? `${Math.round(distance * 3.28084)}ft` : `${(distance * 0.000621371).toFixed(1)}mi`}
+          </span>
+        )}
+      </div>
       <div className="flex items-center gap-2">
         <button
           type="button"
