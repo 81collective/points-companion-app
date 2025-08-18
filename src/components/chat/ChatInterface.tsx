@@ -40,7 +40,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   const [, setMessages] = useState<Message[]>([initialMessage(mode)]);
   const [input, setInput] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
-  const [category, setCategory] = useState<string>('dining');
+  const [category, setCategory] = useState<string>(mode === 'quick' ? 'all' : 'dining');
   const [activeTab, setActiveTab] = useState<'quick' | 'planning'>(mode);
   const [showAllNearby, setShowAllNearby] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | undefined>();

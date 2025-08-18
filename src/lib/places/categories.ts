@@ -1,4 +1,5 @@
 export type CategoryKey =
+  | 'all'
   | 'dining'
   | 'coffee'
   | 'groceries'
@@ -17,6 +18,14 @@ type ProviderMapping = {
 };
 
 export const CATEGORY_MAP: Record<CategoryKey, ProviderMapping> = {
+  all: {
+    googleTypes: [
+      'restaurant', 'cafe', 'grocery_or_supermarket', 'convenience_store', 'gas_station',
+      'department_store', 'shopping_mall', 'pharmacy', 'movie_theater', 'tourist_attraction',
+      'electronics_store', 'lodging', 'hardware_store', 'home_goods_store'
+    ],
+    googleKeywords: ['food', 'coffee', 'groceries', 'gas', 'shopping', 'pharmacy', 'entertainment', 'hotel']
+  },
   dining: {
     googleTypes: ['restaurant', 'meal_takeaway', 'meal_delivery'],
     googleKeywords: ['restaurant', 'eat', 'lunch', 'dinner', 'food', 'best lunch'],
