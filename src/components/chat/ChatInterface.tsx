@@ -75,12 +75,14 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     radius: 5000,
     enabled: permissionState.granted && !!location,
   });
+  // If no explicit selection, in Planning use the top nearby business name as a fallback context
+  const planningFallbackBusinessName = activeTab === 'planning' ? (selectedBusinessName ?? nearbyBusinesses?.[0]?.name) : selectedBusinessName;
   const { recommendations, loading: recLoading } = useCardRecommendations({
     category,
     latitude: location?.latitude,
     longitude: location?.longitude,
   businessId: selectedBusinessId,
-  businessName: selectedBusinessName,
+  businessName: planningFallbackBusinessName,
   enabled: !!category,
   });
 
@@ -193,6 +195,9 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
               {/* All category chips moved to Planning */}
               <CategoryChips onSelect={(key: string) => {
                 setCategory(key);
+                // Reset selection so Planning can pick up the new category's nearby as context
+                setSelectedBusinessId(undefined);
+                setSelectedBusinessName(undefined);
                 send(`Show me best for ${key}`);
               }} />
             </div>
