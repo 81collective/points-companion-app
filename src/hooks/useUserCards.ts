@@ -13,14 +13,19 @@ export function useUserCards() {
   const [cards, setCards] = useState<SimpleUserCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
+  const hasSupabaseKeys = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      if (!user) { setCards([]); return; }
+      // Only run on client with valid keys and an authenticated user
+      if (!user || typeof window === 'undefined' || !hasSupabaseKeys) {
+        setCards([]);
+        return;
+      }
       setLoading(true); setError(null);
       try {
+        const supabase = createClient();
         const { data, error } = await supabase
           .from('credit_cards')
           .select('id,name')
@@ -37,7 +42,7 @@ export function useUserCards() {
     }
     load();
     return () => { cancelled = true; };
-  }, [user, supabase]);
+  }, [user, hasSupabaseKeys]);
 
   return { cards, loading, error };
 }
