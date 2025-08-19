@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState } from 'react';
-import ChatBubble from './ChatBubble';
-import CategoryChips from './CategoryChips';
+import ChatBubble from '@/components/chat/ChatBubble';
+import CategoryChips from '@/components/chat/CategoryChips';
 import type { Message, UserCard } from '../../types/ai-assistant';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';

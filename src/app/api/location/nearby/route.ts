@@ -162,12 +162,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid coordinates or radius', success: false }, { status: 400 });
     }
 
+    // Branch: if no server key but a public client key exists, instruct client-side Places usage
+    const hasServerKey = !!process.env.GOOGLE_MAPS_API_KEY;
+    const hasClientKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!hasServerKey && hasClientKey) {
+      return NextResponse.json({
+        success: true,
+        use_client_places: true,
+        client_api_available: true,
+        businesses: [],
+        user_location: { latitude, longitude },
+      });
+    }
+
     const supabase = createClient();
-  const aggregated: Aggregated = await getCachedOrFetch(supabase, { lat: latitude, lng: longitude, category, radius: radiusMeters });
+    const aggregated: Aggregated = await getCachedOrFetch(supabase, { lat: latitude, lng: longitude, category, radius: radiusMeters });
 
     // Map to existing Business response shape
   const businesses = aggregated.items.map((it) => ({
-      id: it.id,
+      // Ensure Google-sourced places carry a recognizable prefix for tests/consumers
+      id: it.place_id ? `google_${it.place_id}` : it.id,
       name: it.name,
       category,
       address: it.address || '',
