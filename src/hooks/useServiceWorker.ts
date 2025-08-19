@@ -12,11 +12,13 @@ const useServiceWorker = () => {
   const [state, setState] = useState<ServiceWorkerState>({
     isInstalled: false,
     isUpdateAvailable: false,
-    isOnline: navigator?.onLine ?? true,
+    // Guard for SSR: navigator is not defined on the server
+    isOnline: typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true,
   });
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
+    // Guard for SSR and feature detection
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
       registerServiceWorker();
     }
 
@@ -24,17 +26,22 @@ const useServiceWorker = () => {
     const handleOnline = () => setState(prev => ({ ...prev, isOnline: true }));
     const handleOffline = () => setState(prev => ({ ...prev, isOnline: false }));
     
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+    }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      }
     };
   }, []);
 
   const registerServiceWorker = async () => {
     try {
+      if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
       const registration = await navigator.serviceWorker.register('/sw.js');
       
       setState(prev => ({ ...prev, isInstalled: true }));
@@ -66,11 +73,13 @@ const useServiceWorker = () => {
   };
 
   const updateServiceWorker = () => {
-    if ('serviceWorker' in navigator) {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistration().then((registration) => {
         if (registration?.waiting) {
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          window.location.reload();
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
         }
       });
     }

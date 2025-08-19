@@ -168,8 +168,8 @@ export function enhanceError(
     metadata: {
       ...metadata,
       timestamp: new Date().toISOString(),
-      userAgent: typeof window !== 'undefined' ? navigator.userAgent : undefined,
-      url: typeof window !== 'undefined' ? window.location.href : undefined
+  userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+  url: typeof window !== 'undefined' ? window.location.href : undefined
     }
   });
 

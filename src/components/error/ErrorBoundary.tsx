@@ -88,7 +88,8 @@ class ErrorBoundary extends Component<Props, State> {
   private getCurrentUserId(): string | null {
     try {
       // Get user ID from session storage or context
-      const userData = sessionStorage.getItem('user_data');
+  if (typeof window === 'undefined') return null;
+  const userData = window.sessionStorage?.getItem('user_data');
       if (userData) {
         const parsed = JSON.parse(userData);
         return parsed.id || null;
@@ -100,10 +101,11 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('session_id');
+    if (typeof window === 'undefined') return 'session_server';
+    let sessionId = window.sessionStorage?.getItem('session_id');
     if (!sessionId) {
       sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      sessionStorage.setItem('session_id', sessionId);
+      try { window.sessionStorage?.setItem('session_id', sessionId); } catch {}
     }
     return sessionId;
   }
@@ -251,7 +253,8 @@ class ErrorBoundary extends Component<Props, State> {
 
   private storeErrorLocally(errorData: Record<string, unknown>): void {
     try {
-      const errors = JSON.parse(localStorage.getItem('app_errors') || '[]');
+  if (typeof window === 'undefined') return;
+  const errors = JSON.parse(window.localStorage?.getItem('app_errors') || '[]');
       errors.push(errorData);
       
       // Keep only last 50 errors
@@ -259,7 +262,7 @@ class ErrorBoundary extends Component<Props, State> {
         errors.splice(0, errors.length - 50);
       }
       
-      localStorage.setItem('app_errors', JSON.stringify(errors));
+  window.localStorage?.setItem('app_errors', JSON.stringify(errors));
     } catch {
       // Ignore storage errors
     }
@@ -270,11 +273,15 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleReload = () => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   private handleGoHome = () => {
-    window.location.href = '/';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   public render() {
