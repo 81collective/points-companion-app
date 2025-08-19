@@ -76,7 +76,7 @@ jobs:
       - name: Start server and wait
         run: |
           nohup npm run start -- -p 3000 >/dev/null 2>&1 &
-          npx wait-on http-get://localhost:3000
+          npx wait-on http-get://localhost:3000/api/health || npx wait-on http-get://localhost:3000
       - name: Run Playwright tests
         run: npm run test:e2e
       - name: Upload Playwright Report

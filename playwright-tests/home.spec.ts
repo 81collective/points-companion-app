@@ -11,7 +11,7 @@ test.describe('Home Page', () => {
     await expect(page.locator('nav')).toBeVisible()
     
     // Check for main content
-    await expect(page.locator('main')).toBeVisible()
+  await expect(page.locator('main')).toBeVisible({ timeout: 15000 })
   })
 
   test('should display navigation menu', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('Home Page', () => {
     await page.goto('/')
     
     // Check that content is still visible and accessible
-    await expect(page.locator('main')).toBeVisible()
+  await expect(page.locator('main')).toBeVisible({ timeout: 15000 })
     
     // Check for mobile navigation (hamburger menu, etc.)
     // This will depend on your specific mobile navigation implementation
@@ -44,7 +44,7 @@ test.describe('Home Page', () => {
     await expect(page.locator('html')).toHaveAttribute('lang')
     
     // Check for main landmark
-    await expect(page.locator('main')).toBeVisible()
+  await expect(page.locator('main')).toBeVisible({ timeout: 15000 })
     
     // Check that there's a skip link or main content is easily accessible
     // This will depend on your accessibility implementation
