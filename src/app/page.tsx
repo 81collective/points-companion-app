@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import TextLogo from '@/components/branding/TextLogo';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserCards } from '@/hooks/useUserCards';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
@@ -12,6 +13,7 @@ import DealOfTheDay from '@/components/public/DealOfTheDay';
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { cards } = useUserCards();
 
   useEffect(() => {
     if (user && !loading) {
@@ -56,10 +58,10 @@ export default function HomePage() {
           Smart AI recommendations help you earn more points, cashback, and travel rewards. Never miss out on the best card for each purchase again.
         </p>
         <div className="mt-6">
-          {/* Embed the same AI assistant chat used on /ai and dashboard to align experiences */}
+      {/* Embed the same AI assistant chat used on /ai and dashboard to align experiences */}
           <div className="mx-auto max-w-3xl bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="h-[520px]">
-              <ChatInterface mode="quick" isAuthenticated={false} />
+        <ChatInterface mode="quick" isAuthenticated={!!user} userCards={cards} />
             </div>
           </div>
         </div>

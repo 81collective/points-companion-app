@@ -6,9 +6,11 @@ import { User } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import ChatInterface from '@/components/chat/ChatInterface';
+import { useUserCards } from '@/hooks/useUserCards';
 
 export default function AIPage() {
   const { user } = useAuth();
+  const { cards } = useUserCards();
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[#0b1220] text-white flex flex-col">
@@ -33,7 +35,7 @@ export default function AIPage() {
         <main className="flex-1">
           <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
             <div className="rounded-xl overflow-hidden border border-white/10 bg-white">
-              <ChatInterface mode="quick" isAuthenticated={!!user} />
+              <ChatInterface mode="quick" isAuthenticated={!!user} userCards={cards} />
             </div>
           </div>
         </main>
