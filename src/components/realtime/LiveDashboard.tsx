@@ -14,7 +14,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@supabase/supabase-js';
+import { useSupabase } from '@/hooks/useSupabase';
 
 interface LiveMetric {
   id: string;
@@ -42,11 +42,8 @@ const LiveDashboard: React.FC = () => {
   const [connectionTime, setConnectionTime] = useState<Date | null>(null);
   const { user } = useAuth();
 
-  // Initialize Supabase client for real-time
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Initialize Supabase client via SSR-safe wrapper
+  const { supabase } = useSupabase();
 
   interface PostgresPayload<T> { eventType: string; new: T; old?: T }
   interface TransactionRow { amount?: string | number; merchant_name?: string }
@@ -168,7 +165,11 @@ const LiveDashboard: React.FC = () => {
       setupRealtimeConnection();
       initializeLiveMetrics();
     }
-    return () => { supabase.removeAllChannels(); };
+    return () => {
+      // Guard in case SSR stub does not implement removeAllChannels
+      const anyClient = supabase as unknown as { removeAllChannels?: () => void };
+      anyClient.removeAllChannels?.();
+    };
   }, [user, setupRealtimeConnection, supabase, initializeLiveMetrics]);
 
   const addActivity = (activity: Omit<LiveActivity, 'id'>) => {
