@@ -73,6 +73,11 @@ jobs:
     - name: Build application
       run: npm run build
     
+    - name: Start server
+      run: |
+        npm run start &
+        sleep 5
+    
     - name: Run Playwright tests
       run: npm run test:e2e
       env:
