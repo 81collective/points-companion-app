@@ -53,13 +53,14 @@ class ErrorBoundary extends Component<Props, State> {
 
   private logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
     // Enhanced security-focused error logging
+    const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined' && typeof document !== 'undefined';
     const errorData = {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: isBrowser ? navigator.userAgent : undefined,
+      url: isBrowser ? window.location.href : undefined,
       userId: this.getCurrentUserId(),
       sessionId: this.getSessionId(),
       buildVersion: process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
@@ -144,14 +145,15 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private getSecurityContext(error: Error): Record<string, unknown> {
+    const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined' && typeof document !== 'undefined';
     return {
-      referrer: document.referrer,
-      origin: window.location.origin,
-      protocol: window.location.protocol,
-      cookiesEnabled: navigator.cookieEnabled,
-      doNotTrack: navigator.doNotTrack,
-      language: navigator.language,
-      platform: navigator.platform,
+      referrer: isBrowser ? document.referrer : undefined,
+      origin: isBrowser ? window.location.origin : undefined,
+      protocol: isBrowser ? window.location.protocol : undefined,
+      cookiesEnabled: isBrowser ? navigator.cookieEnabled : undefined,
+      doNotTrack: isBrowser ? navigator.doNotTrack : undefined,
+      language: isBrowser ? navigator.language : undefined,
+      platform: isBrowser ? navigator.platform : undefined,
       isSecurityRelated: this.isSecurityRelatedError(error),
       localStorageEnabled: this.isLocalStorageEnabled(),
       sessionStorageEnabled: this.isSessionStorageEnabled()
@@ -159,7 +161,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private getPerformanceMetrics(): Record<string, unknown> {
-    if (typeof window !== 'undefined' && window.performance) {
+  if (typeof window !== 'undefined' && window.performance) {
       const navigation = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       const memoryInfo = (window.performance as unknown as ExtendedPerformance).memory;
       return {
@@ -177,7 +179,8 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private isLocalStorageEnabled(): boolean {
-    try {
+  if (typeof window === 'undefined') return false;
+  try {
       const test = 'test';
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
@@ -188,7 +191,8 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private isSessionStorageEnabled(): boolean {
-    try {
+  if (typeof window === 'undefined') return false;
+  try {
       const test = 'test';
       sessionStorage.setItem(test, test);
       sessionStorage.removeItem(test);

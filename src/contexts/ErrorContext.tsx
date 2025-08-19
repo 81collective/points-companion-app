@@ -63,22 +63,21 @@ export const ErrorProvider: React.FC<ErrorProviderProps> = ({ children }) => {
   }, []);
 
   const reportError = useCallback((error: Error, context?: string, metadata?: Record<string, unknown>) => {
-    // Enhanced error reporting
+    // Enhanced error reporting (SSR-safe)
+    const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
     const errorReport = {
       message: error.message,
       stack: error.stack,
       context,
       metadata,
       timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
+      userAgent: isBrowser ? navigator.userAgent : undefined,
+      url: isBrowser ? window.location.href : undefined,
       userId: null, // TODO: Get from auth context
-    };
+    } as const;
 
     console.error('Error reported:', errorReport);
-    
     // TODO: Send to monitoring service (e.g., Sentry, LogRocket, etc.)
-    // Example: errorMonitoringService.captureException(error, errorReport);
   }, []);
 
   const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
