@@ -1,20 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import useServiceWorker from '@/hooks/useServiceWorker';
-
-const ServiceWorkerRegistration = () => {
-  const { isInstalled: _isInstalled, isUpdateAvailable, updateServiceWorker } = useServiceWorker();
-
-  useEffect(() => {
-    if (isUpdateAvailable) {
-      // Automatically update service worker
-      updateServiceWorker();
-    }
-  }, [isUpdateAvailable, updateServiceWorker]);
-
-  // This component doesn't render anything visible
+// Minimal stub while PWA feature is parked in examples.
+export default function ServiceWorkerRegistration() {
   return null;
-};
-
-export default ServiceWorkerRegistration;
+}
