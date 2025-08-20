@@ -11,6 +11,9 @@ interface Profile {
   first_name: string | null
   last_name: string | null
   avatar_url: string | null
+  subscription_plan: 'free' | 'basic' | 'premium' | 'enterprise'
+  subscription_status: 'active' | 'expired' | 'cancelled' | 'paused'
+  subscription_expires_at: string | null
   created_at: string
   updated_at: string
 }
@@ -126,7 +129,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             id: data.user.id,
             email: data.user.email!,
             first_name: firstName || null,
-            last_name: lastName || null
+            last_name: lastName || null,
+            subscription_plan: 'free',
+            subscription_status: 'active'
           })
 
         if (profileError) {

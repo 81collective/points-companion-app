@@ -11,6 +11,7 @@ import { formatTransparentMath, type Recommendation } from '@/lib/ai/responseFor
 import { useAssistantStore } from '@/stores/assistantStore';
 import { useRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ModelStatus, UpgradePrompt } from './ModelStatus';
 import { useRouter } from 'next/navigation';
 
 export default function BusinessAssistant() {
@@ -768,6 +769,7 @@ Examples:
       <div className="px-4 py-3 border-b bg-white">
         <div className="text-sm font-medium">AI Assistant</div>
         <div className="text-xs text-gray-500">Online{(typingTimerRef.current || isThinking) ? ' • Typing…' : ''}</div>
+        <ModelStatus className="mt-1" />
         {!isUserAuthed() && (
           <div className="text-[11px] text-gray-500 mt-1">Anonymous session • Not saved</div>
         )}
@@ -782,6 +784,9 @@ Examples:
           <button onClick={requestLocation} className="text-xs px-3 py-1 bg-blue-600 text-white">Enable location</button>
         )}
       </div>
+
+      {/* Upgrade prompt for free users */}
+      <UpgradePrompt />
 
       {/* Quick mode category selector */}
   {mode === 'quick' && (

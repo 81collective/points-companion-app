@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOpenAIClient, isOpenAIConfigured } from '@/lib/openai-server';
+import { getBestAvailableModel } from '@/lib/modelAccess';
+import { getUserFromRequest } from '@/lib/apiUtils';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -34,6 +36,19 @@ export async function POST(req: NextRequest) {
     const openai = getOpenAIClient();
     if (!openai) return NextResponse.json({ reply: 'AI unavailable right now.' });
 
+    // Get user to determine their subscription plan and available models
+    const user = await getUserFromRequest(req);
+    let selectedModel = 'gpt-3.5-turbo'; // fallback for unauthenticated users
+    
+    if (user) {
+      try {
+        selectedModel = await getBestAvailableModel(user.id);
+      } catch (error) {
+        console.error('Error getting best available model:', error);
+        selectedModel = 'gpt-4o'; // fallback to previous default
+      }
+    }
+
   const uxSpec = await getUxSpec();
   const systemPrompt = uxSpec ? `${baseSystem}\n\nUX SPECIFICATION:\n${uxSpec}` : baseSystem;
 
@@ -47,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (ctxStr) messages.push({ role: 'user', content: `Use this extra context when helpful.${ctxStr}` });
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: selectedModel,
       messages,
       temperature: 0.4,
       max_tokens: 400,
@@ -61,7 +76,13 @@ export async function POST(req: NextRequest) {
     if (/travel|flight|hotel/i.test(reply)) suggestions.push('Compare lounge access');
     if (!suggestions.length) suggestions.push('Show me alternatives');
 
-    return NextResponse.json({ reply, suggestions });
+    // Include model information in response for transparency
+    const response: any = { reply, suggestions };
+    if (user) {
+      response.modelUsed = selectedModel;
+    }
+
+    return NextResponse.json(response);
   } catch (err) {
     return NextResponse.json({ error: 'Assistant error', details: String(err) }, { status: 500 });
   }
