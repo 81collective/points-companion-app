@@ -160,11 +160,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
       location: location ? { latitude: location.latitude, longitude: location.longitude } : undefined,
       selectedBusiness: selectedBusinessId || selectedBusinessName ? { id: selectedBusinessId, name: selectedBusinessName } : undefined,
       hasWallet: !!(_userCards && _userCards.length > 0),
-      userCards: (_userCards || []).map((c: UserCard | { id: string; name: string; issuer?: string }) => ({
-        id: c.id,
-        name: c.name,
-        issuer: 'issuer' in c && c.issuer ? c.issuer : undefined
-      }))
+      userCards: (_userCards || []).map(c => ({ id: (c as UserCard).id, name: c.name, issuer: (c as UserCard).issuer }))
     };
 
     try {
@@ -182,7 +178,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
       setMessages(prev => prev.map(m => (
         m.id === pendingId ? { ...m, content: replyText, suggestions } : m
       )));
-    } catch (err) {
+    } catch (_err) {
       setMessages(prev => prev.map(m => (
         m.id === pendingId ? { ...m, content: 'Sorry, something went wrong while contacting the assistant.' } : m
       )));

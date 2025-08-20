@@ -11,7 +11,7 @@
     "icons": "node scripts/generate-icons.mjs",
     "update-cards": "node scripts/update-cards.mjs",
     "check-cards": "node scripts/check-cards.mjs",
-    "analyze": "ANALYZE=true npm run build",
+    "analyze": "cross-env ANALYZE=true npm run build",
     "build:analyze": "npm run analyze",
     "perf:audit": "npm run build && npm run start & sleep 5 && lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html",
     "perf:memory": "node --expose-gc --max-old-space-size=4096 node_modules/.bin/next build",
@@ -77,6 +77,7 @@
     "@types/react-dom": "^19",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "autoprefixer": "^10.4.16",
+    "cross-env": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "husky": "^9.1.7",
@@ -96,4 +97,3 @@
     ]
   }
 }
-
