@@ -38,7 +38,7 @@ const initialMessage = (mode: 'quick' | 'planning'): Message => ({
 
 export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated, userCards: _userCards, persistUiState = true }: ChatInterfaceProps) {
   const { user } = useAuth();
-  const [, setMessages] = useState<Message[]>([initialMessage(mode)]);
+  const [messages, setMessages] = useState<Message[]>([initialMessage(mode)]);
   const [input, setInput] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
   const [category, setCategory] = useState<string>(mode === 'quick' ? 'all' : 'dining');
@@ -48,6 +48,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   const [selectedBusinessName, setSelectedBusinessName] = useState<string | undefined>();
   const [walletOnly, setWalletOnly] = useState<boolean>(!!(_userCards && _userCards.length > 0));
   const [walletOnlyTouched, setWalletOnlyTouched] = useState<boolean>(false);
+  const isMountedRef = useRef(false);
   // If user has a wallet and hasn't manually changed the toggle yet, default to ON
   React.useEffect(() => {
     if (!walletOnlyTouched && _userCards && _userCards.length > 0 && !walletOnly) {
@@ -133,13 +134,59 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     limit: 5,
   });
 
-  const send = (text: string) => {
-    if (!text.trim()) return;
-    const userMsg: Message = { id: `${Date.now()}`,'role':'user', content: text.trim(), timestamp: Date.now() };
-    setMessages(prev => [...prev, userMsg]);
-    // Simulated assistant response placeholder
-    const reply: Message = { id: `${Date.now()}-a`, role: 'assistant', content: 'Let me think about that…', timestamp: Date.now() };
-    setMessages(prev => [...prev, reply]);
+  // Auto-scroll to latest message
+  React.useEffect(() => {
+    if (!isMountedRef.current) { isMountedRef.current = true; return; }
+    try {
+      listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
+    } catch {}
+  }, [messages]);
+
+  const send = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const now = Date.now();
+    const userMsg: Message = { id: `${now}`,'role':'user', content: trimmed, timestamp: now };
+    const pendingId = `pending-${now}`;
+    const pendingAssistant: Message = { id: pendingId, role: 'assistant', content: '', timestamp: now };
+    setMessages(prev => [...prev, userMsg, pendingAssistant]);
+
+    // Prepare context for the assistant
+    const context = {
+      mode: activeTab,
+      category,
+      walletOnly,
+      location: location ? { latitude: location.latitude, longitude: location.longitude } : undefined,
+      selectedBusiness: selectedBusinessId || selectedBusinessName ? { id: selectedBusinessId, name: selectedBusinessName } : undefined,
+      hasWallet: !!(_userCards && _userCards.length > 0),
+      userCards: (_userCards || []).map((c: UserCard | { id: string; name: string; issuer?: string }) => ({
+        id: c.id,
+        name: c.name,
+        issuer: 'issuer' in c && c.issuer ? c.issuer : undefined
+      }))
+    };
+
+    try {
+      const turns = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
+      const res = await fetch('/api/assistant/converse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turns, context }),
+      });
+      const data = await res.json();
+
+      const replyText: string = data?.reply || data?.content || 'I had trouble generating a response.';
+      const suggestions: string[] | undefined = Array.isArray(data?.suggestions) ? data.suggestions : undefined;
+
+      setMessages(prev => prev.map(m => (
+        m.id === pendingId ? { ...m, content: replyText, suggestions } : m
+      )));
+    } catch (err) {
+      setMessages(prev => prev.map(m => (
+        m.id === pendingId ? { ...m, content: 'Sorry, something went wrong while contacting the assistant.' } : m
+      )));
+    }
   };
 
   // Helper: fuzzy wallet match against userCards
@@ -198,6 +245,37 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-3 sm:p-4" ref={listRef}>
+  {/* Conversation messages */}
+  <div className="flex flex-col gap-2">
+    {messages.map(m => (
+      <ChatBubble
+        key={m.id}
+        sender={m.role}
+        message={m.content}
+        timestamp={m.timestamp}
+        richContent={m.role === 'assistant' ? (
+          m.content ? (
+            m.suggestions && m.suggestions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {m.suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => send(s)}
+                    className="text-xs px-2 py-1 rounded-full border border-blue-300 text-blue-800 bg-white hover:bg-blue-50"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            ) : undefined
+          ) : (
+            <TypingIndicator />
+          )
+        ) : undefined}
+      />
+    ))}
+  </div>
   {/* Location helper banner (Quick only) */}
   {activeTab === 'quick' && !permissionState.granted && (
           <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 text-blue-900 p-2 flex items-center justify-between">
