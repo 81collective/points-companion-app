@@ -1,19 +1,37 @@
 "use client";
 import React, { useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import ChatBubble from '@/components/chat/ChatBubble';
 import CategoryChips from '@/components/chat/CategoryChips';
 import type { Message, UserCard } from '../../types/ai-assistant';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
 import { useCardRecommendations } from '@/hooks/useCardRecommendations';
-import BusinessCardInChat from './BusinessCardInChat';
 import TypingIndicator from './TypingIndicator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import MiniSpendingInsights from './MiniSpendingInsights';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFavoritesStore } from '@/stores/favoritesStore';
-import { MapPin, Star } from 'lucide-react';
 import { useBestCardsForBusinesses } from '@/hooks/useBestCardsForBusinesses';
+
+// Lazy load heavy components
+const BusinessCardInChat = dynamic(() => import('./BusinessCardInChat'), { 
+  ssr: false,
+  loading: () => <div className="h-32 bg-gray-50 animate-pulse rounded" />
+});
+
+const MiniSpendingInsights = dynamic(() => import('./MiniSpendingInsights'), { 
+  loading: () => <div className="h-24 bg-gray-50 animate-pulse rounded" />,
+  ssr: false 
+});
+
+const NearbyRow = dynamic(() => import('./NearbyRow'), {
+  loading: () => <div className="h-12 bg-gray-50 animate-pulse rounded" />,
+  ssr: false
+});
+
+const FavoritesList = dynamic(() => import('./FavoritesList'), {
+  loading: () => <div className="h-20 bg-gray-50 animate-pulse rounded" />,
+  ssr: false
+});
 
 export interface ChatInterfaceProps {
   mode: 'quick' | 'planning';
@@ -113,15 +131,19 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     });
     return list;
   }, [nearbyBusinesses]);
+
   // If no explicit selection, in Planning use the top nearby business name as a fallback context
-  const planningFallbackBusinessName = activeTab === 'planning' ? (selectedBusinessName ?? sortedNearby?.[0]?.name) : selectedBusinessName;
+  const planningFallbackBusinessName = React.useMemo(() => 
+    activeTab === 'planning' ? (selectedBusinessName ?? sortedNearby?.[0]?.name) : selectedBusinessName,
+    [activeTab, selectedBusinessName, sortedNearby]
+  );
   const { recommendations, loading: recLoading } = useCardRecommendations({
     category,
     latitude: location?.latitude,
     longitude: location?.longitude,
-  businessId: selectedBusinessId,
-  businessName: planningFallbackBusinessName,
-  enabled: !!category,
+    businessId: selectedBusinessId,
+    businessName: planningFallbackBusinessName,
+    enabled: !!category && (!!selectedBusinessId || !!planningFallbackBusinessName),
   });
 
   // In planning with no explicit selection, also compute best card per top nearby business
@@ -142,7 +164,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     } catch {}
   }, [messages]);
 
-  const send = async (text: string) => {
+  const send = React.useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
 
@@ -183,9 +205,31 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
         m.id === pendingId ? { ...m, content: 'Sorry, something went wrong while contacting the assistant.' } : m
       )));
     }
-  };
+  }, [activeTab, category, walletOnly, location, selectedBusinessId, selectedBusinessName, _userCards, messages]);
 
-  // Helper: fuzzy wallet match against userCards
+  // Memoized normalized user cards for performance
+  const normalizedUserCards = React.useMemo(() => {
+    if (!_userCards || _userCards.length === 0) return [];
+    const issuerWords = ['chase','american express','amex','citi','capital one','bank of america','wells fargo','discover','apple'];
+    const clean = (s: string) => s.toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9 ]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const stripIssuers = (s: string) => {
+      let out = ` ${s} `; // pad for whole-word replace safety
+      issuerWords.forEach(w => { out = out.replace(new RegExp(` ${w} `, 'g'), ' '); });
+      return out.trim().replace(/\s+/g, ' ');
+    };
+    
+    return _userCards.map(c => {
+      const n = clean(c.name);
+      const core = stripIssuers(n);
+      return { n, core };
+    });
+  }, [_userCards]);
+
+  // Helper: memoized fuzzy wallet match against userCards
   const isOwnedCard = React.useCallback((cardName?: string) => {
     if (!cardName || !_userCards || _userCards.length === 0) return false;
     const issuerWords = ['chase','american express','amex','citi','capital one','bank of america','wells fargo','discover','apple'];
@@ -201,17 +245,69 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     };
     const recNorm = clean(cardName);
     const recCore = stripIssuers(recNorm).trim();
-    const userNorms = (_userCards || []).map(c => {
-      const n = clean(c.name);
-      const core = stripIssuers(n);
-      return { n, core };
-    });
+    
     // match if names include each other in either raw or core forms
-    return userNorms.some(u => (
+    return normalizedUserCards.some(u => (
       u.n.includes(recNorm) || recNorm.includes(u.n) ||
       u.core.includes(recCore) || recCore.includes(u.core)
     ));
-  }, [_userCards]);
+  }, [normalizedUserCards]);
+
+  // Memoized wallet state calculations  
+  const hasWallet = React.useMemo(() => (_userCards && _userCards.length > 0), [_userCards]);
+
+  // Memoized recommendations filtering
+  const recommendationsData = React.useMemo(() => {
+    if (!recommendations || recommendations.length === 0) return null;
+    
+    const ownedRecs = hasWallet 
+      ? recommendations.filter(r => isOwnedCard(r.card.card_name))
+      : [];
+    const anyOwned = ownedRecs.length > 0;
+    const display = (hasWallet && walletOnly)
+      ? (anyOwned ? ownedRecs : [])
+      : recommendations;
+    
+    return { ownedRecs, hasWallet, anyOwned, display };
+  }, [recommendations, hasWallet, walletOnly, isOwnedCard]);
+
+  // Memoized per-business filtering
+  const perBusinessData = React.useMemo(() => {
+    if (!perBusinessBest || perBusinessBest.length === 0) return null;
+    
+    const filtered = hasWallet && walletOnly
+      ? perBusinessBest.filter(item => isOwnedCard(item.recommendation?.card.card_name))
+      : perBusinessBest;
+    const anyOwned = perBusinessBest.some(item => isOwnedCard(item.recommendation?.card.card_name));
+    
+    return { hasWallet, filtered, anyOwned };
+  }, [perBusinessBest, hasWallet, walletOnly, isOwnedCard]);
+
+  // Memoized event handlers to prevent unnecessary re-renders
+  const handleCategorySelect = React.useCallback((key: string) => {
+    setCategory(key);
+    // Reset selection so Planning can pick up the new category's nearby as context
+    setSelectedBusinessId(undefined);
+    setSelectedBusinessName(undefined);
+    send(`Show me best for ${key}`);
+  }, [send]);
+
+  const handleBusinessSelect = React.useCallback((id: string, name: string) => {
+    setSelectedBusinessId(id);
+    setSelectedBusinessName(name);
+    setActiveTab('planning');
+  }, []);
+
+  const handleToggleWalletOnly = React.useCallback(() => {
+    setWalletOnlyTouched(true);
+    setWalletOnly(v => !v);
+  }, []);
+
+  const handleFormSubmit = React.useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    send(input);
+    setInput('');
+  }, [send, input]);
 
   return (
     <div className="flex flex-col h-full">
@@ -304,7 +400,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                           name={b.name}
                           rating={b.rating}
                           distance={b.distance}
-              onSelect={() => { setSelectedBusinessId(b.id); setSelectedBusinessName(b.name); setActiveTab('planning'); }}
+              onSelect={() => handleBusinessSelect(b.id, b.name)}
                         />
                       ))}
                       {sortedNearby.length > 3 && (
@@ -325,7 +421,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
             {/* Favorites for logged-in users */}
       {user && (
               <div className="mt-3">
-        <FavoritesList onSelect={(id, name) => { setSelectedBusinessId(id); setSelectedBusinessName(name); setActiveTab('planning'); }} />
+        <FavoritesList onSelect={handleBusinessSelect} />
               </div>
             )}
 
@@ -354,13 +450,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
             )}
             <div className="mb-2">
               {/* All category chips moved to Planning */}
-              <CategoryChips onSelect={(key: string) => {
-                setCategory(key);
-                // Reset selection so Planning can pick up the new category's nearby as context
-                setSelectedBusinessId(undefined);
-                setSelectedBusinessName(undefined);
-                send(`Show me best for ${key}`);
-              }} />
+              <CategoryChips onSelect={handleCategorySelect} />
             </div>
 
             {/* Recommendations carousel in Planning */}
@@ -369,103 +459,85 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                 <ChatBubble sender="assistant" message="" richContent={<TypingIndicator />} />
               </div>
             )}
-            {selectedBusinessId && recommendations && recommendations.length > 0 && (() => {
-              // Wallet-aware filtering when logged in and userCards provided
-              const ownedRecs = (_userCards && _userCards.length > 0)
-                ? recommendations.filter(r => isOwnedCard(r.card.card_name))
-                : [];
-              const hasWallet = (_userCards && _userCards.length > 0);
-              const anyOwned = ownedRecs.length > 0;
-              const display = (hasWallet && walletOnly)
-                ? (anyOwned ? ownedRecs : [])
-                : recommendations;
-              return (
-                <div className="mt-4">
-                  <div className="flex items-center justify-between px-1 pb-1">
-                    <div className="text-xs text-gray-500">
-                      {(hasWallet && walletOnly)
-                        ? (anyOwned ? 'Best cards from your wallet' : 'No wallet matches for this place')
-                        : 'Top overall cards'}
-                    </div>
-                    {hasWallet && (
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className={walletOnly ? 'text-blue-700 font-medium' : 'text-gray-500'}>Wallet only</span>
-                        <button
-                          type="button"
-                          aria-label="Toggle wallet only"
-                          onClick={() => { setWalletOnlyTouched(true); setWalletOnly(v => !v); }}
-                          className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${walletOnly ? 'translate-x-4' : 'translate-x-1'}`}
-                          />
-                        </button>
-                      </div>
-                    )}
+            {selectedBusinessId && recommendationsData && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between px-1 pb-1">
+                  <div className="text-xs text-gray-500">
+                    {(recommendationsData.hasWallet && walletOnly)
+                      ? (recommendationsData.anyOwned ? 'Best cards from your wallet' : 'No wallet matches for this place')
+                      : 'Top overall cards'}
                   </div>
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-3 pr-2">
-                      {(display.length > 0 ? display : recommendations).slice(0, 5).map((rec, idx) => (
-                        <div key={idx} className="min-w-[260px] max-w-[320px]">
-                          <BusinessCardInChat
-                            business={{ name: rec?.business?.name || 'Nearby place', distance: rec?.business?.distance }}
-                            recommendedCard={{ name: rec.card.card_name, issuer: rec.card.issuer, owned: isOwnedCard(rec.card.card_name) }}
-                            rewards={{ text: `${rec.estimated_points} pts (~$${Math.round(rec.annual_value / 12)})` }}
-                          />
-                        </div>
-                      ))}
+                  {recommendationsData.hasWallet && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={walletOnly ? 'text-blue-700 font-medium' : 'text-gray-500'}>Wallet only</span>
+                      <button
+                        type="button"
+                        aria-label="Toggle wallet only"
+                        onClick={handleToggleWalletOnly}
+                        className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${walletOnly ? 'translate-x-4' : 'translate-x-1'}`}
+                        />
+                      </button>
                     </div>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pr-2">
+                    {(recommendationsData.display.length > 0 ? recommendationsData.display : recommendations).slice(0, 5).map((rec, idx) => (
+                      <div key={idx} className="min-w-[260px] max-w-[320px]">
+                        <BusinessCardInChat
+                          business={{ name: rec?.business?.name || 'Nearby place', distance: rec?.business?.distance }}
+                          recommendedCard={{ name: rec.card.card_name, issuer: rec.card.issuer, owned: isOwnedCard(rec.card.card_name) }}
+                          rewards={{ text: `${rec.estimated_points} pts (~$${Math.round(rec.annual_value / 12)})` }}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })()}
-            {!selectedBusinessId && perBusinessBest && perBusinessBest.length > 0 && (() => {
-              const hasWallet = (_userCards && _userCards.length > 0);
-              const filtered = hasWallet && walletOnly
-                ? perBusinessBest.filter(item => isOwnedCard(item.recommendation?.card.card_name))
-                : perBusinessBest;
-              const anyOwned = perBusinessBest.some(item => isOwnedCard(item.recommendation?.card.card_name));
-              return (
-                <div className="mt-4">
-                  <div className="flex items-center justify-between px-1 pb-1">
-                    <div className="text-xs text-gray-500">
-                      {(hasWallet && walletOnly)
-                        ? (filtered.length > 0 ? 'Best nearby matches from your wallet' : 'No wallet matches nearby')
-                        : 'Best cards for nearby places'}
-                    </div>
-                    {hasWallet && anyOwned && (
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className={walletOnly ? 'text-blue-700 font-medium' : 'text-gray-500'}>Wallet only</span>
-                        <button
-                          type="button"
-                          aria-label="Toggle wallet only"
-                          onClick={() => { setWalletOnlyTouched(true); setWalletOnly(v => !v); }}
-                          className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${walletOnly ? 'translate-x-4' : 'translate-x-1'}`}
-                          />
-                        </button>
-                      </div>
-                    )}
+              </div>
+            )}
+            {!selectedBusinessId && perBusinessData && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between px-1 pb-1">
+                  <div className="text-xs text-gray-500">
+                    {(perBusinessData.hasWallet && walletOnly)
+                      ? (perBusinessData.filtered.length > 0 ? 'Best nearby matches from your wallet' : 'No wallet matches nearby')
+                      : 'Best cards for nearby places'}
                   </div>
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-3 pr-2">
-                      {(filtered.length > 0 ? filtered : perBusinessBest).map((item, idx) => (
-                        <div key={item.business.id || idx} className="min-w-[260px] max-w-[320px]">
-                          <BusinessCardInChat
-                            business={{ name: item.business.name, distance: item.business.distance }}
-                            recommendedCard={{ name: item.recommendation?.card.card_name || 'Best nearby card', issuer: item.recommendation?.card.issuer, owned: isOwnedCard(item.recommendation?.card.card_name) }}
-                            rewards={item.recommendation ? { text: `${item.recommendation.estimated_points} pts (~$${Math.round(item.recommendation.annual_value / 12)})` } : undefined}
-                            onSelect={() => { setSelectedBusinessId(item.business.id); setSelectedBusinessName(item.business.name); }}
-                          />
-                        </div>
-                      ))}
+                  {perBusinessData.hasWallet && perBusinessData.anyOwned && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className={walletOnly ? 'text-blue-700 font-medium' : 'text-gray-500'}>Wallet only</span>
+                      <button
+                        type="button"
+                        aria-label="Toggle wallet only"
+                        onClick={handleToggleWalletOnly}
+                        className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${walletOnly ? 'translate-x-4' : 'translate-x-1'}`}
+                        />
+                      </button>
                     </div>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pr-2">
+                    {(perBusinessData.filtered.length > 0 ? perBusinessData.filtered : perBusinessBest).map((item, idx) => (
+                      <div key={item.business.id || idx} className="min-w-[260px] max-w-[320px]">
+                        <BusinessCardInChat
+                          business={{ name: item.business.name, distance: item.business.distance }}
+                          recommendedCard={{ name: item.recommendation?.card.card_name || 'Best nearby card', issuer: item.recommendation?.card.issuer, owned: isOwnedCard(item.recommendation?.card.card_name) }}
+                          rewards={item.recommendation ? { text: `${item.recommendation.estimated_points} pts (~$${Math.round(item.recommendation.annual_value / 12)})` } : undefined}
+                          onSelect={() => { setSelectedBusinessId(item.business.id); setSelectedBusinessName(item.business.name); }}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })()}
+              </div>
+            )}
 
             {/* Spending insights inline */}
             <div className="mt-4">
@@ -478,7 +550,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
       <div className="border-t bg-white p-3 sm:p-4">
         {/* Input only; category chips live in Planning tab */}
         <form
-          onSubmit={(e) => { e.preventDefault(); send(input); setInput(''); }}
+          onSubmit={handleFormSubmit}
           className="flex items-center gap-2"
         >
           <input
@@ -491,66 +563,5 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
         </form>
       </div>
     </div>
-  );
-}
-
-function NearbyRow({ id, name, rating, distance, onSelect }: { id: string; name: string; rating?: number; distance?: number; onSelect: () => void }) {
-  const { add, remove, has } = useFavoritesStore();
-  const fav = has(id);
-  return (
-    <div className="flex items-center justify-between rounded-md border p-2 text-sm">
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="truncate max-w-[50%]">{name}</span>
-        {typeof rating === 'number' && (
-          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-200">
-            <Star className="w-3 h-3 fill-current text-yellow-500" />
-            {rating.toFixed(1)}
-          </span>
-        )}
-        {typeof distance === 'number' && (
-          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">
-            <MapPin className="w-3 h-3" />
-            {distance < 1609.34 ? `${Math.round(distance * 3.28084)}ft` : `${(distance * 0.000621371).toFixed(1)}mi`}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => (fav ? remove(id) : add({ id, name }))}
-          aria-pressed={fav}
-          className={`px-2 py-1 text-xs rounded border ${fav ? 'bg-yellow-100 border-yellow-300 text-yellow-800' : 'bg-white border-gray-300 text-gray-700'}`}
-        >
-          {fav ? '★ Saved' : '☆ Save'}
-        </button>
-        <button type="button" onClick={onSelect} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
-      </div>
-    </div>
-  );
-}
-
-function FavoritesList({ onSelect }: { onSelect: (id: string, name: string) => void }) {
-  const { items, remove } = useFavoritesStore();
-  if (!items.length) return (
-    <ChatBubble sender="assistant" message="Your favorites" richContent={<div className="text-xs text-gray-600">No favorites yet</div>} />
-  );
-  return (
-    <ChatBubble
-      sender="assistant"
-      message="Your favorites"
-      richContent={(
-        <div className="mt-1 flex flex-col gap-2">
-          {items.map((b) => (
-            <div key={b.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
-              <span className="truncate max-w-[55%]">{b.name}</span>
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={() => onSelect(b.id, b.name)} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
-                <button type="button" onClick={() => remove(b.id)} className="px-2 py-1 text-xs rounded border border-gray-300">Remove</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    />
   );
 }
