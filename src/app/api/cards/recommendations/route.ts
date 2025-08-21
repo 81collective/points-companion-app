@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 import { creditCardDatabase } from '@/data/creditCardDatabase';
 import { RewardCategory } from '@/types/creditCards';
+import { apiCache } from '@/lib/apiCache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,7 @@ export async function GET(request: NextRequest) {
     const businessName = searchParams.get('businessName');
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
+    const fields = searchParams.get('fields'); // Optional field selection
 
     if (!category && !businessId) {
       return NextResponse.json(
@@ -19,7 +21,52 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('🎯 Recommendations API called with:', { category, businessId, businessName, lat, lng });
+    // Create cache key from request parameters
+    const cacheKey = apiCache.generateKey({
+      category,
+      businessId,
+      businessName,
+      lat,
+      lng,
+      fields
+    });
+
+    // Check cache first
+    const cachedResult = apiCache.get(cacheKey);
+    if (cachedResult) {
+      console.log('🚀 Cache hit for recommendations request');
+      return NextResponse.json(cachedResult);
+    }
+
+    console.log('🎯 Recommendations API called with:', { category, businessId, businessName, lat, lng, fields });
+
+    // Use deduplication for concurrent requests
+    const result = await apiCache.dedupe(cacheKey, async () => {
+      return await generateRecommendations({ category, businessId, businessName, lat, lng, fields });
+    });
+
+    // Cache the result for 5 minutes
+    apiCache.set(cacheKey, result, 300000);
+
+    return NextResponse.json(result);
+
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', success: false },
+      { status: 500 }
+    );
+  }
+}
+
+async function generateRecommendations({ category, businessId, businessName, lat, lng, fields }: {
+  category: string | null;
+  businessId: string | null;
+  businessName: string | null;
+  lat: string | null;
+  lng: string | null;
+  fields: string | null;
+}) {
 
     const supabase = createClient();
 
@@ -342,20 +389,43 @@ export async function GET(request: NextRequest) {
     console.log('✅ Generated', recommendations.length, 'recommendations');
     console.log('🥇 Top recommendation:', recommendations[0]?.card.card_name, 'with score:', recommendations[0]?.match_score);
 
-    return NextResponse.json({
-      recommendations: recommendations.slice(0, 10), // Top 10 recommendations
+    // Apply field selection if requested
+    let filteredRecommendations: unknown[] = recommendations.slice(0, 10); // Top 10 recommendations
+    
+    if (fields) {
+      const requestedFields = fields.split(',').map(f => f.trim());
+      filteredRecommendations = filteredRecommendations.map(rec => {
+        const recommendation = rec as typeof recommendations[0];
+        const filtered: Record<string, unknown> = {};
+        
+        requestedFields.forEach(field => {
+          if (field.startsWith('card.')) {
+            const cardField = field.replace('card.', '');
+            if (!filtered.card) filtered.card = {};
+            if (recommendation.card[cardField as keyof typeof recommendation.card] !== undefined) {
+              (filtered.card as Record<string, unknown>)[cardField] = recommendation.card[cardField as keyof typeof recommendation.card];
+            }
+          } else if (field.startsWith('business.')) {
+            const businessField = field.replace('business.', '');
+            if (!filtered.business) filtered.business = {};
+            if (recommendation.business && recommendation.business[businessField as keyof typeof recommendation.business] !== undefined) {
+              (filtered.business as Record<string, unknown>)[businessField] = recommendation.business[businessField as keyof typeof recommendation.business];
+            }
+          } else if (recommendation[field as keyof typeof recommendation] !== undefined) {
+            filtered[field] = recommendation[field as keyof typeof recommendation];
+          }
+        });
+        
+        return filtered;
+      });
+    }
+
+    return {
+      recommendations: filteredRecommendations,
       business,
       category,
       success: true
-    });
-
-  } catch (error) {
-    console.error('API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', success: false },
-      { status: 500 }
-    );
-  }
+    };
 }
 
 // Helper function to calculate distance between two points (returns meters)

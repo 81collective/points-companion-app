@@ -251,7 +251,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
       u.n.includes(recNorm) || recNorm.includes(u.n) ||
       u.core.includes(recCore) || recCore.includes(u.core)
     ));
-  }, [normalizedUserCards]);
+  }, [normalizedUserCards, _userCards]);
 
   // Memoized wallet state calculations  
   const hasWallet = React.useMemo(() => (_userCards && _userCards.length > 0), [_userCards]);
