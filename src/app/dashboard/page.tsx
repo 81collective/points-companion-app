@@ -1,17 +1,19 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 // Removed unused legacy imports
-import CardsSection from '@/components/dashboard/sections/CardsSection'
-import InsightsSection from '@/components/dashboard/sections/InsightsSection'
-import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
-import BonusesSection from '@/components/dashboard/sections/BonusesSection'
-import OverviewSection from '@/components/dashboard/sections/OverviewSection'
 import CommandPalette from '@/components/command-palette/CommandPalette'
 import { fetchDashboardData } from '@/services/dashboardData'
 import { DashboardMetrics } from '@/types/dashboard'
+
+const OverviewSection = dynamic(() => import('@/components/dashboard/sections/OverviewSection'))
+const CardsSection = dynamic(() => import('@/components/dashboard/sections/CardsSection'))
+const BonusesSection = dynamic(() => import('@/components/dashboard/sections/BonusesSection'))
+const InsightsSection = dynamic(() => import('@/components/dashboard/sections/InsightsSection'))
+const AnalyticsSection = dynamic(() => import('@/components/dashboard/sections/AnalyticsSection'))
 
 
 export default function DashboardPage() {
