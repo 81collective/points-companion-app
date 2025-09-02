@@ -156,13 +156,48 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     limit: 5,
   });
 
-  // Auto-scroll to latest message
+  // Enhanced auto-scroll to latest message with better timing
   React.useEffect(() => {
-    if (!isMountedRef.current) { isMountedRef.current = true; return; }
-    try {
-      listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
-    } catch {}
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+
+    // Use setTimeout to ensure DOM has updated before scrolling
+    const scrollToBottom = () => {
+      try {
+        if (listRef.current) {
+          listRef.current.scrollTo({
+            top: listRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      } catch (error) {
+        console.warn('Auto-scroll failed:', error);
+      }
+    };
+
+    // Small delay to ensure DOM updates are complete
+    setTimeout(scrollToBottom, 50);
   }, [messages]);
+
+  // Scroll to bottom when active tab changes
+  React.useEffect(() => {
+    const scrollToBottom = () => {
+      try {
+        if (listRef.current) {
+          listRef.current.scrollTo({
+            top: listRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      } catch (error) {
+        console.warn('Tab change scroll failed:', error);
+      }
+    };
+
+    setTimeout(scrollToBottom, 150);
+  }, [activeTab]);
 
   const send = React.useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -289,7 +324,23 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     // Reset selection so Planning can pick up the new category's nearby as context
     setSelectedBusinessId(undefined);
     setSelectedBusinessName(undefined);
+
+    // Send message and ensure scroll to bottom after a brief delay
     send(`Show me best for ${key}`);
+
+    // Additional scroll trigger for chip selection to ensure it goes to bottom
+    setTimeout(() => {
+      try {
+        if (listRef.current) {
+          listRef.current.scrollTo({
+            top: listRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      } catch (error) {
+        console.warn('Chip selection scroll failed:', error);
+      }
+    }, 100);
   }, [send]);
 
   const handleBusinessSelect = React.useCallback((id: string, name: string) => {
@@ -336,9 +387,9 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
           </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4" ref={listRef}>
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 scroll-smooth" ref={listRef} style={{ scrollBehavior: 'smooth' }}>
   {/* Conversation messages */}
-  <div className="flex flex-col gap-2">
+  <div className="flex flex-col gap-2 pb-4">
     {messages.map(m => (
       <ChatBubble
         key={m.id}
@@ -450,7 +501,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
             )}
             <div className="mb-2">
               {/* All category chips moved to Planning */}
-              <CategoryChips onSelect={handleCategorySelect} />
+              <CategoryChips onSelect={handleCategorySelect} selectedCategory={category} />
             </div>
 
             {/* Recommendations carousel in Planning */}
