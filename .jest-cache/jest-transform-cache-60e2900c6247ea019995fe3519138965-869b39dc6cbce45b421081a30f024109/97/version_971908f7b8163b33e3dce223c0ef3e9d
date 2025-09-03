@@ -1,7 +1,0 @@
-c7a36a28e4bb79800ccca3b391de032d
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.build = exports.version = void 0;
-exports.version = "4.0.4";
-exports.build = "cjs";
-//# sourceMappingURL=version.cjs.map
