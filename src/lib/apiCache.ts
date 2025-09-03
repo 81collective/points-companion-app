@@ -353,7 +353,10 @@ class AdvancedAPICache {
         }
       }
 
-      console.log(`Loaded ${this.stats.itemCount} persisted cache entries`);
+      // Avoid noisy logs in test environment
+      if (typeof process === 'undefined' || (process.env && process.env.NODE_ENV !== 'test')) {
+        console.debug(`Loaded ${this.stats.itemCount} persisted cache entries`);
+      }
     } catch (error) {
       console.warn('Failed to load persisted cache:', error);
       localStorage.removeItem(this.config.persistenceKey);
