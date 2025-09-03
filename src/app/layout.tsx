@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorProvider } from "@/contexts/ErrorContext";
-import ErrorBoundary from "@/components/error/ErrorBoundary";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
@@ -15,6 +15,7 @@ import { generateMetadata, seoConfigs, generateOrganizationSchema } from "@/lib/
 import Script from "next/script";
 import ForceLightMode from "@/components/layout/ForceLightMode";
 import { Haptics } from "@/components/pwa/Haptics";
+import { reportWebVitals } from "@/lib/performance-monitor";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,6 +45,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
 };
+
+export { reportWebVitals };
 
 export default function RootLayout({
   children,

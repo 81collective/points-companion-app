@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Cache the result for 5 minutes
-    apiCache.set(cacheKey, result, 300000);
+    apiCache.set(cacheKey, result, { ttl: 300000 });
 
     return NextResponse.json(result);
 
