@@ -269,8 +269,8 @@ describe('GraphQL Hooks', () => {
                 <h1>{data.business.name}</h1>
                 <p>{data.business.address}</p>
                 <div>Rating: {data.business.rating}</div>
-                <div>Reviews: {data.business.reviews.length}</div>
-                <div>Photos: {data.business.photos.length}</div>
+                <div>Reviews: {data.business.reviews?.length ?? 0}</div>
+                <div>Photos: {data.business.photos?.length ?? 0}</div>
               </>
             )}
           </div>
