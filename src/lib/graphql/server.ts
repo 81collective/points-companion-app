@@ -3,12 +3,15 @@
 
 import { ApolloServer } from '@apollo/server';
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextRequest } from 'next/server';
+import type { ContextFunction } from '@apollo/server';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
 import { advancedApiCache } from '@/lib/apiCache';
 
 // Create Apollo Server instance
-const server = new ApolloServer({
+const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
   introspection: process.env.NODE_ENV !== 'production',
@@ -16,7 +19,7 @@ const server = new ApolloServer({
   plugins: [
     // Add custom plugin for cache integration
     {
-      async requestDidStart(requestContext) {
+      async requestDidStart(_requestContext) {
         return {
           async willSendResponse(requestContext) {
             // Add cache metadata to extensions
@@ -37,9 +40,19 @@ const server = new ApolloServer({
 });
 
 // Context function for authentication and caching
-const createContext = async ({ req }: { req: any }) => {
+type HandlerReq = NextApiRequest | NextRequest | Request;
+type GraphQLContext = {
+  user: { id: string; email: string } | null;
+  cache: typeof advancedApiCache;
+  req: HandlerReq;
+};
+
+const createContext: ContextFunction<[HandlerReq, NextApiResponse | undefined], GraphQLContext> = async (
+  req,
+  _res
+) => {
   // Extract user from session/token (implement based on your auth system)
-  const user = null; // TODO: Implement user authentication
+  const user: GraphQLContext['user'] = null; // TODO: Implement user authentication
 
   return {
     user,
@@ -49,7 +62,7 @@ const createContext = async ({ req }: { req: any }) => {
 };
 
 // Export the handler for Next.js API routes
-export const handler = startServerAndCreateNextHandler(server, {
+export const handler = startServerAndCreateNextHandler<HandlerReq, GraphQLContext>(server, {
   context: createContext
 });
 

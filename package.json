@@ -27,12 +27,13 @@
     "test:all": "npm run test && npm run test:e2e",
     "test:comprehensive": "node scripts/run-tests.js",
     "test:performance": "jest --testPathPatterns=performance",
-  "test:integration": "jest --testPathPatterns=integration",
-  "precommit": "lint-staged"
+    "test:integration": "jest --testPathPatterns=integration",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "@apollo/client": "^4.0.4",
     "@apollo/server": "^5.0.0",
+    "@as-integrations/next": "^4.0.0",
     "@googlemaps/js-api-loader": "^1.16.10",
     "@graphql-tools/resolvers-composition": "^7.0.20",
     "@graphql-tools/schema": "^10.0.25",
