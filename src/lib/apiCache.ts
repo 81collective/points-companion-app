@@ -98,7 +98,7 @@ class AdvancedAPICache {
   // Estimate size of data in bytes
   private estimateSize(data: unknown): number {
     const str = JSON.stringify(data);
-    return str ? str.length * 2 : 0; // Rough estimate: 2 bytes per character
+    return str ? str.length : 0; // Rough estimate: 1 byte per character
   }
 
   // Get cached data with LRU tracking
@@ -110,7 +110,7 @@ class AdvancedAPICache {
     }
 
     const now = Date.now();
-    if (now - entry.timestamp > entry.ttl) {
+    if (now - entry.timestamp >= entry.ttl) {
       this.cache.delete(key);
       this.stats.size -= entry.size;
       this.stats.itemCount--;
@@ -136,13 +136,14 @@ class AdvancedAPICache {
       compress?: boolean;
     } = {}
   ): void {
-    const ttl = options.ttl || this.config.defaultTTL;
+    const ttl = options.ttl ?? this.config.defaultTTL;
     const size = this.estimateSize(data);
     const now = Date.now();
 
     // Check if we need to evict entries to make room
     if (this.stats.size + size > this.config.maxSize) {
-      this.evictLRU(size);
+      const requiredSpace = this.stats.size + size - this.config.maxSize;
+      this.evictLRU(requiredSpace);
     }
 
     const entry: CacheEntry<T> = {

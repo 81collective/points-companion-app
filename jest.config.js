@@ -1,44 +1,124 @@
-const nextJest = require('next/jest')
+// Jest configuration for comprehensive testing
+// Provides 80%+ test coverage with performance monitoring
 
-const createJestConfig = nextJest({ dir: './' })
+module.exports = {
+  // Test environment
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/src/test/setupTests.ts'],
 
-/** @type {import('jest').Config} */
-const customJestConfig = {
-  testEnvironment: 'jest-environment-jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  // Test file patterns
+  testMatch: [
+    '<rootDir>/src/test/**/*.test.(ts|tsx|js|jsx)',
+    '<rootDir>/src/test/**/*.spec.(ts|tsx|js|jsx)',
+  ],
+
+  // Module file extensions
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+
+  // Module name mapping
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    '^@lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^@types/(.*)$': '<rootDir>/src/types/$1',
+    '^@test/(.*)$': '<rootDir>/src/test/$1',
+    '\\.(css|scss|sass)$': 'identity-obj-proxy',
+    '\\.(jpg|jpeg|png|gif|svg|ico|webp)$': '<rootDir>/src/test/__mocks__/fileMock.js',
+    '\\.module\\.(css|scss|sass)$': '<rootDir>/src/test/__mocks__/styleMock.js',
   },
-  testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.(spec|test).{ts,tsx,js,jsx}',
-    '<rootDir>/src/**/*.(spec|test).{ts,tsx,js,jsx}',
+
+  // Transform files
+  transform: {
+    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.config.js' }],
+    '^.+\\.(css|scss|sass)$': 'jest-transform-stub',
+    '\\.(jpg|jpeg|png|gif|svg|ico|webp)$': 'jest-transform-stub',
+  },
+
+  // Transform ignore patterns
+  transformIgnorePatterns: [
+    'node_modules/(?!(lucide-react|@radix-ui|@apollo|@graphql-tools)/)',
   ],
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/playwright-tests/',
-  ],
-  // Phase 2: measure real source (exclude test files themselves)
+
+  // Module directories
+  moduleDirectories: ['node_modules', '<rootDir>/src'],
+
+  // Module file extensions
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+
+  // Test environment options
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
+
+  // Coverage configuration
   collectCoverageFrom: [
-    'src/lib/performance.ts',
-    'src/lib/utils.ts',
-    'src/components/ui/button.tsx',
-    'src/app/api/**/*.ts',
-    '!src/app/api/**/__tests__/**',
+    'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/**/__tests__/**',
+    '!src/test/**',
+    '!src/**/*.test.{ts,tsx}',
+    '!src/**/*.spec.{ts,tsx}',
+    '!src/**/index.ts',
+    '!src/types/**',
   ],
-  coverageReporters: ['text', 'lcov', 'html'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  testTimeout: 15000,
+
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: [
+    'text',
+    'lcov',
+    'html',
+    'json-summary',
+    'text-summary',
+  ],
+
+  // Coverage thresholds (80% target)
   coverageThreshold: {
     global: {
-      statements: 55,
-      branches: 45,
-      functions: 55,
-      lines: 55,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+    './src/components/': {
+      branches: 85,
+      functions: 85,
+      lines: 85,
+      statements: 85,
+    },
+    './src/lib/': {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
     },
   },
-}
 
-module.exports = createJestConfig(customJestConfig)
+  // Test timeout
+  testTimeout: 10000,
+
+  // Performance monitoring
+  reporters: [
+    'default',
+  ],
+
+  // Global setup and teardown
+  globalSetup: '<rootDir>/src/test/globalSetup.ts',
+  globalTeardown: '<rootDir>/src/test/globalTeardown.ts',
+
+  // Mock configuration
+  clearMocks: true,
+  restoreMocks: true,
+
+  // Error handling
+  bail: false,
+  verbose: true,
+
+  // Parallel execution
+  maxWorkers: '50%',
+
+  // Cache configuration
+  cache: true,
+  cacheDirectory: '<rootDir>/.jest-cache',
+
+  // Snapshot configuration
+  snapshotSerializers: [],
+};

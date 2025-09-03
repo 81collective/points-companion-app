@@ -22,14 +22,23 @@ interface BusinessCardProps {
     icon: string;
     color: string;
   };
+  index: number;
 }
 
 const BusinessCard = React.memo<BusinessCardProps>(({
   business,
   isSelected,
   onClick,
-  category
+  category,
+  index
 }) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -37,11 +46,16 @@ const BusinessCard = React.memo<BusinessCardProps>(({
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       className={`cursor-pointer bg-white rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-lg hover:border-blue-300 ${
         isSelected
           ? 'border-blue-500 bg-blue-50 shadow-md'
           : 'border-gray-200 hover:border-blue-300'
       }`}
+      data-testid={`business-card-${business.id || index}`}
+      aria-label={`Select ${business.name}`}
+      role="button"
+      tabIndex={0}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -132,6 +146,7 @@ export default function VirtualBusinessGrid({
         className="overflow-auto"
         style={{ height: '600px' }}
         onScroll={handleScroll}
+        data-testid="virtual-grid-container"
       >
         <div
           style={{
@@ -155,6 +170,7 @@ export default function VirtualBusinessGrid({
                 isSelected={selectedBusiness?.id === business.id}
                 onClick={() => onBusinessSelect(business)}
                 category={currentCategory}
+                index={index}
               />
             ))}
           </div>
