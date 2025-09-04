@@ -29,7 +29,7 @@ module.exports = {
 
   // Transform files
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.config.js' }],
+    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.jest.config.cjs' }],
     '^.+\\.(css|scss|sass)$': 'jest-transform-stub',
     '\\.(jpg|jpeg|png|gif|svg|ico|webp)$': 'jest-transform-stub',
   },

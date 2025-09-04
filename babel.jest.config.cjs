@@ -1,5 +1,5 @@
-// Babel configuration for Jest testing
-// Simplified configuration for React JSX transformation
+// Babel configuration for Jest testing only
+// Keeping this separate so Next.js can use SWC in production builds
 
 module.exports = {
   presets: [
