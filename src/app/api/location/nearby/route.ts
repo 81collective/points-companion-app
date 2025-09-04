@@ -18,6 +18,15 @@ type GooglePlaceResult = {
   user_ratings_total?: number;
 };
 
+type MapboxFeature = {
+  id: string;
+  text?: string;
+  place_name?: string;
+  center?: [number, number]; // [lng, lat]
+  geometry?: { type: string; coordinates: [number, number] };
+  properties?: Record<string, unknown>;
+};
+
 type NearbyParams = { lat: number; lng: number; category: CategoryKey; radius?: number };
 
 function dedupePlaces<T extends { place_id?: string; name?: string; vicinity?: string }>(arr: T[]): T[] {
@@ -94,6 +103,7 @@ type AggregatedItem = {
   longitude?: number;
   distance?: number;
   score: number;
+  source?: 'google' | 'mapbox';
 };
 
 type Aggregated = { items: AggregatedItem[]; origin: LatLng; category: CategoryKey };
@@ -129,6 +139,56 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
     const extra = await batchForRadius(expandedRadius, 1);
     merged.push(...extra);
   }
+
+  // Mapbox provider (optional, if token available): use keywords as query and bbox from radius
+  const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN as string | undefined;
+  async function mapboxSearch(query: string, radius: number, limit = 20): Promise<MapboxFeature[]> {
+    if (!mapboxToken) return [];
+    const kmPerDegree = 111;
+    const latDelta = radius / 1000 / kmPerDegree;
+    const lngDelta = radius / 1000 / (kmPerDegree * Math.cos(q.lat * Math.PI / 180));
+    const minLng = q.lng - lngDelta;
+    const minLat = q.lat - latDelta;
+    const maxLng = q.lng + lngDelta;
+    const maxLat = q.lat + latDelta;
+    const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`);
+    url.searchParams.set('access_token', mapboxToken);
+    url.searchParams.set('proximity', `${q.lng},${q.lat}`);
+    url.searchParams.set('types', 'poi');
+    url.searchParams.set('limit', String(limit));
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('bbox', `${minLng},${minLat},${maxLng},${maxLat}`);
+    const res = await fetch(url.toString(), { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { features?: MapboxFeature[] };
+    return data.features ?? [];
+  }
+
+  if (mapboxToken && map.googleKeywords.length) {
+    const mbxQueries = [map.googleKeywords[0]];
+    if (map.googleKeywords[1]) mbxQueries.push(map.googleKeywords[1]);
+    const mbxBatches = await Promise.allSettled(mbxQueries.map((kw) => mapboxSearch(kw, baseRadius, 15)));
+    const mbxFeatures: MapboxFeature[] = [];
+    for (const b of mbxBatches) if (b.status === 'fulfilled') mbxFeatures.push(...b.value);
+    const mbxAsGoogleShape: GooglePlaceResult[] = mbxFeatures.map((f) => {
+      const lng = f.center?.[0] ?? f.geometry?.coordinates?.[0];
+      const lat = f.center?.[1] ?? f.geometry?.coordinates?.[1];
+      const name = f.text || (f.place_name ? f.place_name.split(',')[0] : '');
+      const address = f.place_name || '';
+      return {
+        name,
+        formatted_address: address,
+        geometry: { location: lat != null && lng != null ? { lat, lng } : undefined },
+        place_id: `mapbox_${f.id}`,
+        rating: undefined,
+        user_ratings_total: undefined,
+        opening_hours: undefined,
+        price_level: undefined,
+        business_status: 'OPERATIONAL',
+      } as GooglePlaceResult;
+    });
+    merged.push(...mbxAsGoogleShape);
+  }
   const deduped = dedupePlaces<GooglePlaceResult>(merged).filter(
     (p) => !p.business_status || p.business_status === 'OPERATIONAL'
   );
@@ -162,6 +222,7 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
       longitude: loc?.lng,
       distance: loc ? haversineMeters(origin, { lat: loc.lat, lng: loc.lng }) : undefined,
       score: s,
+      source: pid?.startsWith('mapbox_') ? 'mapbox' : 'google',
     };
   });
 
@@ -171,7 +232,8 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
 type NearbyOptions = NearbyParams & { maxRadius?: number; minRating?: number; openNow?: boolean; limit?: number };
 
 async function getCachedOrFetch(supabase: ReturnType<typeof createClient>, q: NearbyOptions): Promise<Aggregated> {
-  const key = `nearby:${q.category}:${q.lat.toFixed(4)},${q.lng.toFixed(4)}:${q.radius ?? 'auto'}:min${q.minRating ?? ''}:open${q.openNow ?? ''}:lim${q.limit ?? ''}:maxR${q.maxRadius ?? ''}`;
+  const providers = `${process.env.GOOGLE_MAPS_API_KEY ? 'g' : ''}${process.env.MAPBOX_ACCESS_TOKEN ? 'm' : ''}` || 'none';
+  const key = `nearby:${q.category}:${q.lat.toFixed(4)},${q.lng.toFixed(4)}:${q.radius ?? 'auto'}:min${q.minRating ?? ''}:open${q.openNow ?? ''}:lim${q.limit ?? ''}:maxR${q.maxRadius ?? ''}:prov${providers}`;
   try {
     const { data: row } = await supabase.from('nearby_cache').select('key,data,updated_at').eq('key', key).single();
     const ttlMs = 6 * 60 * 60 * 1000;
@@ -259,6 +321,10 @@ export async function GET(request: NextRequest) {
         minRating: minRating ?? null,
         openNow: openNow ?? null,
         limit: limit ?? null,
+        sources: [
+          process.env.GOOGLE_MAPS_API_KEY ? 'google' : null,
+          process.env.MAPBOX_ACCESS_TOKEN ? 'mapbox' : null,
+        ].filter(Boolean),
       }
     });
   } catch (error) {
