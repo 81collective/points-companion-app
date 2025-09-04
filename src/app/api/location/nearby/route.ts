@@ -225,7 +225,7 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
     });
     const cardEvals = evaluateCards({ taxonomy: classification.taxonomy, mccCandidates: classification.mccCandidates, brandId: classification.brandId });
     const top = cardEvals[0];
-    return {
+  return {
       id: pid || `${(p.name ?? '').toLowerCase()}|${p.vicinity ?? ''}`,
       name,
       address: p.formatted_address || p.vicinity || '',
@@ -316,11 +316,21 @@ export async function GET(request: NextRequest) {
   const aggregated: Aggregated = await getCachedOrFetch(supabase, { lat: latitude, lng: longitude, category, radius: radiusMeters, maxRadius, minRating, openNow, limit });
 
     // Map to existing Business response shape
-  const businesses = aggregated.items.map((it) => ({
+  const businesses = aggregated.items.map((it) => {
+    const correctedCategory = it.inferred_category ?? category;
+    if (process.env.NODE_ENV !== 'production') {
+      const catStr = String(category);
+      const infStr = it.inferred_category ?? '';
+      if (catStr === 'services' && (infStr === 'dining' || infStr === 'coffee')) {
+        // Lightweight debug log to surface mislabels during development
+        console.debug('[nearby] category corrected', { name: it.name, place_id: it.place_id, from: catStr, to: infStr });
+      }
+    }
+    return ({
       // Ensure Google-sourced places carry a recognizable prefix for tests/consumers
       id: it.place_id ? `google_${it.place_id}` : it.id,
       name: it.name,
-      category,
+      category: correctedCategory,
       address: it.address || '',
       latitude: it.latitude ?? latitude,
       longitude: it.longitude ?? longitude,
@@ -328,7 +338,13 @@ export async function GET(request: NextRequest) {
       rating: it.rating,
       price_level: it.price_level,
       distance: it.distance,
-    }));
+      // Pass through enrichment for clients that use it
+      inferred_category: it.inferred_category,
+      mcc_candidates: it.mcc_candidates,
+      brand_id: it.brand_id,
+      top_card: it.top_card,
+    });
+  });
 
     return NextResponse.json({
       success: true,
