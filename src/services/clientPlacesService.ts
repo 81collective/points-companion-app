@@ -184,9 +184,13 @@ class ClientPlacesService {
       'restaurant': 'dining',
       'food': 'dining', 
       'meal_takeaway': 'dining',
+      'meal_delivery': 'dining',
       'bar': 'dining',
       'cafe': 'dining',
       'bakery': 'dining',
+      'coffee_shop': 'dining',
+      'donut_shop': 'dining',
+      'ice_cream_shop': 'dining',
       'gas_station': 'gas',
       'fuel': 'gas',
       'grocery_or_supermarket': 'groceries',
@@ -207,7 +211,8 @@ class ClientPlacesService {
       }
     }
     
-    return 'services'; // Default fallback
+  // Default fallback: prefer dining to avoid mislabeled restaurants
+  return 'dining';
   }
 
   public async searchNearby(
