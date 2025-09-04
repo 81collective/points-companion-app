@@ -49,16 +49,16 @@ export function classifyBusiness(input: {
   // Google types mapping (simple heuristics)
   for (const gt of input.googleTypes ?? []) {
     const g = gt.toLowerCase();
-    if (/restaurant|meal_takeaway|meal_delivery|food/.test(g)) addVote('dining', 0.7);
-    if (/cafe|coffee/.test(g)) addVote('coffee', 0.7);
-    if (/grocery|supermarket|convenience/.test(g)) addVote('groceries', 0.7);
-    if (/gas/.test(g)) addVote('gas', 0.7);
-    if (/pharmacy|drugstore/.test(g)) addVote('pharmacy', 0.7);
-    if (/movie|theater|bowling|attraction/.test(g)) addVote('entertainment', 0.6);
-    if (/lodging/.test(g)) addVote('hotels', 0.7);
+    if (/restaurant|meal_takeaway|meal_delivery|food|bakery|bar|bistro|brunch/.test(g)) addVote('dining', 0.85);
+    if (/cafe|coffee/.test(g)) addVote('coffee', 0.9);
+    if (/grocery|supermarket|convenience|market/.test(g)) addVote('groceries', 0.8);
+    if (/gas/.test(g)) addVote('gas', 0.8);
+    if (/pharmacy|drugstore/.test(g)) addVote('pharmacy', 0.8);
+    if (/movie|theater|bowling|attraction/.test(g)) addVote('entertainment', 0.7);
+    if (/lodging|hotel/.test(g)) addVote('hotels', 0.85);
     if (/electronics/.test(g)) addVote('electronics', 0.6);
     if (/home_goods|hardware/.test(g)) addVote('home_improvement', 0.6);
-    if (/department_store|shopping_mall/.test(g)) addVote('shopping', 0.6);
+    if (/department_store|shopping_mall|store|retail/.test(g)) addVote('shopping', 0.55);
   }
 
   // Mapbox place-name keywords
@@ -82,6 +82,16 @@ export function classifyBusiness(input: {
   }
   // Default if still unknown
   if (!best) best = { taxonomy: 'shopping', score: 0.3 };
+
+  // Nudge ambiguous cases with food cues toward dining/coffee
+  const nameBlob = `${input.name ?? ''} ${input.mapboxPlaceName ?? ''}`;
+  if (best.taxonomy === 'shopping') {
+    if (/cafe|coffee|espresso|latte/i.test(nameBlob)) {
+      best = { taxonomy: 'coffee', score: Math.max(best.score, 0.6) };
+    } else if (/restaurant|grill|bar|kitchen|pizza|sushi|taco|bbq|deli|bistro|eatery/i.test(nameBlob)) {
+      best = { taxonomy: 'dining', score: Math.max(best.score, 0.6) };
+    }
+  }
 
   return {
     taxonomy: best.taxonomy,

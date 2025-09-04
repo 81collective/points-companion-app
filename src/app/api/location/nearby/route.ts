@@ -18,6 +18,7 @@ type GooglePlaceResult = {
   business_status?: string;
   opening_hours?: { open_now?: boolean };
   user_ratings_total?: number;
+  types?: string[];
 };
 
 type MapboxFeature = {
@@ -219,7 +220,7 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
     const name = p.name || 'Unknown';
     const classification = classifyBusiness({
       name,
-      googleTypes: [],
+      googleTypes: Array.isArray(p.types) ? p.types : [],
       mapboxPlaceName: p.formatted_address || p.vicinity || undefined,
     });
     const cardEvals = evaluateCards({ taxonomy: classification.taxonomy, mccCandidates: classification.mccCandidates, brandId: classification.brandId });
