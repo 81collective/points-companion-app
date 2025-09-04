@@ -3,13 +3,11 @@
 
 import { handler } from '@/lib/graphql/server';
 
-// Next.js App Router expects GET/POST with (request, context)
-type RouteContext = { params: Record<string, string> };
-
-export async function GET(request: Request, _context: RouteContext) {
+// App Router handlers: accept only Request (no context needed here)
+export async function GET(request: Request) {
 	return handler(request);
 }
 
-export async function POST(request: Request, _context: RouteContext) {
+export async function POST(request: Request) {
 	return handler(request);
 }
