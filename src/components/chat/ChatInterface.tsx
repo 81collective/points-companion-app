@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useState } from 'react';
+import type { Business } from '@/types/location.types';
 import dynamic from 'next/dynamic';
 import ChatBubble from '@/components/chat/ChatBubble';
 import CategoryChips from '@/components/chat/CategoryChips';
@@ -110,6 +111,16 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     // run once on mount only
      
   }, [persistUiState]);
+
+  // UI-level category fixer: last resort display mapping to avoid 'services' on restaurants
+  const getDisplayCategory = React.useCallback((b: Business): string | undefined => {
+    const inferred = (('inferred_category' in (b as unknown as Record<string, unknown>) ? (b as unknown as { inferred_category?: string }).inferred_category : undefined) || b.category) as string | undefined;
+    if (inferred && inferred !== 'services') return inferred;
+    const name = (b?.name ?? '').toLowerCase();
+    if (/coffee|cafe|espresso|latte|tea/.test(name)) return 'coffee';
+    if (/restaurant|grill|pizza|pizzeria|sushi|ramen|noodle|taco|bbq|bar|deli|bistro|eatery|kitchen|brunch|steak|wing|shawarma|gyro|bakery|donut|ice\s?cream/.test(name)) return 'dining';
+    return inferred;
+  }, []);
 
   // Location and data hooks
   const { location, permissionState, requestLocation } = useLocation();
@@ -451,7 +462,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                           name={b.name}
                           rating={b.rating}
                           distance={b.distance}
-                          inferredCategory={('inferred_category' in b ? (b as unknown as { inferred_category?: string }).inferred_category : undefined) || b.category}
+                          inferredCategory={getDisplayCategory(b)}
                           topCardName={('top_card' in b ? (b as unknown as { top_card?: { cardName?: string } }).top_card?.cardName : undefined)}
                           topCardReason={('top_card' in b ? (b as unknown as { top_card?: { reasons?: string[] } }).top_card?.reasons?.[0] : undefined)}
               onSelect={() => handleBusinessSelect(b.id, b.name)}
