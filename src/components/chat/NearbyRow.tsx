@@ -16,14 +16,14 @@ const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, dist
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-2.5 text-sm">
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between" data-mobile-two-line>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between" data-mobile-two-line>
         {/* Top line: Business name */}
-        <div className="min-w-0">
-          <span className="block truncate font-medium text-gray-900 text-[15px] leading-5">{name}</span>
+        <div className="min-w-0 w-full">
+          <span className="block font-medium text-gray-900 text-[15px] leading-5 break-words">{name}</span>
         </div>
 
         {/* Second line: rating, distance, actions */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex w-full items-center gap-2 flex-wrap mt-1 sm:mt-0">
           {typeof rating === 'number' && (
             <span
               className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-200"
