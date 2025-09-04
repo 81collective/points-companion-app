@@ -7,10 +7,13 @@ interface NearbyRowProps {
   name: string;
   rating?: number;
   distance?: number;
+  inferredCategory?: string;
+  topCardName?: string;
+  topCardReason?: string;
   onSelect: () => void;
 }
 
-const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, distance, onSelect }) => {
+const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, distance, inferredCategory, topCardName, topCardReason, onSelect }) => {
   const { add, remove, has } = useFavoritesStore();
   const fav = has(id);
   const [bump, setBump] = useState(false);
@@ -36,7 +39,7 @@ const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, dist
           <span className="block font-medium text-gray-900 text-[15px] leading-5 break-words">{name}</span>
         </div>
 
-        {/* Second line: rating, distance, actions */}
+        {/* Second line: rating, category/top card, distance, actions */}
         <div className="flex w-full items-center gap-1 flex-nowrap mt-1 sm:mt-0 sm:gap-2 sm:flex-wrap">
           {typeof rating === 'number' && (
             <span
@@ -46,6 +49,16 @@ const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, dist
             >
               <Star className="w-3 h-3 fill-current text-yellow-500" />
               {rating.toFixed(1)}
+            </span>
+          )}
+          {inferredCategory && (
+            <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap" title={`Category: ${inferredCategory}`}>
+              {inferredCategory}
+            </span>
+          )}
+          {topCardName && (
+            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap" title={topCardReason || 'Best card'}>
+              {topCardName}
             </span>
           )}
           <span

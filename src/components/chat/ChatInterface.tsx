@@ -451,6 +451,9 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                           name={b.name}
                           rating={b.rating}
                           distance={b.distance}
+                          inferredCategory={('inferred_category' in b ? (b as unknown as { inferred_category?: string }).inferred_category : undefined) || b.category}
+                          topCardName={('top_card' in b ? (b as unknown as { top_card?: { cardName?: string } }).top_card?.cardName : undefined)}
+                          topCardReason={('top_card' in b ? (b as unknown as { top_card?: { reasons?: string[] } }).top_card?.reasons?.[0] : undefined)}
               onSelect={() => handleBusinessSelect(b.id, b.name)}
                         />
                       ))}

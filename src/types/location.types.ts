@@ -22,6 +22,11 @@ export interface Business {
   distance?: number; // Distance from user in meters
   created_at?: string;
   updated_at?: string;
+  // Optional enrichment from nearby API
+  inferred_category?: string;
+  mcc_candidates?: number[];
+  brand_id?: string;
+  top_card?: { cardId: string; cardName: string; reasons: string[]; rate: number; valueCentsPerDollar: number };
 }
 
 export interface CardReward {
