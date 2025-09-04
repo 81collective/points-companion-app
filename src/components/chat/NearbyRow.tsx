@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFavoritesStore } from '@/stores/favoritesStore';
 import { MapPin, Star } from 'lucide-react';
 
@@ -13,6 +13,20 @@ interface NearbyRowProps {
 const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, distance, onSelect }) => {
   const { add, remove, has } = useFavoritesStore();
   const fav = has(id);
+  const [bump, setBump] = useState(false);
+
+  const handleToggleSave = () => {
+    if (fav) {
+      remove(id);
+    } else {
+      add({ id, name });
+    }
+    // Micro feedback animation if user doesn't prefer reduced motion
+    if (typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setBump(true);
+      window.setTimeout(() => setBump(false), 180);
+    }
+  };
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-2.5 text-sm">
@@ -47,14 +61,14 @@ const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, dist
           <div className="ms-auto flex items-center gap-1 sm:gap-2 sm:ms-0 sm:ml-0">
             <button
               type="button"
-              onClick={() => (fav ? remove(id) : add({ id, name }))}
+              onClick={handleToggleSave}
               aria-pressed={fav}
               aria-label={`${fav ? 'Unsave' : 'Save'} ${name}`}
               title={`${fav ? 'Unsave' : 'Save'} ${name}`}
               className={`px-2 py-1 h-7 leading-none rounded-md border active:scale-[0.98] transition-colors transition-transform sm:px-3 sm:py-1.5 sm:h-9 sm:rounded-lg ${fav ? 'bg-yellow-50 border-yellow-300 ring-1 ring-yellow-200' : 'bg-white border-gray-300'} hover:bg-gray-50`}
             >
               <Star
-                className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${fav ? 'text-yellow-600 drop-shadow-[0_0_2px_rgba(234,179,8,0.6)]' : 'text-gray-600'}`}
+                className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${fav ? 'text-yellow-600 drop-shadow-[0_0_2px_rgba(234,179,8,0.6)]' : 'text-gray-600'} ${bump ? 'scale-110' : 'scale-100'} transition-transform duration-150`}
                 fill={fav ? 'currentColor' : 'none'}
                 strokeWidth={2}
                 aria-hidden="true"
