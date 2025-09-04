@@ -51,9 +51,12 @@ const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, dist
               aria-pressed={fav}
               aria-label={`${fav ? 'Unsave' : 'Save'} ${name}`}
               title={`${fav ? 'Unsave' : 'Save'} ${name}`}
-              className={`px-2 py-1 h-7 text-[11px] leading-none rounded-md border active:scale-[0.98] transition sm:px-3 sm:py-1.5 sm:h-9 sm:text-xs sm:rounded-lg ${fav ? 'bg-yellow-100 border-yellow-300 text-yellow-800' : 'bg-white border-gray-300 text-gray-700'}`}
+              className={`px-2 py-1 h-7 leading-none rounded-md border active:scale-[0.98] transition sm:px-3 sm:py-1.5 sm:h-9 sm:rounded-lg ${fav ? 'bg-yellow-100 border-yellow-300 text-yellow-700' : 'bg-white border-gray-300 text-gray-600'}`}
             >
-              {fav ? '★ Saved' : '☆ Save'}
+              <Star
+                className={`${fav ? 'text-yellow-500 fill-current' : 'text-gray-600'} w-3 h-3 sm:w-3.5 sm:h-3.5`}
+                aria-hidden="true"
+              />
             </button>
             <button
               type="button"
