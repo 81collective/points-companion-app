@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase';
 import { CATEGORY_MAP, CategoryKey } from '@/lib/places/categories';
 import { scorePlace, haversineMeters, type BasicPlace } from '@/lib/places/score';
+import { classifyBusiness } from '@/lib/classification/businessClassifier';
+import { evaluateCards } from '@/lib/cards/engine';
 
 type LatLng = { lat: number; lng: number };
 
@@ -104,6 +106,10 @@ type AggregatedItem = {
   distance?: number;
   score: number;
   source?: 'google' | 'mapbox';
+  inferred_category?: string;
+  mcc_candidates?: number[];
+  brand_id?: string;
+  top_card?: { cardId: string; cardName: string; reasons: string[]; rate: number; valueCentsPerDollar: number };
 };
 
 type Aggregated = { items: AggregatedItem[]; origin: LatLng; category: CategoryKey };
@@ -210,9 +216,17 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
   const final: AggregatedItem[] = scored.map(({ p, s }) => {
     const pid = (p.place_id as string) || '';
     const loc = p.geometry?.location;
+    const name = p.name || 'Unknown';
+    const classification = classifyBusiness({
+      name,
+      googleTypes: [],
+      mapboxPlaceName: p.formatted_address || p.vicinity || undefined,
+    });
+    const cardEvals = evaluateCards({ taxonomy: classification.taxonomy, mccCandidates: classification.mccCandidates, brandId: classification.brandId });
+    const top = cardEvals[0];
     return {
       id: pid || `${(p.name ?? '').toLowerCase()}|${p.vicinity ?? ''}`,
-      name: p.name || 'Unknown',
+      name,
       address: p.formatted_address || p.vicinity || '',
       rating: p.rating,
       reviews: p.user_ratings_total,
@@ -223,6 +237,10 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
       distance: loc ? haversineMeters(origin, { lat: loc.lat, lng: loc.lng }) : undefined,
       score: s,
       source: pid?.startsWith('mapbox_') ? 'mapbox' : 'google',
+      inferred_category: classification.taxonomy,
+      mcc_candidates: classification.mccCandidates,
+      brand_id: classification.brandId,
+      top_card: top ? { cardId: top.cardId, cardName: top.cardName, reasons: top.reasons, rate: top.rate, valueCentsPerDollar: top.estValueCentsPerDollar } : undefined,
     };
   });
 
