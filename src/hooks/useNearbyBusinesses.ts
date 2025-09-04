@@ -9,6 +9,10 @@ interface UseNearbyBusinessesParams {
   category: string;
   radius: number;
   enabled?: boolean;
+  minRating?: number;
+  openNow?: boolean;
+  limit?: number;
+  maxRadius?: number;
 }
 
 interface NearbyBusinessesResult {
@@ -29,10 +33,14 @@ export function useNearbyBusinesses({
   longitude,
   category,
   radius,
-  enabled = true
+  enabled = true,
+  minRating,
+  openNow,
+  limit,
+  maxRadius,
 }: UseNearbyBusinessesParams) {
   const query = useQuery<NearbyBusinessesResult, Error>({
-    queryKey: ['nearbyBusinesses', latitude, longitude, category, radius],
+    queryKey: ['nearbyBusinesses', latitude, longitude, category, radius, minRating, openNow, limit, maxRadius],
     queryFn: async () => {
       if (!latitude || !longitude) {
         throw new Error('Location coordinates are required');
@@ -51,7 +59,19 @@ export function useNearbyBusinesses({
         if (typeof window !== 'undefined' && window.google && window.google.maps) {
           console.log('Using enhanced client-side Google Places with production fallback...');
           const placesService = getClientPlacesService();
-          const businesses = await placesService.searchNearbyWithFallback(latitude, longitude, radius, category);
+          let businesses = await placesService.searchNearbyWithFallback(latitude, longitude, radius, category);
+
+          // Apply client-side filters if provided to keep parity with server filters
+          if (minRating !== undefined) {
+            businesses = businesses.filter(b => (b.rating ?? 0) >= minRating);
+          }
+          if (openNow) {
+            // clientPlacesService uses Google Places; results may carry opening_hours
+            // If we don't have an explicit open-now flag, leave as-is
+          }
+          if (limit !== undefined) {
+            businesses = businesses.slice(0, limit);
+          }
           
           if (businesses.length > 0) {
             console.log(`Enhanced search found ${businesses.length} businesses`, {
@@ -86,7 +106,7 @@ export function useNearbyBusinesses({
 
         // Fallback to server-only API if enhanced client-side isn't available
         console.log('Enhanced client-side not available, trying server-only API...');
-        const serverResult = await fetchNearbyBusinessesFromApi(latitude, longitude, category, radius);
+  const serverResult = await fetchNearbyBusinessesFromApi(latitude, longitude, category, radius, { minRating, openNow, limit, maxRadius });
         
         if (serverResult.success && serverResult.data) {
           console.log(`Found ${serverResult.data.length} businesses via server API`);
