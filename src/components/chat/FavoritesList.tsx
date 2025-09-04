@@ -26,11 +26,17 @@ const FavoritesList: React.FC<FavoritesListProps> = React.memo(({ onSelect }) =>
       richContent={(
         <div className="mt-1 flex flex-col gap-2">
           {items.map((b) => (
-            <div key={b.id} className="flex items-center justify-between rounded-md border p-2 text-sm">
-              <span className="truncate max-w-[55%]">{b.name}</span>
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={() => onSelect(b.id, b.name)} className="px-2 py-1 text-xs rounded bg-blue-600 text-white">Select</button>
-                <button type="button" onClick={() => remove(b.id)} className="px-2 py-1 text-xs rounded border border-gray-300">Remove</button>
+            <div key={b.id} className="rounded-md border p-2 text-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 w-full">
+                  <span className="block font-medium text-gray-900 text-[15px] leading-5 break-words">{b.name}</span>
+                </div>
+                <div className="flex w-full items-center gap-2 mt-1 sm:mt-0">
+                  <div className="ms-auto flex items-center gap-2 sm:ms-0 sm:ml-0">
+                    <button type="button" onClick={() => onSelect(b.id, b.name)} className="px-3 py-1.5 min-h-9 text-xs rounded-lg bg-blue-600 text-white">Select</button>
+                    <button type="button" onClick={() => remove(b.id)} className="px-3 py-1.5 min-h-9 text-xs rounded-lg border border-gray-300">Remove</button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
