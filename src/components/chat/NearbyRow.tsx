@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFavoritesStore } from '@/stores/favoritesStore';
 import { MapPin, Star } from 'lucide-react';
+import { useUIPreferences } from '@/stores/uiPreferences';
 
 interface NearbyRowProps {
   id: string;
@@ -15,6 +16,7 @@ interface NearbyRowProps {
 
 const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, distance, inferredCategory, topCardName, topCardReason, onSelect }) => {
   const { add, remove, has } = useFavoritesStore();
+  const { showNearbyCategoryChip, showNearbyCardChip } = useUIPreferences();
   const fav = has(id);
   const [bump, setBump] = useState(false);
 
@@ -51,12 +53,12 @@ const NearbyRow: React.FC<NearbyRowProps> = React.memo(({ id, name, rating, dist
               {rating.toFixed(1)}
             </span>
           )}
-          {inferredCategory && (
+          {inferredCategory && showNearbyCategoryChip && (
             <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 whitespace-nowrap" title={`Category: ${inferredCategory}`}>
               {inferredCategory}
             </span>
           )}
-          {topCardName && (
+          {topCardName && showNearbyCardChip && (
             <span className="hidden sm:inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap" title={topCardReason || 'Best card'}>
               {topCardName}
             </span>
