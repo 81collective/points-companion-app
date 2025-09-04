@@ -6,7 +6,7 @@ import { advancedApiCache } from '@/lib/apiCache';
 
 interface GraphQLError {
   message: string;
-  extensions?: Record<string, any>;
+  extensions?: Record<string, unknown>;
 }
 
 interface GraphQLResponse<T> {
@@ -15,10 +15,10 @@ interface GraphQLResponse<T> {
 }
 
 // Generic GraphQL query function
-async function graphqlQuery<T = any>(
+async function graphqlQuery<TData, TVars = Record<string, unknown>>(
   query: string,
-  variables?: Record<string, any>
-): Promise<T> {
+  variables?: TVars
+): Promise<TData> {
   const response = await fetch('/api/graphql', {
     method: 'POST',
     headers: {
@@ -34,13 +34,13 @@ async function graphqlQuery<T = any>(
     throw new Error(`GraphQL request failed: ${response.statusText}`);
   }
 
-  const result: GraphQLResponse<T> = await response.json();
+  const result: GraphQLResponse<TData> = await response.json();
 
   if (result.errors && result.errors.length > 0) {
     throw new Error(result.errors[0].message);
   }
 
-  return result.data!;
+  return result.data as TData;
 }
 
 // Nearby Businesses Query Hook
@@ -94,7 +94,18 @@ export function useNearbyBusinessesGraphQL(
 
   return useQuery({
     queryKey: ['nearbyBusinesses', location, category, options],
-    queryFn: () => graphqlQuery(query, {
+    queryFn: () => graphqlQuery<{
+      nearbyBusinesses: {
+        edges: Array<{ node: unknown; cursor: string }>;
+        pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean; startCursor: string | null; endCursor: string | null };
+        totalCount: number;
+      };
+    }, {
+      location: { lat: number; lng: number } | null;
+      category?: string;
+      filters?: { radius?: number };
+      limit?: number;
+    }>(query, {
       location,
       category,
       filters: {
@@ -142,7 +153,12 @@ export function useCardRecommendationsGraphQL(
 
   return useQuery({
     queryKey: ['cardRecommendations', category, businessId, location, options],
-    queryFn: () => graphqlQuery(query, {
+    queryFn: () => graphqlQuery<{ cardRecommendations: unknown[] }, { filters: {
+      category?: string;
+      businessId?: string;
+      location?: { lat: number; lng: number };
+      limit?: number;
+    } }>(query, {
       filters: {
         category,
         businessId,
@@ -202,7 +218,7 @@ export function useUserProfileGraphQL() {
 
   return useQuery({
     queryKey: ['userProfile'],
-    queryFn: () => graphqlQuery(query),
+    queryFn: () => graphqlQuery<{ userProfile: unknown }>(query),
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 60 * 60 * 1000, // 1 hour
   });
@@ -223,7 +239,7 @@ export function useAddUserCardGraphQL() {
 
   return useMutation({
     mutationFn: (variables: { cardId: string; notes?: string }) =>
-      graphqlQuery(mutation, { input: variables }),
+      graphqlQuery<{ addUserCard: { success: boolean; message: string } }, { input: { cardId: string; notes?: string } }>(mutation, { input: variables }),
     onSuccess: () => {
       // Invalidate and refetch user profile and cards
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
@@ -254,7 +270,10 @@ export function useUpdateUserPreferencesGraphQL() {
         sms?: boolean;
       }
     }) =>
-      graphqlQuery(mutation, { input: variables }),
+      graphqlQuery<{ updateUserPreferences: { success: boolean; message: string } }, { input: {
+        favoriteCategories?: string[];
+        notificationSettings?: { email?: boolean; push?: boolean; sms?: boolean };
+      } }>(mutation, { input: variables }),
     onSuccess: () => {
       // Invalidate user profile
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
@@ -276,17 +295,17 @@ export function useGraphQLHealth() {
 
   return useQuery({
     queryKey: ['graphqlHealth'],
-    queryFn: () => graphqlQuery(query),
+    queryFn: () => graphqlQuery<{ health: { success: boolean; message: string; data: string } }>(query),
     staleTime: 60 * 1000, // 1 minute
     refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 }
 
 // Cache-aware query wrapper
-export function useCachedGraphQLQuery<T = any>(
+export function useCachedGraphQLQuery<T>(
   queryKey: string[],
   query: string,
-  variables?: Record<string, any>,
+  variables?: Record<string, unknown>,
   options?: {
     ttl?: number;
     enabled?: boolean;
@@ -308,7 +327,7 @@ export function useCachedGraphQLQuery<T = any>(
       }
 
       // Fetch from GraphQL API
-      const result = await graphqlQuery<T>(query, variables);
+      const result = await graphqlQuery<T, Record<string, unknown>>(query, variables);
 
       // Cache the result
       if (options?.ttl) {

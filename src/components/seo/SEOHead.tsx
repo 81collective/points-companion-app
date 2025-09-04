@@ -100,7 +100,23 @@ export const SEOHead: React.FC<SEOProps> = ({
 };
 
 // Structured Data Components
-export const createBusinessStructuredData = (business: any) => ({
+type BusinessStructuredDataInput = {
+  name: string;
+  description?: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  latitude: number;
+  longitude: number;
+  phone?: string;
+  website?: string;
+  rating?: number;
+  reviewCount?: number;
+  priceLevel?: number;
+};
+
+export const createBusinessStructuredData = (business: BusinessStructuredDataInput) => ({
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   name: business.name,
@@ -128,7 +144,16 @@ export const createBusinessStructuredData = (business: any) => ({
   priceRange: business.priceLevel ? '$'.repeat(business.priceLevel) : undefined,
 });
 
-export const createCreditCardStructuredData = (card: any) => ({
+type CreditCardStructuredDataInput = {
+  name: string;
+  description?: string;
+  issuer: string;
+  annualFee?: number | string;
+  signupBonus?: string;
+  features?: string[];
+};
+
+export const createCreditCardStructuredData = (card: CreditCardStructuredDataInput) => ({
   '@context': 'https://schema.org',
   '@type': 'FinancialProduct',
   name: card.name,
@@ -143,7 +168,7 @@ export const createCreditCardStructuredData = (card: any) => ({
     priceCurrency: 'USD',
     description: card.signupBonus,
   },
-  additionalProperty: card.features?.map((feature: string) => ({
+  additionalProperty: card.features?.map((feature) => ({
     '@type': 'PropertyValue',
     name: 'Feature',
     value: feature,
@@ -201,19 +226,31 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
       for (const entry of list.getEntries()) {
         switch (entry.entryType) {
           case 'paint':
-            if (entry.name === 'first-contentful-paint') {
-              performanceData.fcp = entry.startTime;
+            {
+              const paint = entry as PerformancePaintTiming;
+              if (paint.name === 'first-contentful-paint') {
+                performanceData.fcp = paint.startTime;
+              }
             }
             break;
           case 'largest-contentful-paint':
-            performanceData.lcp = entry.startTime;
+            {
+              const lcpEntry = entry as LargestContentfulPaint;
+              performanceData.lcp = lcpEntry.startTime;
+            }
             break;
           case 'first-input':
-            performanceData.fid = (entry as any).processingStart - entry.startTime;
+            {
+              const fi = entry as PerformanceEventTiming;
+              performanceData.fid = fi.processingStart - fi.startTime;
+            }
             break;
           case 'layout-shift':
-            if (!(entry as any).hadRecentInput) {
-              performanceData.cls = (performanceData.cls || 0) + (entry as any).value;
+            {
+              const ls = entry as LayoutShift;
+              if (!ls.hadRecentInput) {
+                performanceData.cls = (performanceData.cls || 0) + ls.value;
+              }
             }
             break;
         }

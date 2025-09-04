@@ -14,9 +14,9 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   ...performanceConfig,
 
-  // Do not fail production builds on ESLint errors (we'll address lint issues separately)
+  // ESLint: enforce during builds
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
 
   // Image optimization

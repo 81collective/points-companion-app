@@ -2,10 +2,10 @@
 // Implements the business logic for all GraphQL operations
 
 import { fetchNearbyBusinesses } from '@/services/locationService';
+import type { Business } from '@/types/location.types';
 import { fetchRecommendations } from '@/services/cardService';
 import { createClient } from '@/lib/supabase';
 import { advancedApiCache } from '@/lib/apiCache';
-import { applyCacheHeaders } from '@/lib/httpCache';
 
 interface Context {
   user?: {
@@ -15,12 +15,29 @@ interface Context {
   cache: typeof advancedApiCache;
 }
 
+type NearbyFilters = {
+  radius?: number;
+  minRating?: number;
+  maxPrice?: number;
+};
+
+type NearbyQueryInput = {
+  location: { lat: number; lng: number };
+  category?: string;
+  filters?: NearbyFilters;
+  limit?: number;
+  offset?: number;
+};
+
+type CachedNearby = { data: unknown[]; totalCount?: number };
+type CachedRecommendations = { data: unknown[] };
+
 export const resolvers = {
   Query: {
     // Business queries
     nearbyBusinesses: async (
-      _: any,
-      { query }: { query: any },
+  _parent: unknown,
+  { query }: { query: NearbyQueryInput },
       context: Context
     ) => {
       try {
@@ -39,9 +56,9 @@ export const resolvers = {
         // Check cache first
         const cached = context.cache.get(cacheKey);
         if (cached && typeof cached === 'object' && 'data' in cached) {
-          const cacheData = cached as { data: any[]; totalCount?: number };
+          const cacheData = cached as CachedNearby;
           return {
-            edges: cacheData.data.map((business: any, index: number) => ({
+            edges: cacheData.data.map((business, index: number) => ({
               node: business,
               cursor: Buffer.from(`${offset + index}`).toString('base64')
             })),
@@ -68,13 +85,15 @@ export const resolvers = {
         }
 
         // Apply filters
-        let businesses = result.data || [];
+  let businesses = result.data || [];
         if (filters) {
-          if (filters.minRating) {
-            businesses = businesses.filter(b => (b.rating || 0) >= filters.minRating);
+          if (typeof filters.minRating === 'number') {
+            const minRating = filters.minRating;
+            businesses = businesses.filter((b: Business) => (b.rating || 0) >= minRating);
           }
-          if (filters.maxPrice !== undefined) {
-            businesses = businesses.filter(b => (b.price_level || 0) <= filters.maxPrice);
+          if (typeof filters.maxPrice === 'number') {
+            const maxPrice = filters.maxPrice;
+            businesses = businesses.filter((b: Business) => (b.price_level || 0) <= maxPrice);
           }
           // Note: openNow filter would require additional API data not currently available
         }
@@ -96,7 +115,7 @@ export const resolvers = {
         });
 
         return {
-          edges: paginatedBusinesses.map((business: any, index: number) => ({
+          edges: paginatedBusinesses.map((business, index: number) => ({
             node: business,
             cursor: Buffer.from(`${offset + index}`).toString('base64')
           })),
@@ -114,7 +133,7 @@ export const resolvers = {
       }
     },
 
-    business: async (_: any, { id }: { id: string }, context: Context) => {
+  business: async (_parent: unknown, { id }: { id: string }, context: Context) => {
       // Implementation for single business lookup
       const cacheKey = context.cache.generateKey({ id }, 'graphql_business');
 
@@ -128,8 +147,8 @@ export const resolvers = {
 
     // Card queries
     cardRecommendations: async (
-      _: any,
-      { query }: { query: any },
+  _parent: unknown,
+  { query }: { query?: { filters?: { category?: string; location?: { lat: number; lng: number }; businessId?: string; businessName?: string; limit?: number } } },
       context: Context
     ) => {
       try {
@@ -144,7 +163,7 @@ export const resolvers = {
         // Check cache first
         const cached = context.cache.get(cacheKey);
         if (cached && typeof cached === 'object' && 'data' in cached) {
-          const cacheData = cached as { data: any[] };
+          const cacheData = cached as CachedRecommendations;
           return cacheData.data;
         }
 
@@ -164,7 +183,7 @@ export const resolvers = {
         const recommendations = result.data || [];
 
         // Apply additional filters
-        let filteredRecommendations = recommendations;
+  let filteredRecommendations = recommendations;
         if (filters?.limit) {
           filteredRecommendations = filteredRecommendations.slice(0, filters.limit);
         }
@@ -185,7 +204,7 @@ export const resolvers = {
       }
     },
 
-    card: async (_: any, { id }: { id: string }, context: Context) => {
+  card: async (_parent: unknown, { id }: { id: string }, context: Context) => {
       // Implementation for single card lookup
       const cacheKey = context.cache.generateKey({ id }, 'graphql_card');
 
@@ -198,7 +217,7 @@ export const resolvers = {
     },
 
     // User queries
-    userProfile: async (_: any, __: any, context: Context) => {
+  userProfile: async (_parent: unknown, _args: unknown, context: Context) => {
       if (!context.user) {
         throw new Error('Authentication required');
       }
@@ -259,8 +278,8 @@ export const resolvers = {
   Mutation: {
     // User mutations
     updateUserProfile: async (
-      _: any,
-      { input }: { input: any },
+  _parent: unknown,
+  { input }: { input: Record<string, unknown> },
       context: Context
     ) => {
       if (!context.user) {
@@ -296,8 +315,8 @@ export const resolvers = {
 
     // Card mutations
     addUserCard: async (
-      _: any,
-      { input }: { input: any },
+      _parent: unknown,
+      { input }: { input: { cardId: string; notes?: string } },
       context: Context
     ) => {
       if (!context.user) {
@@ -336,7 +355,7 @@ export const resolvers = {
 
   // Field resolvers for complex types
   Business: {
-    category: (parent: any) => {
+  category: (parent: { category?: string }) => {
       // Map internal categories to GraphQL enum
       const categoryMap: Record<string, string> = {
         restaurant: 'RESTAURANT',
@@ -348,12 +367,12 @@ export const resolvers = {
         travel: 'TRAVEL'
       };
 
-      return categoryMap[parent.category] || 'OTHER';
+  return parent.category && categoryMap[parent.category] ? categoryMap[parent.category] : 'OTHER';
     }
   },
 
   CardRecommendation: {
-    category: (parent: any) => {
+    category: (parent: { category?: string }) => {
       // Map internal categories to GraphQL enum
       const categoryMap: Record<string, string> = {
         dining: 'DINING',
@@ -367,7 +386,7 @@ export const resolvers = {
         credit_card: 'CREDIT_CARD'
       };
 
-      return categoryMap[parent.category] || 'OTHER';
+  return parent.category && categoryMap[parent.category] ? categoryMap[parent.category] : 'OTHER';
     }
   }
 };

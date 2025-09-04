@@ -228,7 +228,7 @@ afterEach(() => {
   },
 
   // Mock failed API response
-  mockApiError: (error: Error, status = 500) => {
+  mockApiError: (error: Error, _status = 500) => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
   },
 
@@ -331,17 +331,17 @@ global.a11yUtils = {
 // Network testing utilities
 global.networkUtils = {
   // Mock successful API response
-  mockApiSuccess: (data: any, status = 200) => {
+  mockApiSuccess: (data: any, _status = 200) => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      status,
+    status: _status,
       json: () => Promise.resolve(data),
       text: () => Promise.resolve(JSON.stringify(data)),
     });
   },
 
   // Mock failed API response
-  mockApiError: (error: Error, status = 500) => {
+  mockApiError: (error: Error, _status = 500) => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(error);
   },
 

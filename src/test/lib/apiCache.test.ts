@@ -146,7 +146,7 @@ describe('apiCache', () => {
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockCacheData));
 
       // Create new cache instance to test loading
-      const newCache = new (apiCache.constructor as any)({
+  const _newCache = new (apiCache.constructor as any)({
         maxSize: 100 * 1024 * 1024,
         defaultTTL: 5 * 60 * 1000,
         enablePersistence: true,
