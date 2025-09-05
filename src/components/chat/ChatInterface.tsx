@@ -114,9 +114,10 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
 
   // UI-level category fixer: last resort display mapping to avoid 'services' on restaurants
   const getDisplayCategory = React.useCallback((b: Business): string | undefined => {
-    const inferred = (('inferred_category' in (b as unknown as Record<string, unknown>) ? (b as unknown as { inferred_category?: string }).inferred_category : undefined) || b.category) as string | undefined;
+    const inferred = (( 'inferred_category' in (b as unknown as Record<string, unknown>) ? (b as unknown as { inferred_category?: string }).inferred_category : undefined) || b.category) as string | undefined;
     if (inferred && inferred !== 'services') return inferred;
     const name = (b?.name ?? '').toLowerCase();
+    // Only remap when input was 'services' and name clearly indicates food/coffee
     if (/coffee|cafe|espresso|latte|tea/.test(name)) return 'coffee';
     if (/restaurant|grill|pizza|pizzeria|sushi|ramen|noodle|taco|bbq|bar|deli|bistro|eatery|kitchen|brunch|steak|wing|shawarma|gyro|bakery|donut|ice\s?cream/.test(name)) return 'dining';
     return inferred;

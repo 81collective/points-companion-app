@@ -166,7 +166,7 @@ class ClientPlacesService {
     };
   }
 
-  private identifyBusinessCategory(name: string, types: string[]): string {
+  private identifyBusinessCategory(name: string, types: string[], fallbackCategory?: string): string {
     const nameLower = name.toLowerCase();
     const brandPatterns = this.getBrandPatterns();
     
@@ -212,7 +212,8 @@ class ClientPlacesService {
     }
     
   // Default fallback: prefer dining to avoid mislabeled restaurants
-  return 'dining';
+  // Default to provided fallback (requested search category) or a neutral 'shopping'
+  return fallbackCategory || 'shopping';
   }
 
   public async searchNearby(
@@ -265,7 +266,7 @@ class ClientPlacesService {
               
               const lat = place.geometry?.location?.lat?.() ?? latitude;
               const lng = place.geometry?.location?.lng?.() ?? longitude;
-              const detectedCategory = this.identifyBusinessCategory(place.name || '', place.types || []);
+              const detectedCategory = this.identifyBusinessCategory(place.name || '', place.types || [], category);
               
               allResults.push({
                 id: place.place_id,

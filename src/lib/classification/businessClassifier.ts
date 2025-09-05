@@ -93,10 +93,11 @@ export function classifyBusiness(input: {
     }
   }
 
+  const confidence = Math.min(1, best.score);
   return {
     taxonomy: best.taxonomy,
     mccCandidates: mccsForTaxonomy(best.taxonomy),
-    confidence: Math.min(1, best.score),
+    confidence,
     brandId,
   };
 }

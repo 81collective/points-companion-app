@@ -114,8 +114,8 @@ export function useNearbyBusinesses({
           // Enhance server results with better categorization
           const enhancedServerData = serverResult.data.map((business: Business) => ({
             ...business,
-            // Prefer inferred category from server enrichment; fall back to existing category; finally to 'dining'
-            category: (business as unknown as { inferred_category?: string }).inferred_category ?? business.category ?? 'dining',
+            // Prefer inferred category from server enrichment; otherwise keep server/category
+            category: (business as unknown as { inferred_category?: string }).inferred_category ?? business.category,
             distance: business.distance || 0 // Ensure distance is set
           }));
           
