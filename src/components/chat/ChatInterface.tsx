@@ -559,15 +559,11 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                           rewards={{
                             text: (() => {
                               const pts = rec.estimated_points || 0;
-                              // If we lack explicit spend, approximate: annual_value gives dollar value; assume average point value 1.5¢ if not provided.
-                              // Derive effective point value cents from annual_value / estimated_points if both present, else fallback 1.5.
-                              const valueCentsTotal = rec.annual_value ? rec.annual_value * 100 : null; // annual_value in dollars
-                              const _pv = (valueCentsTotal && pts > 0) ? (valueCentsTotal / pts) : 1.5; // reserved for future refinement
-                              // Spend per point = (point value cents) / (earn value cents per $). Without rate context assume 1 point per $ as baseline.
-                              // Provide a conservative display: $X per 100 pts assuming 1x earn baseline.
-                              const spendPer100 = 100; // under 1x baseline; adjust if future earn rate available
+                              const rate = (rec && typeof (rec as { reward_multiplier?: number }).reward_multiplier === 'number') ? (rec as { reward_multiplier?: number }).reward_multiplier as number : 1; // points per $1
+                              if (rate <= 0) return `${pts} pts`;
+                              const spendPer100 = 100 / rate; // dollars to earn 100 pts
                               if (pts === 0) return '0 pts';
-                              return `${pts} pts • $${spendPer100.toFixed(2)}/100pts`;
+                              return `${pts} pts • $${spendPer100.toFixed(2)}/100pts @${rate.toFixed(2)}x`;
                             })()
                           }}
                         />
@@ -612,11 +608,11 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                             text: (() => {
                               const rec = item.recommendation;
                               const pts = rec.estimated_points || 0;
+                              const rate = (rec && typeof (rec as { reward_multiplier?: number }).reward_multiplier === 'number') ? (rec as { reward_multiplier?: number }).reward_multiplier as number : 1;
+                              if (rate <= 0) return `${pts} pts`;
+                              const spendPer100 = 100 / rate;
                               if (pts === 0) return '0 pts';
-                              const valueCentsTotal = rec.annual_value ? rec.annual_value * 100 : null;
-                              const _pv = (valueCentsTotal && pts > 0) ? (valueCentsTotal / pts) : 1.5; // future refinement placeholder
-                              const spendPer100 = 100; // placeholder baseline at 1x earn; refine when earn rate is available per rec
-                              return `${pts} pts • $${spendPer100.toFixed(2)}/100pts`;
+                              return `${pts} pts • $${spendPer100.toFixed(2)}/100pts @${rate.toFixed(2)}x`;
                             })()
                           } : undefined}
                           onSelect={() => { setSelectedBusinessId(item.business.id); setSelectedBusinessName(item.business.name); }}

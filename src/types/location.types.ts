@@ -79,6 +79,8 @@ export interface CardRecommendation {
   annual_value: number;
   match_score: number;
   reasons: string[];
+  // Points (or equivalent) earned per $1 for the targeted context
+  reward_multiplier?: number;
 }
 
 export interface LocationPermissionState {
