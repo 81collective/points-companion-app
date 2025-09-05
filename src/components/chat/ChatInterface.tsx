@@ -125,7 +125,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
 
   // Location and data hooks
   const { location, permissionState, requestLocation } = useLocation();
-  const { businesses: nearbyBusinesses } = useNearbyBusinesses({
+  const { businesses: nearbyBusinesses, loading: nearbyLoading } = useNearbyBusinesses({
     latitude: location?.latitude,
     longitude: location?.longitude,
     category,
@@ -449,7 +449,29 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   {activeTab === 'quick' && (
           <>
             {/* Nearby only in Quick tab */}
-            {permissionState.granted && nearbyBusinesses && nearbyBusinesses.length > 0 && (
+            {permissionState.granted && nearbyLoading && (
+              <div className="mt-3">
+                <ChatBubble
+                  sender="assistant"
+                  message="Finding nearby places…"
+                  richContent={(
+                    <div className="mt-1 flex flex-col gap-2">
+                      {[0,1,2].map((i) => (
+                        <div key={i} className="rounded-lg border border-gray-200 bg-white p-2.5">
+                          <div className="h-4 w-2/3 bg-gray-200 rounded animate-pulse" />
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                            <div className="h-4 w-14 bg-gray-200 rounded animate-pulse ms-auto" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                />
+              </div>
+            )}
+            {permissionState.granted && !nearbyLoading && nearbyBusinesses && nearbyBusinesses.length > 0 && (
               <div className="mt-3">
                 <ChatBubble
                   sender="assistant"
