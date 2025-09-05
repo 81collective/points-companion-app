@@ -108,6 +108,7 @@ type AggregatedItem = {
   score: number;
   source?: 'google' | 'mapbox';
   inferred_category?: string;
+  inferred_confidence?: number;
   mcc_candidates?: number[];
   brand_id?: string;
   top_card?: { cardId: string; cardName: string; reasons: string[]; rate: number; valueCentsPerDollar: number };
@@ -218,14 +219,14 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
     const pid = (p.place_id as string) || '';
     const loc = p.geometry?.location;
     const name = p.name || 'Unknown';
-  const classification = classifyBusiness({
+    const classification = classifyBusiness({
       name,
       googleTypes: Array.isArray(p.types) ? p.types : [],
       mapboxPlaceName: p.formatted_address || p.vicinity || undefined,
     });
     const cardEvals = evaluateCards({ taxonomy: classification.taxonomy, mccCandidates: classification.mccCandidates, brandId: classification.brandId });
     const top = cardEvals[0];
-  return {
+    return {
       id: pid || `${(p.name ?? '').toLowerCase()}|${p.vicinity ?? ''}`,
       name,
       address: p.formatted_address || p.vicinity || '',
@@ -237,8 +238,9 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
       longitude: loc?.lng,
       distance: loc ? haversineMeters(origin, { lat: loc.lat, lng: loc.lng }) : undefined,
       score: s,
-  source: pid?.startsWith('mapbox_') ? 'mapbox' : 'google',
-  inferred_category: classification.taxonomy,
+      source: pid?.startsWith('mapbox_') ? 'mapbox' : 'google',
+      inferred_category: classification.taxonomy,
+      inferred_confidence: classification.confidence,
       mcc_candidates: classification.mccCandidates,
       brand_id: classification.brandId,
       top_card: top ? { cardId: top.cardId, cardName: top.cardName, reasons: top.reasons, rate: top.rate, valueCentsPerDollar: top.estValueCentsPerDollar } : undefined,
@@ -317,8 +319,9 @@ export async function GET(request: NextRequest) {
 
     // Map to existing Business response shape
   const businesses = aggregated.items.map((it) => {
-    // Only override when confident, else honor requested category to prevent over-dining
-    const isConfident = typeof it.score === 'number' ? it.score >= 0.6 : false; // score already reflects quality; classifier adds confidence too
+    // Only override when classifier confidence is high; avoids over-dining bias
+    const threshold = 0.65;
+    const isConfident = typeof it.inferred_confidence === 'number' ? it.inferred_confidence >= threshold : false;
     const correctedCategory = isConfident && it.inferred_category ? it.inferred_category : category;
     if (process.env.NODE_ENV !== 'production') {
       const catStr = String(category);
@@ -342,6 +345,7 @@ export async function GET(request: NextRequest) {
       distance: it.distance,
       // Pass through enrichment for clients that use it
       inferred_category: it.inferred_category,
+      inferred_confidence: it.inferred_confidence ?? null,
       mcc_candidates: it.mcc_candidates,
       brand_id: it.brand_id,
       top_card: it.top_card,
