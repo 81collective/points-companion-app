@@ -135,4 +135,12 @@ export const CARD_RULES: CardRule[] = [
     ],
     pointValueCents: 1.0,
   },
+  {
+    id: 'citi_double_cash',
+    name: 'Citi Double Cash',
+    program: 'CB',
+    baseRate: 2, // 1% earn + 1% on payment aggregated
+    // No category bonuses; pure flat-rate value card to balance recommendations
+    pointValueCents: 1.0,
+  },
 ];
