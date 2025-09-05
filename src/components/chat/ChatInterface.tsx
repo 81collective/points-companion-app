@@ -556,7 +556,20 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                         <BusinessCardInChat
                           business={{ name: rec?.business?.name || 'Nearby place', distance: rec?.business?.distance }}
                           recommendedCard={{ name: rec.card.card_name, issuer: rec.card.issuer, owned: isOwnedCard(rec.card.card_name) }}
-                          rewards={{ text: `${rec.estimated_points} pts (~$${Math.round(rec.annual_value / 12)})` }}
+                          rewards={{
+                            text: (() => {
+                              const pts = rec.estimated_points || 0;
+                              // If we lack explicit spend, approximate: annual_value gives dollar value; assume average point value 1.5¢ if not provided.
+                              // Derive effective point value cents from annual_value / estimated_points if both present, else fallback 1.5.
+                              const valueCentsTotal = rec.annual_value ? rec.annual_value * 100 : null; // annual_value in dollars
+                              const _pv = (valueCentsTotal && pts > 0) ? (valueCentsTotal / pts) : 1.5; // reserved for future refinement
+                              // Spend per point = (point value cents) / (earn value cents per $). Without rate context assume 1 point per $ as baseline.
+                              // Provide a conservative display: $X per 100 pts assuming 1x earn baseline.
+                              const spendPer100 = 100; // under 1x baseline; adjust if future earn rate available
+                              if (pts === 0) return '0 pts';
+                              return `${pts} pts • $${spendPer100.toFixed(2)}/100pts`;
+                            })()
+                          }}
                         />
                       </div>
                     ))}
@@ -595,7 +608,17 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                         <BusinessCardInChat
                           business={{ name: item.business.name, distance: item.business.distance }}
                           recommendedCard={{ name: item.recommendation?.card.card_name || 'Best nearby card', issuer: item.recommendation?.card.issuer, owned: isOwnedCard(item.recommendation?.card.card_name) }}
-                          rewards={item.recommendation ? { text: `${item.recommendation.estimated_points} pts (~$${Math.round(item.recommendation.annual_value / 12)})` } : undefined}
+                          rewards={item.recommendation ? {
+                            text: (() => {
+                              const rec = item.recommendation;
+                              const pts = rec.estimated_points || 0;
+                              if (pts === 0) return '0 pts';
+                              const valueCentsTotal = rec.annual_value ? rec.annual_value * 100 : null;
+                              const _pv = (valueCentsTotal && pts > 0) ? (valueCentsTotal / pts) : 1.5; // future refinement placeholder
+                              const spendPer100 = 100; // placeholder baseline at 1x earn; refine when earn rate is available per rec
+                              return `${pts} pts • $${spendPer100.toFixed(2)}/100pts`;
+                            })()
+                          } : undefined}
                           onSelect={() => { setSelectedBusinessId(item.business.id); setSelectedBusinessName(item.business.name); }}
                         />
                       </div>
