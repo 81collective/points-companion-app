@@ -458,11 +458,11 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                     <div className="mt-1 flex flex-col gap-2">
                       {[0,1,2].map((i) => (
                         <div key={i} className="rounded-lg border border-gray-200 bg-white p-2.5">
-                          <div className="h-4 w-2/3 bg-gray-200 rounded animate-pulse" />
+                          <div className="h-4 w-2/3 bg-gray-200 rounded shimmer" />
                           <div className="mt-2 flex items-center gap-2">
-                            <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
-                            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
-                            <div className="h-4 w-14 bg-gray-200 rounded animate-pulse ms-auto" />
+                            <div className="h-4 w-12 bg-gray-200 rounded shimmer" />
+                            <div className="h-4 w-16 bg-gray-200 rounded shimmer" />
+                            <div className="h-4 w-14 bg-gray-200 rounded shimmer ms-auto" />
                           </div>
                         </div>
                       ))}
