@@ -111,3 +111,9 @@ html, body { background: var(--color-bg); color: var(--color-text); }
 @keyframes shimmer {
   100% { transform: translateX(100%); }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer::after {
+    animation: none;
+  }
+}

@@ -159,7 +159,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   });
 
   // In planning with no explicit selection, also compute best card per top nearby business
-  const { items: perBusinessBest, loading: _perBusinessLoading } = useBestCardsForBusinesses({
+  const { items: perBusinessBest, loading: perBusinessLoading } = useBestCardsForBusinesses({
     category,
     latitude: location?.latitude,
     longitude: location?.longitude,
@@ -544,7 +544,24 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
             {/* Recommendations carousel in Planning */}
             {recLoading && (
               <div className="mt-3">
-                <ChatBubble sender="assistant" message="" richContent={<TypingIndicator />} />
+                <ChatBubble
+                  sender="assistant"
+                  message="Finding top cards…"
+                  richContent={(
+                    <div className="overflow-x-auto">
+                      <div className="flex gap-3 pr-2">
+                        {[0,1,2,3].map((i) => (
+                          <div key={i} className="min-w-[260px] max-w-[320px] rounded-xl border border-blue-200 bg-white p-3">
+                            <div className="h-5 w-2/3 bg-gray-200 rounded shimmer" />
+                            <div className="mt-3 h-6 w-3/4 bg-gray-200 rounded shimmer" />
+                            <div className="mt-2 h-4 w-1/2 bg-gray-200 rounded shimmer" />
+                            <div className="mt-3 h-8 w-28 bg-gray-200 rounded shimmer" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                />
               </div>
             )}
             {selectedBusinessId && recommendationsData && (
@@ -589,6 +606,25 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                             })()
                           }}
                         />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {!selectedBusinessId && perBusinessLoading && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between px-1 pb-1">
+                  <div className="text-xs text-gray-500">Best cards for nearby places</div>
+                </div>
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 pr-2">
+                    {[0,1,2].map((i) => (
+                      <div key={i} className="min-w-[260px] max-w-[320px] rounded-xl border border-blue-200 bg-white p-3">
+                        <div className="h-5 w-2/3 bg-gray-200 rounded shimmer" />
+                        <div className="mt-3 h-6 w-3/4 bg-gray-200 rounded shimmer" />
+                        <div className="mt-2 h-4 w-1/2 bg-gray-200 rounded shimmer" />
+                        <div className="mt-3 h-8 w-28 bg-gray-200 rounded shimmer" />
                       </div>
                     ))}
                   </div>
