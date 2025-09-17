@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -12,8 +13,7 @@ import { DashboardMetrics } from '@/types/dashboard'
 const OverviewSection = dynamic(() => import('@/components/dashboard/sections/OverviewSection'))
 const CardsSection = dynamic(() => import('@/components/dashboard/sections/CardsSection'))
 const BonusesSection = dynamic(() => import('@/components/dashboard/sections/BonusesSection'))
-const InsightsSection = dynamic(() => import('@/components/dashboard/sections/InsightsSection'))
-const AnalyticsSection = dynamic(() => import('@/components/dashboard/sections/AnalyticsSection'))
+// Removed Insights & Analytics sections (deprecated)
 
 
 export default function DashboardPage() {
@@ -61,12 +61,18 @@ export default function DashboardPage() {
           </div>
         ) : null}
         {!loading && metrics && section === 'overview' && (
-          <OverviewSection {...metrics} />
+          <>
+            <div className="mt-4">
+              <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium shadow hover:bg-blue-700 transition">Search Nearby Businesses →</Link>
+            </div>
+            <OverviewSection {...metrics} />
+            <div className="mt-16">
+              <CardsSection />
+            </div>
+          </>
         )}
         {section === 'cards' && <CardsSection />}
         {section === 'bonuses' && <BonusesSection />}
-        {section === 'insights' && <InsightsSection />}
-        {section === 'analytics' && <AnalyticsSection />}
       </div>
     </ProtectedRoute>
   );

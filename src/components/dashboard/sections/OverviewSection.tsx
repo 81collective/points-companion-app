@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { Plus, ArrowUpRight, PieChart, BarChart3, DollarSign, Target } from 'lucide-react';
+import { Plus, ArrowUpRight, DollarSign, Target, Compass } from 'lucide-react';
 import { DashboardMetrics } from '@/types/dashboard';
 import StatCard from '@/components/dashboard/StatCard';
 
@@ -11,7 +11,7 @@ function buildSuggestions(m: DashboardMetrics) {
   const suggestions: Array<{ icon: React.ElementType; title: string; cta?: { href: string; label: string } }> = [];
   if (m.cardCount === 0) suggestions.push({ icon: Plus, title: 'Add your first card', cta: { href: '/dashboard/cards', label: 'Add card' } });
   if (m.monthlyPoints === 0) suggestions.push({ icon: DollarSign, title: 'Make a purchase on a bonus category card' });
-  suggestions.push({ icon: BarChart3, title: 'Review insights to optimize categories', cta: { href: '/dashboard/insights', label: 'Open insights' } });
+  suggestions.push({ icon: Compass, title: 'Explore nearby businesses', cta: { href: '/', label: 'Search nearby' } });
   return suggestions;
 }
 
@@ -26,8 +26,8 @@ export default function OverviewSection({ cardCount, totalPoints, monthlyPoints,
         </Link>
         <Link href="/transactions/import" className="group h-14 rounded-xl border border-gray-200 bg-white/70 backdrop-blur hover:bg-white transition flex items-center justify-center gap-2 text-sm font-medium shadow-sm hover:shadow cursor-pointer">
           <ArrowUpRight className="w-4 h-4 text-primary-600 group-hover:rotate-45 transition" /> Import</Link>
-        <Link href="/dashboard/analytics" className="group h-14 rounded-xl border border-gray-200 bg-white/70 backdrop-blur hover:bg-white transition flex items-center justify-center gap-2 text-sm font-medium shadow-sm hover:shadow cursor-pointer">
-          <PieChart className="w-4 h-4 text-primary-600 group-hover:scale-110 transition" /> Analytics</Link>
+        <Link href="/" className="group h-14 rounded-xl border border-gray-200 bg-white/70 backdrop-blur hover:bg-white transition flex items-center justify-center gap-2 text-sm font-medium shadow-sm hover:shadow cursor-pointer">
+          <Compass className="w-4 h-4 text-primary-600 group-hover:scale-110 transition" /> Nearby</Link>
       </div>
 
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -35,7 +35,7 @@ export default function OverviewSection({ cardCount, totalPoints, monthlyPoints,
   <div className="lg:col-span-2 card-modern p-6 dark:bg-gray-900/60 dark:border-gray-800">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-base font-semibold tracking-wide text-gray-700 flex items-center gap-2">Next best actions</h2>
-            <Link href="/dashboard/insights" className="text-xs font-medium text-primary-600 hover:underline">View insights →</Link>
+            <Link href="/" className="text-xs font-medium text-primary-600 hover:underline">Search nearby →</Link>
           </div>
           <ul className="space-y-2">
             {suggestions.map((s, i) => {

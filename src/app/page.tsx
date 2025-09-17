@@ -1,7 +1,7 @@
 // src/app/page.tsx - Airbnb-inspired landing page with auth redirect
 'use client';
 
-import { useEffect } from 'react';
+import { useMemo } from 'react';
 import TextLogo from '@/components/branding/TextLogo';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,20 +15,25 @@ export default function HomePage() {
   const router = useRouter();
   const { cards } = useUserCards();
 
-  useEffect(() => {
-    if (user && !loading) {
-      router.push('/dashboard');
-    }
-  }, [user, loading, router]);
+  // Do not redirect logged-in users anymore; homepage becomes universal entry with personalized recs.
 
-    if (loading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-          <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
-        </div>
-      );
-    } else if (user) {
-      return null; // Will redirect to dashboard
+  const genericBestCards = useMemo(()=>[
+    { name: 'Amex Gold', tagline: '4x Dining & US Supermarkets', color: 'from-amber-400 to-pink-500' },
+    { name: 'Chase Sapphire Preferred', tagline: '2x Travel & Dining', color: 'from-blue-500 to-indigo-600' },
+    { name: 'Citi Double Cash', tagline: '2% Everywhere', color: 'from-emerald-500 to-teal-600' },
+  ], []);
+
+  const userCardNames = (cards || []).map(c=> c.name.toLowerCase());
+  const personalized = user && userCardNames.length 
+    ? genericBestCards.filter(c=> userCardNames.some(n=> n.includes(c.name.split(' ')[0].toLowerCase())))
+    : [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+      </div>
+    );
   }
 
   return (
@@ -47,7 +52,7 @@ export default function HomePage() {
           </button>
         </div>
       </header>
-      <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-6 md:py-10 space-y-8">
+  <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-6 md:py-10 space-y-8">
       {/* Combined Hero + Assistant */}
       <section className="bg-gradient-to-b from-gray-900 to-gray-800 shadow-sm border border-gray-900 p-4 sm:p-6 md:p-8 text-center">
         <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-3">
@@ -80,6 +85,25 @@ export default function HomePage() {
             Learn more
           </button>
         </div>
+      </section>
+
+      {/* Personalized / Generic Card Recommendations */}
+      <section className="bg-white border border-gray-200 p-4 md:p-6 rounded-lg shadow-sm">
+        <h2 className="text-lg font-semibold mb-4">{user ? 'Your Card Highlights' : 'Top Starter Cards'}</h2>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {(personalized.length ? personalized : genericBestCards).map(c => (
+            <div key={c.name} className={`rounded-xl p-4 text-white bg-gradient-to-br ${c.color} shadow-sm flex flex-col justify-between`}>
+              <div>
+                <p className="font-semibold text-sm tracking-wide uppercase opacity-80">{c.name}</p>
+                <p className="text-xs mt-1 opacity-90 leading-snug">{c.tagline}</p>
+              </div>
+              {!user && <button onClick={()=>router.push('/auth')} className="mt-4 text-xs font-medium bg-white/20 hover:bg-white/30 transition px-3 py-1 rounded-md">Apply / Learn More</button>}
+            </div>
+          ))}
+        </div>
+        {user && personalized.length === 0 && (
+          <p className="text-xs text-gray-500 mt-3">Add your cards in the dashboard to personalize these recommendations.</p>
+        )}
       </section>
 
       {/* Deal of the Day replaces the features grid */}
