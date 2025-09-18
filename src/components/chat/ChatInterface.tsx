@@ -44,6 +44,14 @@ export interface ChatInterfaceProps {
    * and will not read it back on mount. Useful for embedded homepage toggle.
    */
   persistUiState?: boolean;
+  /**
+   * Notifies parent when mode (active tab) changes so outer UI (e.g. homepage highlights) can react.
+   */
+  onModeChange?: (mode: 'quick' | 'planning') => void;
+  /**
+   * Emits raw planning recommendations (unfiltered by wallet toggle) so parent can surface upgrade suggestions.
+   */
+  onPlanningRecommendations?: (payload: { category: string; recommendations: Array<{ name: string; issuer?: string }>; timestamp: number }) => void;
 }
 
 const initialMessage = (mode: 'quick' | 'planning'): Message => ({
@@ -55,7 +63,7 @@ const initialMessage = (mode: 'quick' | 'planning'): Message => ({
   timestamp: Date.now(),
 });
 
-export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated, userCards: _userCards, persistUiState = true }: ChatInterfaceProps) {
+export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated, userCards: _userCards, persistUiState = true, onModeChange, onPlanningRecommendations }: ChatInterfaceProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([initialMessage(mode)]);
   const [input, setInput] = useState('');
@@ -112,6 +120,18 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
      
   }, [persistUiState]);
 
+  // If user is in planning mode and has a wallet, ensure default recommendations are wallet-focused
+  React.useEffect(() => {
+    if (activeTab === 'planning' && _userCards && _userCards.length > 0 && !walletOnlyTouched && !walletOnly) {
+      setWalletOnly(true);
+    }
+  }, [activeTab, _userCards, walletOnly, walletOnlyTouched]);
+
+  // Notify parent on mode changes
+  React.useEffect(() => {
+    onModeChange?.(activeTab);
+  }, [activeTab, onModeChange]);
+
   // UI-level category fixer: last resort display mapping to avoid 'services' on restaurants
   const getDisplayCategory = React.useCallback((b: Business): string | undefined => {
     const inferred = (( 'inferred_category' in (b as unknown as Record<string, unknown>) ? (b as unknown as { inferred_category?: string }).inferred_category : undefined) || b.category) as string | undefined;
@@ -157,6 +177,13 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     businessName: planningFallbackBusinessName,
     enabled: !!category && (!!selectedBusinessId || !!planningFallbackBusinessName),
   });
+
+  // Emit planning recommendations (unfiltered) so parent can compute upgrade opportunities
+  React.useEffect(() => {
+    if (activeTab !== 'planning' || !recommendations || recommendations.length === 0) return;
+    const simple = recommendations.slice(0, 8).map(r => ({ name: r.card.card_name, issuer: r.card.issuer }));
+    onPlanningRecommendations?.({ category, recommendations: simple, timestamp: Date.now() });
+  }, [activeTab, recommendations, onPlanningRecommendations, category]);
 
   // In planning with no explicit selection, also compute best card per top nearby business
   const { items: perBusinessBest, loading: perBusinessLoading } = useBestCardsForBusinesses({

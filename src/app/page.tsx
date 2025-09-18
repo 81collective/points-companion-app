@@ -1,7 +1,7 @@
 // src/app/page.tsx - Airbnb-inspired landing page with auth redirect
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import TextLogo from '@/components/branding/TextLogo';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,9 +24,33 @@ export default function HomePage() {
   ], []);
 
   const userCardNames = (cards || []).map(c=> c.name.toLowerCase());
-  const personalized = user && userCardNames.length 
+
+  // Track active chat mode and last planning recs surfaced
+  const [chatMode, setChatMode] = useState<'quick'|'planning'>('quick');
+  const [planningRecs, setPlanningRecs] = useState<Array<{ name: string; issuer?: string }>>([]);
+
+  const handleModeChange = useCallback((m: 'quick'|'planning') => {
+    setChatMode(m);
+  }, []);
+  const handlePlanningRecs = useCallback((payload: { category: string; recommendations: Array<{ name: string; issuer?: string }>; timestamp: number }) => {
+    setPlanningRecs(payload.recommendations);
+  }, []);
+
+  // Owned generic baseline matches
+  const ownedGeneric = user && userCardNames.length
     ? genericBestCards.filter(c=> userCardNames.some(n=> n.includes(c.name.split(' ')[0].toLowerCase())))
     : [];
+
+  // Upgrade suggestions: planning recommendations not already owned & not in generic owned list
+  const upgradeSuggestions = useMemo(() => {
+    if (!user) return [];
+    if (chatMode !== 'planning' || planningRecs.length === 0) return [];
+    const ownedLower = new Set(userCardNames);
+    return planningRecs.filter(r => !Array.from(ownedLower).some(o => o.includes(r.name.split(' ')[0].toLowerCase()))).slice(0,3);
+  }, [chatMode, planningRecs, user, userCardNames]);
+
+  // Primary highlight cards: if planning mode & user owned generic list available show owned wallet matches else generic
+  const primaryHighlights = user ? (ownedGeneric.length ? ownedGeneric : genericBestCards) : genericBestCards;
 
   if (loading) {
     return (
@@ -83,7 +107,13 @@ export default function HomePage() {
       {/* Embed the same AI assistant chat used on /ai and dashboard to align experiences */}
           <div className="mx-auto max-w-3xl bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="h-[520px]">
-        <ChatInterface mode="quick" isAuthenticated={!!user} userCards={cards} />
+        <ChatInterface
+          mode="quick"
+          isAuthenticated={!!user}
+          userCards={cards}
+          onModeChange={handleModeChange}
+          onPlanningRecommendations={handlePlanningRecs}
+        />
             </div>
           </div>
         </div>
@@ -104,11 +134,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Personalized / Generic Card Recommendations */}
+      {/* Card Highlights & Upgrades */}
       <section className="bg-white border border-gray-200 p-4 md:p-6 rounded-lg shadow-sm">
         <h2 className="text-lg font-semibold mb-4">{user ? 'Your Card Highlights' : 'Top Starter Cards'}</h2>
         <div className="grid sm:grid-cols-3 gap-4">
-          {(personalized.length ? personalized : genericBestCards).map(c => (
+          {primaryHighlights.map((c) => (
             <div key={c.name} className={`rounded-xl p-4 text-white bg-gradient-to-br ${c.color} shadow-sm flex flex-col justify-between`}>
               <div>
                 <p className="font-semibold text-sm tracking-wide uppercase opacity-80">{c.name}</p>
@@ -118,8 +148,21 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-        {user && personalized.length === 0 && (
+        {user && primaryHighlights.length === 0 && (
           <p className="text-xs text-gray-500 mt-3">Add your cards in the dashboard to personalize these recommendations.</p>
+        )}
+        {user && upgradeSuggestions.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold mb-2 text-gray-700">Potential Upgrades (Not in Your Wallet)</h3>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {upgradeSuggestions.map(u => (
+                <div key={u.name} className="rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-3">
+                  <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">{u.name}</p>
+                  <p className="text-[11px] text-blue-700 mt-1">Appearing in planning recommendations</p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </section>
 
