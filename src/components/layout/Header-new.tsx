@@ -47,12 +47,6 @@ export default function Header() {
               My Cards
             </Link>
             <Link 
-              href="/dashboard/insights" 
-              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-            >
-              Insights
-            </Link>
-            <Link 
               href="/dashboard/transactions" 
               className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
             >

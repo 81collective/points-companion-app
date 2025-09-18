@@ -64,8 +64,6 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
                 <div className="px-4 py-2 border-b border-gray-100 text-gray-700 truncate font-medium">{user.email}</div>
                 <Link onClick={() => setMenuOpen(false)} href="/dashboard/profile" className="block px-4 py-2 hover:bg-gray-50">Profile</Link>
                 <Link onClick={() => setMenuOpen(false)} href="/dashboard/cards" className="block px-4 py-2 hover:bg-gray-50">My Cards</Link>
-                <Link onClick={() => setMenuOpen(false)} href="/dashboard/insights" className="block px-4 py-2 hover:bg-gray-50">Insights</Link>
-                <Link onClick={() => setMenuOpen(false)} href="/dashboard/analytics" className="block px-4 py-2 hover:bg-gray-50">Analytics</Link>
                 {/* Theme toggle removed from nav */}
                 <hr className="my-2" />
                 <button

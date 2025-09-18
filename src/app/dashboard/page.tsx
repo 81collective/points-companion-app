@@ -23,6 +23,7 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [stale, setStale] = useState(false)
 
   const load = useCallback(async () => {
     if (!user?.id) return
@@ -39,7 +40,16 @@ export default function DashboardPage() {
     }
   }, [user?.id])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { 
+    load();
+    const t = setTimeout(()=>{
+      if (!metrics) {
+        setStale(true);
+        if (!error) setError('Taking longer than expected to load your data.');
+      }
+    }, 7000);
+    return ()=> clearTimeout(t);
+  }, [load]);
 
   return (
     <ProtectedRoute>
@@ -55,11 +65,20 @@ export default function DashboardPage() {
             <button onClick={load} className="text-xs underline">Retry</button>
           </div>
         )}
-        {loading && !metrics ? (
-          <div className="grid gap-4 sm:grid-cols-2">
+        {loading && !metrics && !stale && (
+          <div className="grid gap-4 sm:grid-cols-2" aria-label="Loading dashboard metrics">
             {[...Array(4)].map((_,i) => <div key={i} className="h-32 rounded-lg animate-pulse bg-[var(--color-bg-alt)] border" />)}
           </div>
-        ) : null}
+        )}
+        {stale && !metrics && (
+          <div className="p-4 rounded-md bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 space-y-2">
+            <p>Still loading… This can happen on first load or if the network is slow.</p>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={load} className="px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700">Retry</button>
+              <button onClick={()=> window.location.reload()} className="px-3 py-1 border border-yellow-500 text-yellow-700 text-xs rounded hover:bg-yellow-100">Hard refresh</button>
+            </div>
+          </div>
+        )}
         {!loading && metrics && section === 'overview' && (
           <>
             <div className="mt-4">

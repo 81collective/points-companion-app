@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 
-interface BaseResult { id: string; type: 'card' | 'transaction' | 'insight'; title: string; subtitle?: string; href: string }
+interface BaseResult { id: string; type: 'card' | 'transaction'; title: string; subtitle?: string; href: string }
 
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -52,13 +52,9 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
         type: 'transaction',
         title: `${t.merchant_name || 'Transaction'} ${t.amount ? `$${Number(t.amount).toFixed(2)}` : ''}`.trim(),
         subtitle: t.category ? `Transaction • ${t.category}` : 'Transaction',
-        href: '/dashboard/analytics'
+        href: '/dashboard/transactions'
       }))
-
-      // Placeholder insights matching
-      const insightResults: BaseResult[] = lc.includes('dining') ? [{ id: 'insight-dining', type: 'insight', title: 'Optimize dining this week', subtitle: 'Insight • AI', href: '/dashboard/insights' }] : []
-
-      const combined = [...cardResults, ...txResults, ...insightResults]
+      const combined = [...cardResults, ...txResults]
       setResults(combined)
       setActive(0)
   } catch (_e) {

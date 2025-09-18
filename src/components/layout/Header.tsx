@@ -55,12 +55,6 @@ export default function Header() {
                     <Link href="/dashboard/cards" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem" onClick={() => setIsMenuOpen(false)}>
                       My Cards
                     </Link>
-                    <Link href="/dashboard/insights" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem" onClick={() => setIsMenuOpen(false)}>
-                      Insights
-                    </Link>
-                    <Link href="/dashboard/analytics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem" onClick={() => setIsMenuOpen(false)}>
-                      Analytics
-                    </Link>
                     <hr className="my-2" />
                     <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
                       Sign out
