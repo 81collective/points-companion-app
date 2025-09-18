@@ -8,6 +8,6 @@ export type NavItem = {
 
 export const navigationItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: Home },
-  { label: 'My Cards', href: '/dashboard/cards', icon: CreditCard },
+  { label: 'My Wallet', href: '/dashboard/cards', icon: CreditCard },
   { label: 'Profile', href: '/dashboard/profile', icon: Settings },
 ]

@@ -44,7 +44,7 @@ export default function Header() {
               href="/dashboard/cards" 
               className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
             >
-              My Cards
+              My Wallet
             </Link>
             <Link 
               href="/dashboard/transactions" 
@@ -87,7 +87,7 @@ export default function Header() {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      My Cards
+                      My Wallet
                     </Link>
                     <hr className="my-2" />
                     <button

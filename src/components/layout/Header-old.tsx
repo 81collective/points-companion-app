@@ -51,7 +51,7 @@ export default function Header() {
             <h1 className="text-xl font-bold text-gray-900">PointAdvisor</h1>
             <nav className="hidden md:flex gap-4">
               <a href="/dashboard" className="text-gray-700 hover:text-blue-700 font-medium transition">Dashboard</a>
-              <a href="/dashboard/cards" className="text-gray-700 hover:text-blue-700 font-medium transition">My Cards</a>
+              <a href="/dashboard/cards" className="text-gray-700 hover:text-blue-700 font-medium transition">My Wallet</a>
             </nav>
           </div>
           <div className="flex items-center gap-4">

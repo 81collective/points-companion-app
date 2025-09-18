@@ -598,29 +598,19 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
               <div className="mt-4">
                 <div className="flex items-center justify-between px-1 pb-1">
                   <div className="text-xs text-gray-500">
-                    {(recommendationsData.hasWallet && walletOnly)
+                    {recommendationsData.hasWallet
                       ? (recommendationsData.anyOwned ? 'Best cards from your wallet' : 'No wallet matches for this place')
                       : 'Top overall cards'}
                   </div>
-                  {recommendationsData.hasWallet && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className={walletOnly ? 'text-blue-700 font-medium' : 'text-gray-500'}>Wallet only</span>
-                      <button
-                        type="button"
-                        aria-label="Toggle wallet only"
-                        onClick={handleToggleWalletOnly}
-                        className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${walletOnly ? 'translate-x-4' : 'translate-x-1'}`}
-                        />
-                      </button>
-                    </div>
-                  )}
+                  {/* Wallet toggle removed; always wallet-focused when available */}
                 </div>
                 <div className="overflow-x-auto">
                   <div className="flex gap-3 pr-2">
-                    {(recommendationsData.display.length > 0 ? recommendationsData.display : recommendations).slice(0, 5).map((rec, idx) => (
+                    {(
+                      recommendationsData.hasWallet
+                        ? (recommendationsData.display.length > 0 ? recommendationsData.display : [])
+                        : (recommendations || [])
+                      ).slice(0, 5).map((rec, idx) => (
                       <div key={idx} className="min-w-[260px] max-w-[320px]">
                         <BusinessCardInChat
                           business={{ name: rec?.business?.name || 'Nearby place', distance: rec?.business?.distance }}
@@ -665,29 +655,19 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
               <div className="mt-4">
                 <div className="flex items-center justify-between px-1 pb-1">
                   <div className="text-xs text-gray-500">
-                    {(perBusinessData.hasWallet && walletOnly)
+                    {perBusinessData.hasWallet
                       ? (perBusinessData.filtered.length > 0 ? 'Best nearby matches from your wallet' : 'No wallet matches nearby')
                       : 'Best cards for nearby places'}
                   </div>
-                  {perBusinessData.hasWallet && perBusinessData.anyOwned && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className={walletOnly ? 'text-blue-700 font-medium' : 'text-gray-500'}>Wallet only</span>
-                      <button
-                        type="button"
-                        aria-label="Toggle wallet only"
-                        onClick={handleToggleWalletOnly}
-                        className="relative inline-flex h-5 w-9 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${walletOnly ? 'translate-x-4' : 'translate-x-1'}`}
-                        />
-                      </button>
-                    </div>
-                  )}
+                  {/* Wallet toggle removed; enforced wallet filtering when available */}
                 </div>
                 <div className="overflow-x-auto">
                   <div className="flex gap-3 pr-2">
-                    {(perBusinessData.filtered.length > 0 ? perBusinessData.filtered : perBusinessBest).map((item, idx) => (
+                    {(
+                      perBusinessData.hasWallet
+                        ? (perBusinessData.filtered.length > 0 ? perBusinessData.filtered : [])
+                        : perBusinessBest
+                      ).map((item, idx) => (
                       <div key={item.business.id || idx} className="min-w-[260px] max-w-[320px]">
                         <BusinessCardInChat
                           business={{ name: item.business.name, distance: item.business.distance }}

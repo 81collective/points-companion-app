@@ -95,7 +95,7 @@ export default function HomePage() {
               <button
                 onClick={()=>router.push('/dashboard/cards')}
                 className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition"
-              >My Cards</button>
+              >My Wallet</button>
               <button
                 onClick={async ()=>{ await signOut(); router.refresh(); }}
                 className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition"
