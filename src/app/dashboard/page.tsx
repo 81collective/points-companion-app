@@ -59,7 +59,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">{`Welcome back${profile?.first_name ? `, ${profile.first_name}` : ''} 👋`}</h1>
           <p className="mt-2 text-dim">Unified rewards overview and optimization hub.</p>
         </div>
-        {error && (
+        {error && !stale && (
           <div className="p-4 rounded-md bg-red-50 border border-red-200 text-sm text-red-700 flex justify-between items-start">
             <span>{error}</span>
             <button onClick={load} className="text-xs underline">Retry</button>
@@ -71,20 +71,18 @@ export default function DashboardPage() {
           </div>
         )}
         {stale && !metrics && (
-          <div className="p-4 rounded-md bg-yellow-50 border border-yellow-300 text-sm text-yellow-800 space-y-2">
-            <p>Still loading… This can happen on first load or if the network is slow.</p>
-            <div className="flex gap-2 flex-wrap">
-              <button onClick={load} className="px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700">Retry</button>
-              <button onClick={()=> window.location.reload()} className="px-3 py-1 border border-yellow-500 text-yellow-700 text-xs rounded hover:bg-yellow-100">Hard refresh</button>
-            </div>
+          <div className="text-xs text-gray-500">
+            <button onClick={load} className="underline underline-offset-2 mr-2">Retry load</button>
+            <button onClick={()=> window.location.reload()} className="underline underline-offset-2">Refresh page</button>
           </div>
         )}
-        {!loading && metrics && section === 'overview' && (
+        {/* After stale timeout, if metrics still null, show default zero metrics */}
+        {!loading && section === 'overview' && (
           <>
             <div className="mt-4">
               <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium shadow hover:bg-blue-700 transition">Search Nearby Businesses →</Link>
             </div>
-            <OverviewSection {...metrics} />
+            <OverviewSection {...(metrics || { cardCount: 0, totalPoints: 0, monthlyPoints: 0, recentActivityCount: 0 })} />
             <div className="mt-16">
               <CardsSection />
             </div>
