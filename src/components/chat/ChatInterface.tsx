@@ -19,10 +19,6 @@ const BusinessCardInChat = dynamic(() => import('./BusinessCardInChat'), {
   loading: () => <div className="h-32 bg-gray-50 animate-pulse rounded" />
 });
 
-const MiniSpendingInsights = dynamic(() => import('./MiniSpendingInsights'), { 
-  loading: () => <div className="h-24 bg-gray-50 animate-pulse rounded" />,
-  ssr: false 
-});
 
 const NearbyRow = dynamic(() => import('./NearbyRow'), {
   loading: () => <div className="h-12 bg-gray-50 animate-pulse rounded" />,
@@ -716,10 +712,6 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
               </div>
             )}
 
-            {/* Spending insights inline */}
-            <div className="mt-4">
-              <MiniSpendingInsights />
-            </div>
           </>
         )}
       </div>
