@@ -11,7 +11,7 @@ import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
 
 export default function HomePage() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const { cards } = useUserCards();
 
@@ -86,7 +86,7 @@ export default function HomePage() {
                 className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition"
               >My Cards</button>
               <button
-                onClick={()=>router.push('/auth?mode=logout')}
+                onClick={async ()=>{ await signOut(); router.refresh(); }}
                 className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition"
               >Sign Out</button>
             </div>
