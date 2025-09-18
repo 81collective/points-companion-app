@@ -604,13 +604,16 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                   </div>
                   {/* Wallet toggle removed; always wallet-focused when available */}
                 </div>
-                <div className="overflow-x-auto">
+                {recommendationsData.hasWallet && recommendationsData.display.length === 0 && (
+                  <div className="mt-2 text-[11px] text-gray-500 px-1">No matching cards in your wallet. <button type="button" onClick={()=>window.location.href='/dashboard/cards'} className="text-blue-600 hover:underline">Add cards</button> to see personalized picks.</div>
+                )}
+                <div className="overflow-x-auto mt-2">
                   <div className="flex gap-3 pr-2">
                     {(
                       recommendationsData.hasWallet
                         ? (recommendationsData.display.length > 0 ? recommendationsData.display : [])
                         : (recommendations || [])
-                      ).slice(0, 5).map((rec, idx) => (
+                    ).slice(0, 5).map((rec, idx) => (
                       <div key={idx} className="min-w-[260px] max-w-[320px]">
                         <BusinessCardInChat
                           business={{ name: rec?.business?.name || 'Nearby place', distance: rec?.business?.distance }}
@@ -618,9 +621,9 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                           rewards={{
                             text: (() => {
                               const pts = rec.estimated_points || 0;
-                              const rate = (rec && typeof (rec as { reward_multiplier?: number }).reward_multiplier === 'number') ? (rec as { reward_multiplier?: number }).reward_multiplier as number : 1; // points per $1
+                              const rate = (rec && typeof (rec as { reward_multiplier?: number }).reward_multiplier === 'number') ? (rec as { reward_multiplier?: number }).reward_multiplier as number : 1;
                               if (rate <= 0) return `${pts} pts`;
-                              const spendPer100 = 100 / rate; // dollars to earn 100 pts
+                              const spendPer100 = 100 / rate;
                               if (pts === 0) return '0 pts';
                               return `${pts} pts • $${spendPer100.toFixed(2)}/100pts @${rate.toFixed(2)}x`;
                             })()
@@ -630,6 +633,21 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                     ))}
                   </div>
                 </div>
+                {recommendationsData.hasWallet && recommendationsData.display.length === 0 && (recommendations && recommendations.length > 0) && (
+                  <div className="mt-3">
+                    <div className="text-[10px] uppercase tracking-wide text-gray-500 px-1 mb-1">Upgrade opportunities</div>
+                    <div className="overflow-x-auto">
+                      <div className="flex gap-3 pr-2">
+                        {recommendations.slice(0,3).map((rec, idx) => (
+                          <div key={`upgrade-${idx}`} className="min-w-[220px] max-w-[240px] rounded-lg border border-amber-200 bg-amber-50 p-3">
+                            <div className="text-[11px] font-medium text-amber-800">{rec.card.card_name}</div>
+                            <div className="text-[10px] text-amber-700 mt-1">@{(rec as { reward_multiplier?: number }).reward_multiplier ?? 1}x potential</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {!selectedBusinessId && perBusinessLoading && (
@@ -661,13 +679,16 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                   </div>
                   {/* Wallet toggle removed; enforced wallet filtering when available */}
                 </div>
-                <div className="overflow-x-auto">
+                {perBusinessData.hasWallet && perBusinessData.filtered.length === 0 && (
+                  <div className="mt-2 text-[11px] text-gray-500 px-1">No wallet matches nearby. <button type="button" onClick={()=>window.location.href='/dashboard/cards'} className="text-blue-600 hover:underline">Add cards</button> to improve coverage.</div>
+                )}
+                <div className="overflow-x-auto mt-2">
                   <div className="flex gap-3 pr-2">
                     {(
                       perBusinessData.hasWallet
                         ? (perBusinessData.filtered.length > 0 ? perBusinessData.filtered : [])
                         : perBusinessBest
-                      ).map((item, idx) => (
+                    ).map((item, idx) => (
                       <div key={item.business.id || idx} className="min-w-[260px] max-w-[320px]">
                         <BusinessCardInChat
                           business={{ name: item.business.name, distance: item.business.distance }}
@@ -689,6 +710,21 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
                     ))}
                   </div>
                 </div>
+                {perBusinessData.hasWallet && perBusinessData.filtered.length === 0 && perBusinessBest.length > 0 && (
+                  <div className="mt-3">
+                    <div className="text-[10px] uppercase tracking-wide text-gray-500 px-1 mb-1">Upgrade opportunities</div>
+                    <div className="overflow-x-auto">
+                      <div className="flex gap-3 pr-2">
+                        {perBusinessBest.slice(0,3).map((item, idx) => (
+                          <div key={`upg-nearby-${idx}`} className="min-w-[220px] max-w-[240px] rounded-lg border border-amber-200 bg-amber-50 p-3">
+                            <div className="text-[11px] font-medium text-amber-800">{item.recommendation?.card.card_name}</div>
+                            <div className="text-[10px] text-amber-700 mt-1">@{(item.recommendation as { reward_multiplier?: number })?.reward_multiplier ?? 1}x potential</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
