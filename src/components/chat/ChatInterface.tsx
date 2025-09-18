@@ -182,6 +182,7 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
   React.useEffect(() => {
     if (activeTab !== 'planning' || !recommendations || recommendations.length === 0) return;
     const simple = recommendations.slice(0, 8).map(r => ({ name: r.card.card_name, issuer: r.card.issuer }));
+    try { console.debug('[ChatInterface] planning recommendations emitted', { count: simple.length, category }); } catch {}
     onPlanningRecommendations?.({ category, recommendations: simple, timestamp: Date.now() });
   }, [activeTab, recommendations, onPlanningRecommendations, category]);
 
