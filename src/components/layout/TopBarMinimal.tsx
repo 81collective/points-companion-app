@@ -42,7 +42,7 @@ export default function TopBarMinimal({ onMobileMenuToggle, mobileMenuOpen }: Pr
           <Menu className="w-4 h-4" />
         </button>
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-white text-sm">
+  <Link href="/" className="flex items-center gap-2 font-semibold text-white text-sm">
           <TextLogo className="text-lg sm:text-xl text-white" withLink={false} compact />
         </Link>
         {/* Inline nav removed for minimal header */}

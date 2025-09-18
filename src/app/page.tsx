@@ -41,15 +41,28 @@ export default function HomePage() {
       {/* Minimal header for guests */}
       <header className="w-full border-b border-gray-800 bg-black/90 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={()=>router.push('/') }>
             <TextLogo className="text-xl sm:text-2xl" compact={true} />
           </div>
-          <button
-            onClick={() => router.push('/auth')}
-            className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-sm transition"
-          >
-            Sign in / Sign up
-          </button>
+          {!user ? (
+            <button
+              onClick={() => router.push('/auth')}
+              className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-sm transition"
+            >
+              Sign in / Sign up
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={()=>router.push('/dashboard')}
+                className="px-4 py-2 rounded-md bg-white/10 hover:bg-white/20 text-white font-medium text-sm transition"
+              >Dashboard</button>
+              <button
+                onClick={()=>router.push('/dashboard/cards')}
+                className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition"
+              >My Cards</button>
+            </div>
+          )}
         </div>
       </header>
   <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-6 md:py-10 space-y-8">
