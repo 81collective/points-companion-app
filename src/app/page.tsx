@@ -27,12 +27,13 @@ export default function HomePage() {
 
   // Track active chat mode and last planning recs surfaced
   const [chatMode, setChatMode] = useState<'quick'|'planning'>('quick');
-  const [planningRecs, setPlanningRecs] = useState<Array<{ name: string; issuer?: string }>>([]);
+  interface PlanningRec { name: string; issuer?: string; rewardMultiplier?: number; estimatedPoints?: number }
+  const [planningRecs, setPlanningRecs] = useState<PlanningRec[]>([]);
 
   const handleModeChange = useCallback((m: 'quick'|'planning') => {
     setChatMode(m);
   }, []);
-  const handlePlanningRecs = useCallback((payload: { category: string; recommendations: Array<{ name: string; issuer?: string }>; timestamp: number }) => {
+  const handlePlanningRecs = useCallback((payload: { category: string; recommendations: Array<{ name: string; issuer?: string; rewardMultiplier?: number; estimatedPoints?: number }>; timestamp: number }) => {
     setPlanningRecs(payload.recommendations);
   }, []);
 
@@ -42,11 +43,21 @@ export default function HomePage() {
     : [];
 
   // Upgrade suggestions: planning recommendations not already owned & not in generic owned list
-  const upgradeSuggestions = useMemo(() => {
-    if (!user) return [];
-    if (chatMode !== 'planning' || planningRecs.length === 0) return [];
-    const ownedLower = new Set(userCardNames);
-    return planningRecs.filter(r => !Array.from(ownedLower).some(o => o.includes(r.name.split(' ')[0].toLowerCase()))).slice(0,3);
+  interface UpgradeRec extends PlanningRec { score: number }
+  const upgradeSuggestions: UpgradeRec[] = useMemo(() => {
+    if (!user || chatMode !== 'planning' || planningRecs.length === 0) return [];
+    const ownerWords = userCardNames;
+    const outOfWallet = planningRecs.filter(r => !ownerWords.some(o => o.includes(r.name.split(' ')[0].toLowerCase())));
+    const scored: UpgradeRec[] = outOfWallet.map(r => {
+      const mult = typeof r.rewardMultiplier === 'number' ? r.rewardMultiplier : 1;
+      const pts = typeof r.estimatedPoints === 'number' ? r.estimatedPoints : 0;
+      // Simple score: weighted blend (favor multiplier slightly) + bonus if issuer diversification
+      const issuerPenalty = ownerWords.some(o => o.includes((r.issuer||'').toLowerCase())) ? 0 : 0.2; // bonus for new issuer
+      const score = (mult * 0.6) + (pts/100 * 0.4) + issuerPenalty;
+      return { ...r, score } as UpgradeRec;
+    });
+    scored.sort((a,b)=> b.score - a.score);
+    return scored.slice(0,3);
   }, [chatMode, planningRecs, user, userCardNames]);
 
   // Primary highlight cards: if planning mode & user owned generic list available show owned wallet matches else generic
@@ -158,7 +169,11 @@ export default function HomePage() {
               {upgradeSuggestions.map(u => (
                 <div key={u.name} className="rounded-lg border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-3">
                   <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">{u.name}</p>
-                  <p className="text-[11px] text-blue-700 mt-1">Appearing in planning recommendations</p>
+                  <p className="text-[11px] text-blue-700 mt-1">
+                    {typeof u.rewardMultiplier === 'number' ? `${u.rewardMultiplier.toFixed(1)}x` : ''}
+                    {typeof u.estimatedPoints === 'number' ? ` • ${u.estimatedPoints} pts` : ''}
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-1">Score {u.score.toFixed(2)}</p>
                 </div>
               ))}
             </div>
