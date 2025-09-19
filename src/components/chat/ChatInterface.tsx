@@ -116,12 +116,12 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
      
   }, [persistUiState]);
 
-  // If user is in planning mode and has a wallet, ensure default recommendations are wallet-focused
+  // If user is in planning mode and has a wallet, force wallet-focused results (override any persisted toggle)
   React.useEffect(() => {
-    if (activeTab === 'planning' && _userCards && _userCards.length > 0 && !walletOnlyTouched && !walletOnly) {
+    if (activeTab === 'planning' && _userCards && _userCards.length > 0 && !walletOnly) {
       setWalletOnly(true);
     }
-  }, [activeTab, _userCards, walletOnly, walletOnlyTouched]);
+  }, [activeTab, _userCards, walletOnly]);
 
   // Notify parent on mode changes
   React.useEffect(() => {
@@ -322,11 +322,10 @@ export default function ChatInterface({ mode, isAuthenticated: _isAuthenticated,
     };
     const recNorm = clean(cardName);
     const recCore = stripIssuers(recNorm).trim();
-    
-    // match if names include each other in either raw or core forms
+
+    // Strict match: equality on normalized and issuer-stripped cores to avoid family cross-matching
     return normalizedUserCards.some(u => (
-      u.n.includes(recNorm) || recNorm.includes(u.n) ||
-      u.core.includes(recCore) || recCore.includes(u.core)
+      u.n === recNorm || u.core === recCore
     ));
   }, [normalizedUserCards, _userCards]);
 
