@@ -38,18 +38,6 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
     enabled: permissionState.granted && !!location
   });
 
-  // Sort by distance asc for consistent UX
-  const sortedNearby = React.useMemo(() => {
-    const list = (nearbyBusinesses || []).slice();
-    list.sort((a, b) => {
-      const da = typeof a.distance === 'number' ? a.distance : Number.POSITIVE_INFINITY;
-      const db = typeof b.distance === 'number' ? b.distance : Number.POSITIVE_INFINITY;
-      if (da !== db) return da - db;
-      return a.name.localeCompare(b.name);
-    });
-    return list;
-  }, [nearbyBusinesses]);
-
   // Add real-time effect when business is selected - same as dashboard
   useEffect(() => {
     if (selectedBusiness) {
@@ -269,9 +257,9 @@ export default function CardFinder({ className = "" }: CardFinderProps) {
             </div>
           ) : businessesLoading ? (
             <BusinessListSkeleton count={3} />
-      ) : sortedNearby.length > 0 ? (
+          ) : nearbyBusinesses.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
-        {sortedNearby.slice(0, 10).map((business, index) => (
+              {nearbyBusinesses.slice(0, 10).map((business, index) => (
                 <div 
                   key={business.id || index} 
                   onClick={() => handleBusinessSelect(business)}

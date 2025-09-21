@@ -28,7 +28,7 @@ export default function Header() {
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-semibold text-gray-900 hidden sm:block">
-              PointAdvisor
+              Points Companion
             </span>
           </Link>
 
@@ -44,7 +44,13 @@ export default function Header() {
               href="/dashboard/cards" 
               className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
             >
-              My Wallet
+              My Cards
+            </Link>
+            <Link 
+              href="/dashboard/insights" 
+              className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+            >
+              Insights
             </Link>
             <Link 
               href="/dashboard/transactions" 
@@ -87,7 +93,7 @@ export default function Header() {
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      My Wallet
+                      My Cards
                     </Link>
                     <hr className="my-2" />
                     <button

@@ -1,0 +1,9 @@
+9dda2045457ebb52bc7ead29bf31c3ae
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.preventUnhandledRejection = preventUnhandledRejection;
+function preventUnhandledRejection(promise) {
+    promise.catch(() => { });
+    return promise;
+}
+//# sourceMappingURL=preventUnhandledRejection.cjs.map

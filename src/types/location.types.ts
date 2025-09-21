@@ -22,11 +22,6 @@ export interface Business {
   distance?: number; // Distance from user in meters
   created_at?: string;
   updated_at?: string;
-  // Optional enrichment from nearby API
-  inferred_category?: string;
-  mcc_candidates?: number[];
-  brand_id?: string;
-  top_card?: { cardId: string; cardName: string; reasons: string[]; rate: number; valueCentsPerDollar: number };
 }
 
 export interface CardReward {
@@ -79,8 +74,6 @@ export interface CardRecommendation {
   annual_value: number;
   match_score: number;
   reasons: string[];
-  // Points (or equivalent) earned per $1 for the targeted context
-  reward_multiplier?: number;
 }
 
 export interface LocationPermissionState {

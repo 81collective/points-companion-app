@@ -31,7 +31,6 @@
     "src/test/setup-tests.ts"
   ],
   "exclude": [
-  "node_modules",
-  "examples/**"
+    "node_modules"
   ]
 }

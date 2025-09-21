@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     if (ctxStr) messages.push({ role: 'user', content: `Use this extra context when helpful.${ctxStr}` });
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages,
       temperature: 0.4,
       max_tokens: 400,

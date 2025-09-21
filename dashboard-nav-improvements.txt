@@ -51,7 +51,7 @@ points-companion-app/
 **Requirements:**
 - Clean, modern design following Airbnb's design system
 - Persistent logo/brand that always links to main dashboard
-- Horizontal navigation for primary sections (Dashboard, My Wallet, Analytics, Insights)
+- Horizontal navigation for primary sections (Dashboard, My Cards, Analytics, Insights)
 - Smart notifications bell with unread count badge
 - User profile dropdown with avatar, settings, and logout
 - Mobile-responsive with hamburger menu for smaller screens
@@ -63,7 +63,7 @@ points-companion-app/
 // Navigation structure should include:
 const navigationItems = [
   { label: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { label: 'My Wallet', href: '/dashboard/cards', icon: CreditCardIcon },
+  { label: 'My Cards', href: '/dashboard/cards', icon: CreditCardIcon },
   { label: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
   { label: 'Insights', href: '/dashboard/insights', icon: LightBulbIcon },
 ]
@@ -259,7 +259,7 @@ const AIInsights = lazy(() => import('@/components/ai/AIInsights'));
 <nav aria-label="Breadcrumb">
   <ol className="breadcrumb-list">
     <li><a href="/dashboard" aria-label="Go to Dashboard">Dashboard</a></li>
-  <li aria-current="page">My Wallet</li>
+    <li aria-current="page">My Cards</li>
   </ol>
 </nav>
 ```

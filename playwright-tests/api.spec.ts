@@ -20,15 +20,15 @@ test.describe('API Endpoints', () => {
       }
     })
     
-  // Should not error even if API is not configured (or may be 404 if not implemented)
-  expect([200, 400, 404, 500]).toContain(response.status())
+    // Should not error even if API is not configured
+    expect([200, 400, 500]).toContain(response.status())
   })
 
   test('should handle cards API', async ({ request }) => {
     const response = await request.get('/api/cards')
     
     // Should return cards data or proper error response
-  expect([200, 404, 500]).toContain(response.status())
+    expect([200, 500]).toContain(response.status())
     
     if (response.status() === 200) {
       const data = await response.json()

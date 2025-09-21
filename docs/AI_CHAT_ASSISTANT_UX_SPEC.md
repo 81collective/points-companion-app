@@ -227,7 +227,7 @@ Potential savings: $240/year
 
 #### Quick Commands
 ```
-/wallet - Show all my wallet cards
+/wallet - Show all my cards
 /best [store] - Best card for specific store
 /missing - Categories I'm not optimized for
 /compare - Compare cards in my wallet

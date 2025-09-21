@@ -22,33 +22,22 @@ module.exports = {
     '^@lib/(.*)$': '<rootDir>/src/lib/$1',
     '^@types/(.*)$': '<rootDir>/src/types/$1',
     '^@test/(.*)$': '<rootDir>/src/test/$1',
-    '\\.(css|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|svg|ico|webp)$': '<rootDir>/src/test/__mocks__/fileMock.js',
-    '\\.module\\.(css|scss|sass)$': '<rootDir>/src/test/__mocks__/styleMock.js',
   },
 
   // Transform files
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.jest.config.cjs' }],
-    '^.+\\.(css|scss|sass)$': 'jest-transform-stub',
-    '\\.(jpg|jpeg|png|gif|svg|ico|webp)$': 'jest-transform-stub',
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.json',
+        diagnostics: false,
+      },
+    ],
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
-
-  // Transform ignore patterns
-  transformIgnorePatterns: [
-    'node_modules/(?!(lucide-react|@radix-ui|@apollo|@graphql-tools)/)',
-  ],
 
   // Module directories
   moduleDirectories: ['node_modules', '<rootDir>/src'],
-
-  // Module file extensions
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-
-  // Test environment options
-  testEnvironmentOptions: {
-    customExportConditions: [''],
-  },
 
   // Coverage configuration
   collectCoverageFrom: [
@@ -98,6 +87,13 @@ module.exports = {
   // Performance monitoring
   reporters: [
     'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: '<rootDir>/test-results',
+        outputName: 'junit.xml',
+      },
+    ],
   ],
 
   // Global setup and teardown
@@ -120,5 +116,5 @@ module.exports = {
   cacheDirectory: '<rootDir>/.jest-cache',
 
   // Snapshot configuration
-  snapshotSerializers: [],
+  snapshotSerializers: ['@emotion/jest/serializer'],
 };

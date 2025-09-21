@@ -1,11 +1,15 @@
-// Version bump (v3) to simplify strategy and avoid stale app shells causing perpetual loading spinners
-const CACHE_NAME = 'points-companion-v3';
-const STATIC_CACHE_NAME = 'points-companion-static-v3';
-const DYNAMIC_CACHE_NAME = 'points-companion-dynamic-v3';
+// Version bump (v2) to ensure clients activate updated logic that avoids caching non-GET requests
+const CACHE_NAME = 'points-companion-v2';
+const STATIC_CACHE_NAME = 'points-companion-static-v2';
+const DYNAMIC_CACHE_NAME = 'points-companion-dynamic-v2';
 
-// Minimal static assets to precache. Avoid precaching dynamic routes to prevent stale shells.
-// Root path is optional; Next.js can stream SSR. We cache only manifest & icons.
+// Assets to cache on install
 const STATIC_ASSETS = [
+  '/',
+  '/dashboard',
+  '/ai',
+  '/analytics',
+  '/offline',
   '/manifest.json',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
@@ -27,7 +31,11 @@ const CACHE_STRATEGIES = {
   ],
   
   // Stale while revalidate for pages
-  STALE_WHILE_REVALIDATE: [],
+  STALE_WHILE_REVALIDATE: [
+    /\/dashboard/,
+    /\/ai/,
+    /\/analytics/,
+  ],
 };
 
 // Install event - cache static assets
@@ -68,9 +76,6 @@ self.addEventListener('activate', (event) => {
       .then(() => {
         console.log('[SW] Service worker activated');
         // Take control of all clients immediately
-        if ('navigationPreload' in self.registration) {
-          try { self.registration.navigationPreload.enable(); } catch (_) {}
-        }
         return self.clients.claim();
       })
   );
@@ -79,40 +84,20 @@ self.addEventListener('activate', (event) => {
 // Fetch event - implement caching strategies
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip non-HTTP requests
+  if (!request.url.startsWith('http')) {
+    return;
+  }
 
-  if (!request.url.startsWith('http')) return;
-  if (request.url.includes('/sw.js')) return;
-
-  // For top-level navigation always try network first with timeout -> fallback to cached (if any) else network no-cache.
-  if (request.mode === 'navigate') {
-    event.respondWith(handleNavigationRequest(request));
+  // Skip requests for service worker updates
+  if (request.url.includes('/sw.js')) {
     return;
   }
 
   event.respondWith(handleRequest(request));
 });
-
-async function handleNavigationRequest(request) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000); // fail fast to avoid spinner
-  try {
-    const networkResponse = await fetch(request, { signal: controller.signal, cache: 'no-store' });
-    clearTimeout(timeout);
-    if (networkResponse && networkResponse.ok) return networkResponse;
-    // fallback to any cached root shell
-    const cache = await caches.open(STATIC_CACHE_NAME);
-    const cachedRoot = await cache.match('/');
-    if (cachedRoot) return cachedRoot;
-    return networkResponse;
-  } catch (err) {
-    clearTimeout(timeout);
-    // offline or timeout: serve cached root if present
-    const cache = await caches.open(STATIC_CACHE_NAME);
-    const cachedRoot = await cache.match('/');
-    if (cachedRoot) return cachedRoot;
-    return new Response('<!DOCTYPE html><title>Offline</title><h1>Offline</h1><p>Content not cached.</p>', { status: 503, headers: { 'Content-Type': 'text/html' }});
-  }
-}
 
 async function handleRequest(request) {
   const url = new URL(request.url);
@@ -193,25 +178,61 @@ async function networkFirst(request) {
 }
 
 async function staleWhileRevalidate(request) {
-  // No longer used (strategies list empty) but kept for potential future selective usage.
   const cache = await caches.open(DYNAMIC_CACHE_NAME);
   const cachedResponse = await cache.match(request);
-  const fetchPromise = fetch(request).then(response => {
-    if (response.ok) cache.put(request, response.clone());
-    return response;
-  }).catch(() => undefined);
-  return cachedResponse || fetchPromise || new Response('', { status: 504 });
+  
+  // Always try to fetch and update cache
+  const fetchPromise = request.method === 'GET'
+    ? fetch(request).then(response => {
+        if (response.ok) {
+          cache.put(request, response.clone());
+        }
+        return response;
+      }).catch(() => {
+        // Ignore network errors
+      })
+    : fetch(request); // For non-GET just passthrough without caching
+  
+  // Return cached version immediately if available
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  // Wait for network if no cache
+  return await fetchPromise;
 }
 
 async function handleOffline(request) {
   const cache = await caches.open(STATIC_CACHE_NAME);
+  
+  // Try to serve from cache
   const cachedResponse = await cache.match(request);
-  if (cachedResponse) return cachedResponse;
-  if (request.mode === 'navigate') {
-    const root = await cache.match('/');
-    if (root) return root;
+  if (cachedResponse) {
+    return cachedResponse;
   }
-  return new Response(JSON.stringify({ error: 'Offline', message: 'Not cached.' }), { status: 503, headers: { 'Content-Type': 'application/json' }});
+  
+  // For navigation requests, serve offline page
+  if (request.mode === 'navigate') {
+    const offlinePage = await cache.match('/offline');
+    if (offlinePage) {
+      return offlinePage;
+    }
+  }
+  
+  // Return a basic offline response
+  return new Response(
+    JSON.stringify({
+      error: 'Offline',
+      message: 'You are currently offline and this content is not cached.'
+    }),
+    {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 }
 
 // Background sync for offline actions
@@ -244,7 +265,7 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     
     const options = {
-  body: data.body || 'New notification from PointAdvisor',
+      body: data.body || 'New notification from Points Companion',
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-96x96.png',
       vibrate: [100, 50, 100],
@@ -265,7 +286,7 @@ self.addEventListener('push', (event) => {
     
     event.waitUntil(
       self.registration.showNotification(
-  data.title || 'PointAdvisor',
+        data.title || 'Points Companion',
         options
       )
     );

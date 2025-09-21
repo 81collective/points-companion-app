@@ -162,24 +162,9 @@ export const cacheHeaders = [
 export const experimentalConfig = {
   optimizeCss: true,
   optimizePackageImports: [
-    // UI Libraries
     '@radix-ui/react-icons',
     'lucide-react',
     'recharts',
     'framer-motion',
-    // Heavy libraries identified in bundle analysis
-    '@supabase/supabase-js',
-    'openai',
-    'jspdf',
-    'qrcode',
-    // Additional performance-critical packages
-    'react-window',
-    'react-window-infinite-loader',
-    'date-fns',
-    'clsx',
-    'tailwind-merge',
-    // Analytics and monitoring
-    '@datadog/browser-rum',
-    'web-vitals',
   ],
 };

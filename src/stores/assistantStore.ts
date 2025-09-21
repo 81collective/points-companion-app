@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Recommendation } from '@/types/recommendation.types';
+import type { Recommendation } from '@/lib/ai/responseFormatter';
 
 type AssistantContext = {
   mode: 'quick' | 'planning';

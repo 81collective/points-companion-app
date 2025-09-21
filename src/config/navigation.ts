@@ -1,4 +1,4 @@
-import { Home, CreditCard, Settings } from 'lucide-react'
+import { Home, CreditCard, BarChart3, Lightbulb, Settings } from 'lucide-react'
 
 export type NavItem = {
   label: string
@@ -8,6 +8,8 @@ export type NavItem = {
 
 export const navigationItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: Home },
-  { label: 'My Wallet', href: '/dashboard/cards', icon: CreditCard },
+  { label: 'My Cards', href: '/dashboard/cards', icon: CreditCard },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { label: 'Insights', href: '/dashboard/insights', icon: Lightbulb },
   { label: 'Profile', href: '/dashboard/profile', icon: Settings },
 ]

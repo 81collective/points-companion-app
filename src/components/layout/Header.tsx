@@ -53,7 +53,13 @@ export default function Header() {
                       Dashboard
                     </Link>
                     <Link href="/dashboard/cards" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem" onClick={() => setIsMenuOpen(false)}>
-                      My Wallet
+                      My Cards
+                    </Link>
+                    <Link href="/dashboard/insights" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem" onClick={() => setIsMenuOpen(false)}>
+                      Insights
+                    </Link>
+                    <Link href="/dashboard/analytics" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem" onClick={() => setIsMenuOpen(false)}>
+                      Analytics
                     </Link>
                     <hr className="my-2" />
                     <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
@@ -75,6 +81,15 @@ export default function Header() {
           </div>
         </div>
       </div>
+transition-colors">
+                  Sign up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

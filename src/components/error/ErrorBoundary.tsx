@@ -53,14 +53,13 @@ class ErrorBoundary extends Component<Props, State> {
 
   private logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
     // Enhanced security-focused error logging
-    const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined' && typeof document !== 'undefined';
     const errorData = {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
       timestamp: new Date().toISOString(),
-      userAgent: isBrowser ? navigator.userAgent : undefined,
-      url: isBrowser ? window.location.href : undefined,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
       userId: this.getCurrentUserId(),
       sessionId: this.getSessionId(),
       buildVersion: process.env.NEXT_PUBLIC_APP_VERSION || 'unknown',
@@ -88,8 +87,7 @@ class ErrorBoundary extends Component<Props, State> {
   private getCurrentUserId(): string | null {
     try {
       // Get user ID from session storage or context
-  if (typeof window === 'undefined') return null;
-  const userData = window.sessionStorage?.getItem('user_data');
+      const userData = sessionStorage.getItem('user_data');
       if (userData) {
         const parsed = JSON.parse(userData);
         return parsed.id || null;
@@ -101,11 +99,10 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private getSessionId(): string {
-    if (typeof window === 'undefined') return 'session_server';
-    let sessionId = window.sessionStorage?.getItem('session_id');
+    let sessionId = sessionStorage.getItem('session_id');
     if (!sessionId) {
       sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      try { window.sessionStorage?.setItem('session_id', sessionId); } catch {}
+      sessionStorage.setItem('session_id', sessionId);
     }
     return sessionId;
   }
@@ -147,15 +144,14 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private getSecurityContext(error: Error): Record<string, unknown> {
-    const isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined' && typeof document !== 'undefined';
     return {
-      referrer: isBrowser ? document.referrer : undefined,
-      origin: isBrowser ? window.location.origin : undefined,
-      protocol: isBrowser ? window.location.protocol : undefined,
-      cookiesEnabled: isBrowser ? navigator.cookieEnabled : undefined,
-      doNotTrack: isBrowser ? navigator.doNotTrack : undefined,
-      language: isBrowser ? navigator.language : undefined,
-      platform: isBrowser ? navigator.platform : undefined,
+      referrer: document.referrer,
+      origin: window.location.origin,
+      protocol: window.location.protocol,
+      cookiesEnabled: navigator.cookieEnabled,
+      doNotTrack: navigator.doNotTrack,
+      language: navigator.language,
+      platform: navigator.platform,
       isSecurityRelated: this.isSecurityRelatedError(error),
       localStorageEnabled: this.isLocalStorageEnabled(),
       sessionStorageEnabled: this.isSessionStorageEnabled()
@@ -163,7 +159,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private getPerformanceMetrics(): Record<string, unknown> {
-  if (typeof window !== 'undefined' && window.performance) {
+    if (typeof window !== 'undefined' && window.performance) {
       const navigation = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       const memoryInfo = (window.performance as unknown as ExtendedPerformance).memory;
       return {
@@ -181,8 +177,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private isLocalStorageEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
+    try {
       const test = 'test';
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
@@ -193,8 +188,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private isSessionStorageEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
+    try {
       const test = 'test';
       sessionStorage.setItem(test, test);
       sessionStorage.removeItem(test);
@@ -253,8 +247,7 @@ class ErrorBoundary extends Component<Props, State> {
 
   private storeErrorLocally(errorData: Record<string, unknown>): void {
     try {
-  if (typeof window === 'undefined') return;
-  const errors = JSON.parse(window.localStorage?.getItem('app_errors') || '[]');
+      const errors = JSON.parse(localStorage.getItem('app_errors') || '[]');
       errors.push(errorData);
       
       // Keep only last 50 errors
@@ -262,7 +255,7 @@ class ErrorBoundary extends Component<Props, State> {
         errors.splice(0, errors.length - 50);
       }
       
-  window.localStorage?.setItem('app_errors', JSON.stringify(errors));
+      localStorage.setItem('app_errors', JSON.stringify(errors));
     } catch {
       // Ignore storage errors
     }
@@ -273,15 +266,11 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleReload = () => {
-    if (typeof window !== 'undefined') {
-      window.location.reload();
-    }
+    window.location.reload();
   };
 
   private handleGoHome = () => {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
-    }
+    window.location.href = '/';
   };
 
   public render() {
@@ -365,7 +354,7 @@ class ErrorBoundary extends Component<Props, State> {
               <p className="text-sm text-gray-500">
                 If this problem persists, please{' '}
                 <a
-                  href="mailto:support@pointadvisor.app"
+                  href="mailto:support@pointscompanion.com"
                   className="text-blue-600 hover:text-blue-500"
                 >
                   contact support

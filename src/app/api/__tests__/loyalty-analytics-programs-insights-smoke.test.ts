@@ -15,9 +15,9 @@ describe('loyalty analytics/programs/insights smoke', () => {
   it('analytics GET returns mock analytics', async () => {
     const res: any = await analyticsGET()
     const data = await res.json()
-  expect(res.status).toBe(410)
-  expect(data.success).toBe(false)
-  expect(data.error).toBeDefined()
+    expect(res.status).toBe(200)
+    expect(data.success).toBe(true)
+    expect(data.data).toBeDefined()
   })
 
   it('programs GET returns programs list', async () => {

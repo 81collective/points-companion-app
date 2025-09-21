@@ -1,19 +1,17 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 // Removed unused legacy imports
+import CardsSection from '@/components/dashboard/sections/CardsSection'
+import InsightsSection from '@/components/dashboard/sections/InsightsSection'
+import AnalyticsSection from '@/components/dashboard/sections/AnalyticsSection'
+import BonusesSection from '@/components/dashboard/sections/BonusesSection'
+import OverviewSection from '@/components/dashboard/sections/OverviewSection'
 import CommandPalette from '@/components/command-palette/CommandPalette'
 import { fetchDashboardData } from '@/services/dashboardData'
 import { DashboardMetrics } from '@/types/dashboard'
-
-const OverviewSection = dynamic(() => import('@/components/dashboard/sections/OverviewSection'))
-const CardsSection = dynamic(() => import('@/components/dashboard/sections/CardsSection'))
-const BonusesSection = dynamic(() => import('@/components/dashboard/sections/BonusesSection'))
-// Removed Insights & Analytics sections (deprecated)
 
 
 export default function DashboardPage() {
@@ -23,7 +21,6 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [stale, setStale] = useState(false)
 
   const load = useCallback(async () => {
     if (!user?.id) return
@@ -40,16 +37,7 @@ export default function DashboardPage() {
     }
   }, [user?.id])
 
-  useEffect(() => { 
-    load();
-    const t = setTimeout(()=>{
-      if (!metrics) {
-        setStale(true);
-        if (!error) setError('Taking longer than expected to load your data.');
-      }
-    }, 7000);
-    return ()=> clearTimeout(t);
-  }, [load]);
+  useEffect(() => { load() }, [load])
 
   return (
     <ProtectedRoute>
@@ -59,37 +47,24 @@ export default function DashboardPage() {
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">{`Welcome back${profile?.first_name ? `, ${profile.first_name}` : ''} 👋`}</h1>
           <p className="mt-2 text-dim">Unified rewards overview and optimization hub.</p>
         </div>
-        {error && !stale && (
+        {error && (
           <div className="p-4 rounded-md bg-red-50 border border-red-200 text-sm text-red-700 flex justify-between items-start">
             <span>{error}</span>
             <button onClick={load} className="text-xs underline">Retry</button>
           </div>
         )}
-        {loading && !metrics && !stale && (
-          <div className="grid gap-4 sm:grid-cols-2" aria-label="Loading dashboard metrics">
+        {loading && !metrics ? (
+          <div className="grid gap-4 sm:grid-cols-2">
             {[...Array(4)].map((_,i) => <div key={i} className="h-32 rounded-lg animate-pulse bg-[var(--color-bg-alt)] border" />)}
           </div>
-        )}
-        {stale && !metrics && (
-          <div className="text-xs text-gray-500">
-            <button onClick={load} className="underline underline-offset-2 mr-2">Retry load</button>
-            <button onClick={()=> window.location.reload()} className="underline underline-offset-2">Refresh page</button>
-          </div>
-        )}
-        {/* After stale timeout, if metrics still null, show default zero metrics */}
-        {!loading && section === 'overview' && (
-          <>
-            <div className="mt-4">
-              <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium shadow hover:bg-blue-700 transition">Search Nearby Businesses →</Link>
-            </div>
-            <OverviewSection {...(metrics || { cardCount: 0, totalPoints: 0, monthlyPoints: 0, recentActivityCount: 0 })} />
-            <div className="mt-16">
-              <CardsSection />
-            </div>
-          </>
+        ) : null}
+        {!loading && metrics && section === 'overview' && (
+          <OverviewSection {...metrics} />
         )}
         {section === 'cards' && <CardsSection />}
         {section === 'bonuses' && <BonusesSection />}
+        {section === 'insights' && <InsightsSection />}
+        {section === 'analytics' && <AnalyticsSection />}
       </div>
     </ProtectedRoute>
   );

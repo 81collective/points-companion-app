@@ -1,0 +1,6 @@
+5e1c3de66265527a3fb3b220a2741436
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.skipToken = void 0;
+exports.skipToken = Symbol.for("apollo.skipToken");
+//# sourceMappingURL=constants.cjs.map

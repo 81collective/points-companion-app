@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { MapPin, Star, Grid, Map, Loader2, CreditCard } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Star, Navigation, Grid, Map, Loader2, CreditCard } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { useLocation } from '@/hooks/useLocation';
 import { useNearbyBusinesses } from '@/hooks/useNearbyBusinesses';
 import { useCardRecommendations } from '@/hooks/useCardRecommendations';
 import LocationPermission from '@/components/location/LocationPermission';
 import BusinessListSkeleton from '@/components/common/BusinessListSkeleton';
-import VirtualBusinessGrid from '@/components/common/VirtualBusinessGrid';
 import { Business } from '@/types/location.types';
 import { logInteraction } from '@/lib/interactionLogger';
 
@@ -240,13 +240,65 @@ export default function NearbyBusinesses({ initialCategory = 'dining', className
                       </div>
                     )}
                   </div>
-                  <VirtualBusinessGrid
-                    businesses={businesses}
-                    selectedBusiness={selectedBusiness}
-                    onBusinessSelect={handleBusinessSelect}
-                    currentCategory={currentCategory}
-                    className="mt-4"
-                  />
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    <AnimatePresence>
+                      {businesses.map((business, index) => (
+                        <motion.div
+                          key={business.id || index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
+                          onClick={() => handleBusinessSelect(business)}
+                          className={`cursor-pointer bg-white rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-lg hover:border-blue-300 ${
+                            selectedBusiness?.id === business.id 
+                              ? 'border-blue-500 bg-blue-50 shadow-md' 
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 text-lg truncate">{business.name}</h3>
+                              <p className="text-sm text-gray-600 mt-1">{business.address}</p>
+                            </div>
+                            {currentCategory && (
+                              <div className={`px-3 py-1 rounded-full text-xs font-medium ${currentCategory.color}`}>
+                                {currentCategory.icon}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              {business.rating && (
+                                <div className="flex items-center space-x-1">
+                                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                  <span className="text-gray-600 font-medium">{business.rating}</span>
+                                </div>
+                              )}
+                              {business.distance && (
+                                <div className="flex items-center space-x-1 text-gray-500">
+                                  <MapPin className="h-4 w-4" />
+                                  <span className="font-medium">
+                                    {business.distance < 1609.34 
+                                      ? `${Math.round(business.distance * 3.28084)}ft`
+                                      : `${(business.distance * 0.000621371).toFixed(1)}mi`
+                                    }
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <Navigation className="h-5 w-5 text-gray-400" />
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
                 </div>
               )}              {/* Empty State */}
               {!loading && businesses.length === 0 && !error && (
