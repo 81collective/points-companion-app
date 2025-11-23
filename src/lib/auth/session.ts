@@ -13,5 +13,5 @@ export async function requireServerSession(): Promise<Session> {
 
 export async function getOptionalServerSession(): Promise<Session | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return getServerSession(authOptions as any) as Session | null;
+  return getServerSession(authOptions as any) as unknown as Session | null;
 }
