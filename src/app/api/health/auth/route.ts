@@ -1,33 +1,31 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const supabaseUrlPresent = !!process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKeyPresent = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const nextAuthSecretPresent = Boolean(process.env.NEXTAUTH_SECRET)
+  const nextAuthUrlPresent = Boolean(process.env.NEXTAUTH_URL)
+  const databaseUrlPresent = Boolean(process.env.DATABASE_URL)
 
   let connectivity: 'unknown' | 'ok' | 'error' = 'unknown'
   let connectivityError: string | undefined
-  if (supabaseUrlPresent) {
+  if (nextAuthUrlPresent) {
     try {
       const controller = new AbortController()
-      const id = setTimeout(() => controller.abort(), 3000)
-      await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL as string, { method: 'HEAD', signal: controller.signal })
-      clearTimeout(id)
+      const timeoutId = setTimeout(() => controller.abort(), 3000)
+      await fetch(process.env.NEXTAUTH_URL as string, { method: 'HEAD', signal: controller.signal })
+      clearTimeout(timeoutId)
       connectivity = 'ok'
     } catch (err: unknown) {
       connectivity = 'error'
-      if (err instanceof Error) {
-        connectivityError = err.message
-      } else {
-        connectivityError = 'fetch_failed'
-      }
+      connectivityError = err instanceof Error ? err.message : 'fetch_failed'
     }
   }
 
   return NextResponse.json({
-    ok: supabaseUrlPresent && supabaseKeyPresent,
+    ok: nextAuthSecretPresent && nextAuthUrlPresent && databaseUrlPresent,
     env: {
-      NEXT_PUBLIC_SUPABASE_URL: supabaseUrlPresent,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseKeyPresent,
+      NEXTAUTH_SECRET: nextAuthSecretPresent,
+      NEXTAUTH_URL: nextAuthUrlPresent,
+      DATABASE_URL: databaseUrlPresent
     },
     connectivity,
     connectivityError,

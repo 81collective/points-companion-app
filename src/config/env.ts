@@ -6,8 +6,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1, 'Google Maps API key missing').optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_ANON_KEY: z.string().optional(),
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
+  DATABASE_URL: z.string().url().optional(),
+  NEXTAUTH_URL: z.string().url().optional(),
+  NEXTAUTH_SECRET: z.string().optional(),
 })
 
 // Parse and cache environment

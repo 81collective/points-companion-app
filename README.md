@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is a **Next.js** application that uses **Supabase** for authentication and data storage. It helps users manage credit cards and transactions and includes AI‑powered recommendations using OpenAI.
+This project is a **Next.js** application backed by **Prisma** + **Neon Postgres** (with NextAuth for sessions). It helps users manage credit cards and transactions and includes AI‑powered recommendations using OpenAI.
 
 ## Installation
 
@@ -18,13 +18,15 @@ This project is a **Next.js** application that uses **Supabase** for authenticat
 
 ## Environment variables
 
-Create an `.env.local` file and provide the following values:
+Create an `.env.local` file and provide the following values (or pull them from Vercel with `vercel env pull`):
 
+- `DATABASE_URL` / `POSTGRES_URL_*` – Neon Postgres connection strings (pooled + non pooled) used by the backend.
+- `NEXTAUTH_URL` and `NEXTAUTH_SECRET` – required by NextAuth.
 - `OPENAI_API_KEY` – API key for OpenAI requests.
-- `NEXT_PUBLIC_SUPABASE_URL` – your Supabase project URL.
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` – the anonymous key from Supabase.
+- `GOOGLE_PLACES_API_KEY` / `GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` – mapping and geo search features.
+- Optional integrations such as `LOYALTY_API_KEY`, `NEXT_PUBLIC_GA_TRACKING_ID`, or feature flags like `NEXT_PUBLIC_ENABLE_PWA`.
 
-These variables are required for both development and production builds.
+All Supabase-specific environment variables were removed in November 2025 as part of the Neon migration; you can safely delete them from local `.env` files and hosting providers.
 
 ## Recent Improvements (Engineering Log)
 
@@ -147,21 +149,22 @@ npm run build
 npm start
 ```
 
-## Supabase migrations
+## Database migrations
 
-The SQL migrations live in `supabase/migrations`. To apply them locally, install the [Supabase CLI](https://supabase.com/docs/guides/cli) and run:
+Schema changes are managed via Prisma. Use the standard commands below:
 ```bash
-supabase start      # starts local Supabase containers
-supabase db reset   # applies migrations from the migrations folder
+npx prisma migrate dev               # create/apply a new migration locally
+npx prisma migrate deploy            # apply pending migrations in CI/production
+npx prisma db push && prisma studio  # sync schema / inspect data without Supabase
 ```
+Legacy Supabase SQL files remain under `supabase/migrations` for reference only; they no longer drive the application.
 
 ## Verification scripts
 
-The `scripts/` directory contains Node scripts that verify the Supabase instance. They use Supabase credentials defined in each file. Run them with Node:
+The `scripts/` directory still contains a handful of smoke-test utilities. They now read the same Neon/NextAuth environment variables noted above. Run them with Node as needed:
 ```bash
-node scripts/check-db.mjs        # checks tables exist
-node scripts/check-structure.mjs # prints credit_cards table columns
-node scripts/verify-data.mjs     # lists sample rows
-node scripts/verify-tables.mjs   # describes table structures
+node verify-deployment.mjs   # post-deploy smoke test
+node diagnose-issues.mjs     # quick API/DB sanity checks
+node test-fixes.mjs          # regression helpers used during migrations
 ```
-Customize the Supabase URL and key in each script (or refactor them to read from environment variables) so that they point to your project.
+Feel free to extend these scripts with additional Postgres or API assertions—no Supabase configuration is required anymore.

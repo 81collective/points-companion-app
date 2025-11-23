@@ -83,10 +83,10 @@ node diagnose-issues.mjs
 ## Environment Variables Required
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
+DATABASE_URL=postgresql://user:password@ep-example-12345.neon.tech/main?sslmode=require
+POSTGRES_URL_NON_POOLING=postgresql://user:password@ep-example-12345.neon.tech/main?sslmode=require
 OPENAI_API_KEY=your_openai_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
 ## Testing Instructions
