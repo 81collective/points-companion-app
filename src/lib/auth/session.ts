@@ -11,5 +11,5 @@ export async function requireServerSession(): Promise<Session> {
 }
 
 export async function getOptionalServerSession(): Promise<Session | null> {
-  return getServerSession(authOptions) as Session | null;
+  return getServerSession(authOptions) as unknown as Session | null;
 }
