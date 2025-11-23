@@ -1,0 +1,9 @@
+examples/
+*.md
+!README.md
+.git/
+.vscode/
+coverage/
+test-results/
+playwright-report/
+*.log
