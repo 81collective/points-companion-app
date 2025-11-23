@@ -1,8 +1,7 @@
-import { NextResponse } from 'next/server'
-import { Buffer } from 'node:buffer'
-import { getServerSession } from 'next-auth'
-import prisma from '@/lib/prisma'
-import { authOptions } from '@/lib/auth/options'
+import { NextResponse } from 'next/server';
+import { Buffer } from 'node:buffer';
+import prisma from '@/lib/prisma';
+import { requireServerSession } from '@/lib/auth/session';
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024 // 2MB
 
@@ -11,7 +10,7 @@ function buildError(message: string, status = 400) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
+  const session = await requireServerSession();
   if (!session?.user?.id) {
     return buildError('Unauthorized', 401)
   }
