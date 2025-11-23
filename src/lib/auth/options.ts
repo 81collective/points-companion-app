@@ -1,6 +1,4 @@
-import NextAuth from 'next-auth';
 import type { NextAuthOptions } from 'next-auth';
-import type { JWT } from 'next-auth/jwt';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
