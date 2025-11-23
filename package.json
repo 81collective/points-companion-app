@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint --max-warnings=0",
     "prepare": "husky",
+    "postinstall": "prisma generate",
     "icons": "node scripts/generate-icons.mjs",
     "update-cards": "node scripts/update-cards.mjs",
     "check-cards": "node scripts/check-cards.mjs",
