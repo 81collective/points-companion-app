@@ -1,4 +1,5 @@
-import type { NextAuthOptions, User, Session } from 'next-auth';
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -48,7 +49,7 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    jwt: async ({ token, user }) => {
       if (user) {
         token.sub = user.id
         token.firstName = user.firstName ?? null
@@ -57,7 +58,7 @@ export const authOptions: NextAuthOptions = {
       }
       return token
     },
-    async session({ session, token }) {
+    session: async ({ session, token }) => {
       if (session.user && token.sub) {
         session.user.id = token.sub
         session.user.firstName = token.firstName ?? undefined
