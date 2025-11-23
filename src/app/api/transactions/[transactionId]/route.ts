@@ -38,12 +38,12 @@ function parseDate(value: unknown): Date | undefined {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { transactionId: string } }
+  { params }: { params: Promise<{ transactionId: string }> }
 ) {
   try {
     const session = await requireServerSession()
     const payload = await request.json()
-    const { transactionId } = params
+    const { transactionId } = await params
 
     const updates = {
       merchantName: payload.merchantName ? String(payload.merchantName) : undefined,
@@ -79,11 +79,11 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { transactionId: string } }
+  { params }: { params: Promise<{ transactionId: string }> }
 ) {
   try {
     const session = await requireServerSession()
-    const { transactionId } = params
+    const { transactionId } = await params
 
     await prisma.transaction.delete({ where: { id: transactionId, userId: session.user!.id } })
     return NextResponse.json({ ok: true })
