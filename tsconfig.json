@@ -25,12 +25,17 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts",
     "src/test/setup-tests.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "examples",
+    ".next",
+    "out",
+    "build",
+    "dist"
   ]
 }
