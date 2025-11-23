@@ -2,15 +2,6 @@
 // Integrates Apollo Server with Next.js App Router
 
 import { ApolloServer } from '@apollo/server';
-import { NextRequest, NextResponse } from 'next/server';
-import { typeDefs } from './schema';
-import { resolvers } from './resolvers';
-import { advancedApiCache } from '@/lib/apiCache';
-
-// GraphQL Server Setup for Points Companion App
-// Integrates Apollo Server with Next.js App Router
-
-import { ApolloServer } from '@apollo/server';
 import type { NextRequest } from 'next/server';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
@@ -51,8 +42,13 @@ const server = new ApolloServer<GraphQLContext>({
 });
 
 // Handler function for App Router
+let serverStarted = false;
+
 export async function handler(request: NextRequest) {
-  await server.start();
+  if (!serverStarted) {
+    await server.start();
+    serverStarted = true;
+  }
 
   const context: GraphQLContext = {
     user: null, // TODO: Implement user authentication
@@ -73,8 +69,17 @@ export async function handler(request: NextRequest) {
     }
   );
 
-  return new Response(JSON.stringify(response), {
-    status: 200,
+  if (response.body.kind === 'single') {
+    return new Response(JSON.stringify(response.body.singleResult), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  return new Response(JSON.stringify({ errors: [{ message: 'Invalid response type' }] }), {
+    status: 500,
     headers: {
       'Content-Type': 'application/json'
     }
