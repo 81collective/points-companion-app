@@ -3,7 +3,8 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/options'
 
 export async function requireServerSession(): Promise<Session> {
-  const session = await getServerSession(authOptions) as Session | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const session = await getServerSession(authOptions as any) as Session | null;
   if (!session?.user?.id) {
     throw new Error('Unauthorized');
   }
@@ -11,5 +12,6 @@ export async function requireServerSession(): Promise<Session> {
 }
 
 export async function getOptionalServerSession(): Promise<Session | null> {
-  return getServerSession(authOptions) as unknown as Session | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return getServerSession(authOptions as any) as Session | null;
 }
