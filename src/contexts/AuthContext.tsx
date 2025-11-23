@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { signIn as nextAuthSignIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react'
+import type { Session } from 'next-auth'
 import type { DashboardPreferences } from '@/types/preferences'
 
 interface Profile {
@@ -61,7 +62,8 @@ async function patchProfile(updates: Partial<Profile>) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession()
+  const { data: sessionData, status } = useSession()
+  const session = sessionData as Session | null
   const [profile, setProfile] = useState<Profile | null>(null)
   const [hydratingProfile, setHydratingProfile] = useState(false)
 
