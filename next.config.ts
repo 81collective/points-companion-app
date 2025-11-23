@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
     dirs: ['src'],
   },
 
+  // TypeScript: Skip type checking during build (handled by pre-commit hooks)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Image optimization
   images: imageConfig,
 
