@@ -1,300 +1,384 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import prisma from '@/lib/prisma';
+import { CATEGORY_MAP, CategoryKey } from '@/lib/places/categories';
+import { scorePlace, haversineMeters, type BasicPlace } from '@/lib/places/score';
+import { classifyBusiness } from '@/lib/classification/businessClassifier';
+import { evaluateCards } from '@/lib/cards/engine';
 
-interface GooglePlaceResult {
-  name: string;
+type LatLng = { lat: number; lng: number };
+
+type GooglePlaceResult = {
+  name?: string;
   vicinity?: string;
   formatted_address?: string;
-  geometry: {
-    location: {
-      lat: number;
-      lng: number;
-    };
-  };
-  place_id: string;
+  geometry?: { location?: { lat: number; lng: number } };
+  place_id?: string;
   rating?: number;
   price_level?: number;
-  category?: string;
+  business_status?: string;
+  opening_hours?: { open_now?: boolean };
+  user_ratings_total?: number;
+  types?: string[];
+};
+
+type MapboxFeature = {
+  id: string;
+  text?: string;
+  place_name?: string;
+  center?: [number, number]; // [lng, lat]
+  geometry?: { type: string; coordinates: [number, number] };
+  properties?: Record<string, unknown>;
+};
+
+type NearbyParams = { lat: number; lng: number; category: CategoryKey; radius?: number };
+
+function dedupePlaces<T extends { place_id?: string; name?: string; vicinity?: string }>(arr: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const p of arr) {
+    const key = p.place_id || `${(p.name || '').toLowerCase()}|${(p.vicinity || '').toLowerCase()}`;
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      out.push(p);
+    }
+  }
+  return out;
+}
+
+type GoogleNearbyResponse = { results?: GooglePlaceResult[]; next_page_token?: string; status?: string };
+
+async function googleNearbyPage({ lat, lng, type, keyword, radius, rankByDistance, pageToken }: { lat: number; lng: number; type?: string; keyword?: string; radius?: number; rankByDistance?: boolean; pageToken?: string }): Promise<GoogleNearbyResponse> {
+  const params = new URLSearchParams();
+  const key = process.env.GOOGLE_MAPS_API_KEY as string | undefined;
+  if (!key) return { results: [] };
+  params.set('key', key);
+
+  if (pageToken) {
+    // When using a pagetoken, most other params are ignored by the API
+    params.set('pagetoken', pageToken);
+  } else {
+    params.set('location', `${lat},${lng}`);
+    if (rankByDistance) {
+      params.set('rankby', 'distance');
+      if (keyword) params.set('keyword', keyword);
+      if (type) params.set('type', type);
+    } else {
+      params.set('radius', String(radius ?? 1500));
+      if (keyword) params.set('keyword', keyword);
+      if (type) params.set('type', type);
+    }
+  }
+
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?${params.toString()}`;
+  const res = await fetch(url, { next: { revalidate: 300 } });
+  if (!res.ok) return { results: [] };
+  const data = (await res.json()) as GoogleNearbyResponse;
+  return data;
+}
+
+async function googleNearbyAllPages(args: { lat: number; lng: number; type?: string; keyword?: string; radius?: number; rankByDistance?: boolean; maxPages?: number }): Promise<GooglePlaceResult[]> {
+  const { maxPages = 2, ...rest } = args;
+  const out: GooglePlaceResult[] = [];
+  let pageToken: string | undefined;
+  for (let i = 0; i < maxPages; i++) {
+    // For subsequent pages, wait briefly for token activation per Google guidelines
+    if (pageToken) await new Promise((r) => setTimeout(r, 1200));
+    const page = await googleNearbyPage({ ...rest, pageToken });
+    if (page.results?.length) out.push(...page.results);
+    if (page.next_page_token) {
+      pageToken = page.next_page_token;
+    } else {
+      break;
+    }
+  }
+  return out;
+}
+
+type AggregatedItem = {
+  id: string;
+  name: string;
   address?: string;
+  rating?: number;
+  reviews?: number;
+  price_level?: number;
+  place_id?: string;
   latitude?: number;
   longitude?: number;
-  phone_number?: string;
-  website?: string;
+  distance?: number;
+  score: number;
+  source?: 'google' | 'mapbox';
+  inferred_category?: string;
+  inferred_confidence?: number;
+  mcc_candidates?: number[];
+  brand_id?: string;
+  top_card?: { cardId: string; cardName: string; reasons: string[]; rate: number; valueCentsPerDollar: number };
+};
+
+type Aggregated = { items: AggregatedItem[]; origin: LatLng; category: CategoryKey };
+
+async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: number; openNow?: boolean; limit?: number }): Promise<Aggregated> {
+  const map = CATEGORY_MAP[q.category];
+  const denseArea = !q.radius || q.radius <= 1500;
+  const baseRadius = q.radius ?? 1500;
+  const maxRadius = q.maxRadius ?? Math.max(baseRadius, 5000);
+  const desiredMin = 20; // try to collect at least this many before scoring
+
+  async function batchForRadius(radius: number, pages = 2) {
+    const reqs: Promise<GooglePlaceResult[]>[] = [];
+    if (map.googleTypes[0]) {
+      reqs.push(googleNearbyAllPages({ lat: q.lat, lng: q.lng, type: map.googleTypes[0], rankByDistance: denseArea, radius, maxPages: pages }));
+    }
+    for (const t of map.googleTypes.slice(1, 3)) {
+      reqs.push(googleNearbyAllPages({ lat: q.lat, lng: q.lng, type: t, radius, maxPages: pages }));
+    }
+    if (map.googleKeywords.length) {
+      reqs.push(googleNearbyAllPages({ lat: q.lat, lng: q.lng, keyword: map.googleKeywords.slice(0, 2).join(' '), radius, maxPages: pages }));
+    }
+    const batches = await Promise.allSettled(reqs);
+    const merged: GooglePlaceResult[] = [];
+    for (const b of batches) if (b.status === 'fulfilled') merged.push(...b.value);
+    return merged;
+  }
+
+  const merged: GooglePlaceResult[] = await batchForRadius(baseRadius, 2);
+  // If too few, expand radius once more (lighter pages to save latency)
+  if (merged.length < desiredMin && baseRadius < maxRadius) {
+    const expandedRadius = Math.min(maxRadius, Math.round(baseRadius * 2));
+    const extra = await batchForRadius(expandedRadius, 1);
+    merged.push(...extra);
+  }
+
+  // Mapbox provider (optional, if token available): use keywords as query and bbox from radius
+  const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN as string | undefined;
+  async function mapboxSearch(query: string, radius: number, limit = 20): Promise<MapboxFeature[]> {
+    if (!mapboxToken) return [];
+    const kmPerDegree = 111;
+    const latDelta = radius / 1000 / kmPerDegree;
+    const lngDelta = radius / 1000 / (kmPerDegree * Math.cos(q.lat * Math.PI / 180));
+    const minLng = q.lng - lngDelta;
+    const minLat = q.lat - latDelta;
+    const maxLng = q.lng + lngDelta;
+    const maxLat = q.lat + latDelta;
+    const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`);
+    url.searchParams.set('access_token', mapboxToken);
+    url.searchParams.set('proximity', `${q.lng},${q.lat}`);
+    url.searchParams.set('types', 'poi');
+    url.searchParams.set('limit', String(limit));
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('bbox', `${minLng},${minLat},${maxLng},${maxLat}`);
+    const res = await fetch(url.toString(), { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { features?: MapboxFeature[] };
+    return data.features ?? [];
+  }
+
+  if (mapboxToken && map.googleKeywords.length) {
+    const mbxQueries = [map.googleKeywords[0]];
+    if (map.googleKeywords[1]) mbxQueries.push(map.googleKeywords[1]);
+    const mbxBatches = await Promise.allSettled(mbxQueries.map((kw) => mapboxSearch(kw, baseRadius, 15)));
+    const mbxFeatures: MapboxFeature[] = [];
+    for (const b of mbxBatches) if (b.status === 'fulfilled') mbxFeatures.push(...b.value);
+    const mbxAsGoogleShape: GooglePlaceResult[] = mbxFeatures.map((f) => {
+      const lng = f.center?.[0] ?? f.geometry?.coordinates?.[0];
+      const lat = f.center?.[1] ?? f.geometry?.coordinates?.[1];
+      const name = f.text || (f.place_name ? f.place_name.split(',')[0] : '');
+      const address = f.place_name || '';
+      return {
+        name,
+        formatted_address: address,
+        geometry: { location: lat != null && lng != null ? { lat, lng } : undefined },
+        place_id: `mapbox_${f.id}`,
+        rating: undefined,
+        user_ratings_total: undefined,
+        opening_hours: undefined,
+        price_level: undefined,
+        business_status: 'OPERATIONAL',
+      } as GooglePlaceResult;
+    });
+    merged.push(...mbxAsGoogleShape);
+  }
+  const deduped = dedupePlaces<GooglePlaceResult>(merged).filter(
+    (p) => !p.business_status || p.business_status === 'OPERATIONAL'
+  );
+
+  const origin: LatLng = { lat: q.lat, lng: q.lng };
+  let filtered = deduped;
+  if (q.minRating) {
+    filtered = filtered.filter((p) => (p.rating ?? 0) >= (q.minRating as number));
+  }
+  if (q.openNow) {
+    filtered = filtered.filter((p) => p.opening_hours?.open_now === true);
+  }
+  const scored = filtered
+    .map((p) => ({ p, s: scorePlace(p as BasicPlace, origin) }))
+    .filter((x) => Number.isFinite(x.s) && x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, q.limit ?? 50);
+
+  const final: AggregatedItem[] = scored.map(({ p, s }) => {
+    const pid = (p.place_id as string) || '';
+    const loc = p.geometry?.location;
+    const name = p.name || 'Unknown';
+    const classification = classifyBusiness({
+      name,
+      googleTypes: Array.isArray(p.types) ? p.types : [],
+      mapboxPlaceName: p.formatted_address || p.vicinity || undefined,
+    });
+    const cardEvals = evaluateCards({ taxonomy: classification.taxonomy, mccCandidates: classification.mccCandidates, brandId: classification.brandId });
+    const top = cardEvals[0];
+    return {
+      id: pid || `${(p.name ?? '').toLowerCase()}|${p.vicinity ?? ''}`,
+      name,
+      address: p.formatted_address || p.vicinity || '',
+      rating: p.rating,
+      reviews: p.user_ratings_total,
+      price_level: p.price_level,
+      place_id: pid,
+      latitude: loc?.lat,
+      longitude: loc?.lng,
+      distance: loc ? haversineMeters(origin, { lat: loc.lat, lng: loc.lng }) : undefined,
+      score: s,
+      source: pid?.startsWith('mapbox_') ? 'mapbox' : 'google',
+      inferred_category: classification.taxonomy,
+      inferred_confidence: classification.confidence,
+      mcc_candidates: classification.mccCandidates,
+      brand_id: classification.brandId,
+      top_card: top ? { cardId: top.cardId, cardName: top.cardName, reasons: top.reasons, rate: top.rate, valueCentsPerDollar: top.estValueCentsPerDollar } : undefined,
+    };
+  });
+
+  return { items: final, origin, category: q.category };
+}
+
+type NearbyOptions = NearbyParams & { maxRadius?: number; minRating?: number; openNow?: boolean; limit?: number };
+
+async function getCachedOrFetch(q: NearbyOptions): Promise<Aggregated> {
+  const providers = `${process.env.GOOGLE_MAPS_API_KEY ? 'g' : ''}${process.env.MAPBOX_ACCESS_TOKEN ? 'm' : ''}` || 'none';
+  const key = `nearby:${q.category}:${q.lat.toFixed(4)},${q.lng.toFixed(4)}:${q.radius ?? 'auto'}:min${q.minRating ?? ''}:open${q.openNow ?? ''}:lim${q.limit ?? ''}:maxR${q.maxRadius ?? ''}:prov${providers}`;
+  const ttlMs = 6 * 60 * 60 * 1000;
+
+  try {
+    const cache = await prisma.nearbyCache.findUnique({ where: { key } });
+    if (cache?.data) {
+      const age = Date.now() - cache.updatedAt.getTime();
+      if (age < ttlMs) {
+        return cache.data as Aggregated;
+      }
+      const cachedData = cache.data as Aggregated;
+      fetchFresh(q)
+        .then((fresh) =>
+          prisma.nearbyCache.upsert({ where: { key }, update: { data: fresh }, create: { key, data: fresh } })
+        )
+        .catch(() => {});
+      return cachedData;
+    }
+  } catch (error) {
+    console.warn('[nearby] cache lookup failed, continuing without cache', error);
+  }
+
+  const fresh = await fetchFresh(q);
+  try {
+    await prisma.nearbyCache.upsert({ where: { key }, update: { data: fresh }, create: { key, data: fresh } });
+  } catch (error) {
+    console.warn('[nearby] failed to update cache', error);
+  }
+  return fresh;
 }
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    // Accept both formats: lat/lng and latitude/longitude
     const lat = searchParams.get('lat') || searchParams.get('latitude');
     const lng = searchParams.get('lng') || searchParams.get('longitude');
-    const radius = searchParams.get('radius') || '5000'; // Default 5km radius
-    const category = searchParams.get('category');
-
-    console.log('Location API called with:', { lat, lng, radius, category });
+    const radius = searchParams.get('radius') || '1500';
+    const category = (searchParams.get('category') || 'dining') as CategoryKey;
+  const minRatingParam = searchParams.get('minRating');
+  const openNowParam = searchParams.get('openNow');
+  const limitParam = searchParams.get('limit');
+  const maxRadiusParam = searchParams.get('maxRadius');
 
     if (!lat || !lng) {
-      console.log('Missing coordinates');
-      return NextResponse.json(
-        { error: 'Latitude and longitude are required', success: false },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Latitude and longitude are required', success: false }, { status: 400 });
     }
-
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lng);
     const radiusMeters = parseInt(radius);
-
-    if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusMeters)) {
-      console.log('Invalid coordinates:', { latitude, longitude, radiusMeters });
-      return NextResponse.json(
-        { error: 'Invalid coordinates or radius', success: false },
-        { status: 400 }
-      );
+  const minRating = minRatingParam ? parseFloat(minRatingParam) : undefined;
+  const openNow = openNowParam === 'true' || openNowParam === '1' ? true : openNowParam === 'false' ? false : undefined;
+  const limit = limitParam ? parseInt(limitParam) : undefined;
+  const maxRadius = maxRadiusParam ? parseInt(maxRadiusParam) : undefined;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(radiusMeters)) {
+      return NextResponse.json({ error: 'Invalid coordinates or radius', success: false }, { status: 400 });
     }
 
-    console.log('Searching for businesses near:', { latitude, longitude, radiusMeters, category });
-
-    const supabase = createClient();
-
-    // Build query to find nearby businesses (using miles)
-    const radiusMiles = radiusMeters / 5280; // Convert feet to miles for bounding box
-    let query = supabase
-      .from('businesses')
-      .select('*')
-      .gte('latitude', latitude - (radiusMiles / 69)) // Rough conversion: 1 degree ≈ 69 miles
-      .lte('latitude', latitude + (radiusMiles / 69))
-      .gte('longitude', longitude - (radiusMiles / (69 * Math.cos(latitude * Math.PI / 180))))
-      .lte('longitude', longitude + (radiusMiles / (69 * Math.cos(latitude * Math.PI / 180))));
-
-    // Filter by category if provided
-    if (category && category !== 'all') {
-      query = query.eq('category', category);
-    }
-
-    const { data: businesses, error } = await query.limit(50);
-
-    console.log('Database query result:', { 
-      businessCount: businesses?.length || 0, 
-      error: error?.message,
-      sampleBusiness: businesses?.[0] 
-    });
-
-    if (error) {
-      console.error('Database error:', error);
-      return NextResponse.json(
-        { error: 'Failed to fetch businesses', success: false },
-        { status: 500 }
-      );
-    }
-
-    // Calculate exact distances and sort by distance
-    const businessesWithDistance = businesses?.map(business => {
-      const distance = calculateDistance(
-        latitude,
-        longitude,
-        business.latitude,
-        business.longitude
-      );
-      return {
-        ...business,
-        distance
-      };
-    }).filter(business => business.distance <= radiusMeters)
-      .sort((a, b) => a.distance - b.distance) || [];
-
-    // Google Places API configuration for production
-    let googlePlaces = [];
-    const serverApiKey = process.env.GOOGLE_MAPS_API_KEY; // Server-side key (without NEXT_PUBLIC_)
-    const clientApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Client-side key
-    
-    console.log('Google API check:', { 
-      hasServerKey: !!serverApiKey,
-      hasClientKey: !!clientApiKey,
-      dbResultCount: businessesWithDistance.length,
-      environment: process.env.NODE_ENV
-    });
-
-    // Try server-side Google Places API first (production-safe)
-    if (serverApiKey) {
-      try {
-        console.log('Fetching from Google Places API (server-side)...');
-        googlePlaces = await fetchGooglePlaces(latitude, longitude, radiusMeters, category, serverApiKey);
-        console.log('Google Places API results:', googlePlaces.length);
-        
-        // Store new places in database for future use
-        if (googlePlaces.length > 0) {
-          console.log('Sample Google Place:', googlePlaces[0]);
-          const newBusinesses = googlePlaces.map((place: GooglePlaceResult) => ({
-            name: place.name,
-            category: place.category || 'general',
-            address: place.address,
-            latitude: place.latitude,
-            longitude: place.longitude,
-            place_id: place.place_id,
-            rating: place.rating,
-            price_level: place.price_level,
-            phone_number: place.phone_number,
-            website: place.website
-          }));
-
-          // Insert new businesses (ignore conflicts)
-          const { error: insertError } = await supabase
-            .from('businesses')
-            .upsert(newBusinesses, { onConflict: 'place_id', ignoreDuplicates: true });
-          
-          if (insertError) {
-            console.error('Error inserting new businesses:', insertError);
-          } else {
-            console.log('Successfully stored', newBusinesses.length, 'new businesses');
-          }
-        }
-      } catch (error) {
-        console.warn('Server-side Google Places API error:', error);
-        
-        // Fallback: return instruction for client-side fetch if we have client key
-        if (clientApiKey) {
-          console.log('Falling back to client-side Google Places instruction');
-          return NextResponse.json({
-            businesses: businessesWithDistance.slice(0, 50),
-            user_location: { latitude, longitude },
-            use_client_places: true, // Signal client to fetch additional places
-            client_api_available: true,
-            success: true
-          });
-        }
-      }
-    } else if (clientApiKey) {
-      // No server key, return database results + instruction for client-side fetch
-      console.log('No server-side API key, instructing client-side fetch');
+    // Branch: if no server key but a public client key exists, instruct client-side Places usage
+    const hasServerKey = !!process.env.GOOGLE_MAPS_API_KEY;
+    const hasClientKey = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!hasServerKey && hasClientKey) {
       return NextResponse.json({
-        businesses: businessesWithDistance.slice(0, 50),
-        user_location: { latitude, longitude },
+        success: true,
         use_client_places: true,
         client_api_available: true,
-        success: true
+        businesses: [],
+        user_location: { latitude, longitude },
       });
-    } else {
-      console.log('No Google API key available, using database + sample data only');
-      
-      // Sample businesses removed - using real data from Google Places API and database
-      // If no businesses are found, the app will show appropriate messaging
     }
 
-    // Combine and deduplicate results
-    const allBusinesses = [...businessesWithDistance];
-    
-    // Add Google Places that aren't already in our database
-    googlePlaces.forEach((googlePlace: GooglePlaceResult) => {
-      const exists = allBusinesses.some(b => 
-        b.place_id === googlePlace.place_id ||
-        (googlePlace.latitude && googlePlace.longitude &&
-         Math.abs(b.latitude - googlePlace.latitude) < 0.0001 && 
-         Math.abs(b.longitude - googlePlace.longitude) < 0.0001)
-      );
-      
-      if (!exists) {
-        allBusinesses.push({
-          ...googlePlace,
-          id: `google_${googlePlace.place_id}`,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+  const aggregated: Aggregated = await getCachedOrFetch({ lat: latitude, lng: longitude, category, radius: radiusMeters, maxRadius, minRating, openNow, limit });
+
+    // Map to existing Business response shape
+  const businesses = aggregated.items.map((it) => {
+    // Only override when classifier confidence is high; avoids over-dining bias
+    const threshold = 0.65;
+    const isConfident = typeof it.inferred_confidence === 'number' ? it.inferred_confidence >= threshold : false;
+    const correctedCategory = isConfident && it.inferred_category ? it.inferred_category : category;
+    if (process.env.NODE_ENV !== 'production') {
+      const catStr = String(category);
+      const infStr = it.inferred_category ?? '';
+      if (catStr === 'services' && (infStr === 'dining' || infStr === 'coffee')) {
+        // Lightweight debug log to surface mislabels during development
+        console.debug('[nearby] category corrected', { name: it.name, place_id: it.place_id, from: catStr, to: infStr });
       }
+    }
+    return ({
+      // Ensure Google-sourced places carry a recognizable prefix for tests/consumers
+      id: it.place_id ? `google_${it.place_id}` : it.id,
+      name: it.name,
+      category: correctedCategory,
+      address: it.address || '',
+      latitude: it.latitude ?? latitude,
+      longitude: it.longitude ?? longitude,
+      place_id: it.place_id,
+      rating: it.rating,
+      price_level: it.price_level,
+      distance: it.distance,
+      // Pass through enrichment for clients that use it
+      inferred_category: it.inferred_category,
+      inferred_confidence: it.inferred_confidence ?? null,
+      mcc_candidates: it.mcc_candidates,
+      brand_id: it.brand_id,
+      top_card: it.top_card,
     });
+  });
 
     return NextResponse.json({
-      businesses: allBusinesses.slice(0, 50), // Limit to 50 results
+      success: true,
+      businesses,
       user_location: { latitude, longitude },
-      success: true
-    });
-
-  } catch (error) {
-    console.error('API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', success: false },
-      { status: 500 }
-    );
-  }
-}
-
-// Helper function to calculate distance between two points
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 3959; // Earth's radius in miles
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-  return R * c * 5280; // Convert miles to feet for consistency
-}
-
-// Helper function to fetch from Google Places API
-async function fetchGooglePlaces(lat: number, lng: number, radius: number, category?: string | null, providedApiKey?: string) {
-  const apiKey = providedApiKey || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  if (!apiKey) {
-    console.log('No Google API key provided');
-    return [];
-  }
-
-  // Map our categories to Google Places types
-  const categoryMap: { [key: string]: string } = {
-    'dining': 'restaurant',
-    'groceries': 'grocery_or_supermarket',
-    'gas': 'gas_station',
-    'shopping': 'shopping_mall',
-    'electronics': 'electronics_store',
-    'hotels': 'lodging',
-    'home_improvement': 'home_goods_store'
-  };
-
-  const type = category ? categoryMap[category] || 'establishment' : 'establishment';
-  
-  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
-  
-  console.log('Google Places API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
-
-  try {
-    const response = await fetch(url);
-    console.log('Google Places API response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`Google Places API HTTP error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Google Places API response status:', data.status);
-    console.log('Google Places API results count:', data.results?.length || 0);
-    
-    if (data.status !== 'OK') {
-      if (data.status === 'ZERO_RESULTS') {
-        console.log('Google Places API returned zero results');
-        return [];
+      meta: {
+        category,
+        radius: radiusMeters,
+        minRating: minRating ?? null,
+        openNow: openNow ?? null,
+        limit: limit ?? null,
+        sources: [
+          process.env.GOOGLE_MAPS_API_KEY ? 'google' : null,
+          process.env.MAPBOX_ACCESS_TOKEN ? 'mapbox' : null,
+        ].filter(Boolean),
       }
-      throw new Error(`Google Places API status: ${data.status} - ${data.error_message || 'Unknown error'}`);
-    }
-
-    const results = data.results.map((place: GooglePlaceResult) => ({
-      name: place.name,
-      category: category || 'general',
-      address: place.vicinity || place.formatted_address || '',
-      latitude: place.geometry.location.lat,
-      longitude: place.geometry.location.lng,
-      place_id: place.place_id,
-      rating: place.rating,
-      price_level: place.price_level,
-      distance: calculateDistance(lat, lng, place.geometry.location.lat, place.geometry.location.lng)
-    }));
-    
-    console.log('Processed Google Places results:', results.length);
-    return results;
+    });
   } catch (error) {
-    console.error('Google Places fetch error:', error);
-    return [];
+    console.error('Nearby API error:', error);
+    return NextResponse.json({ error: 'Internal server error', success: false }, { status: 500 });
   }
 }

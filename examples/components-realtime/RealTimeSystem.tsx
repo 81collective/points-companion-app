@@ -3,7 +3,8 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useSupabase } from '../lib/supabaseStub';
+import { startDemoRealtime, getDemoNotifications, getDemoMetrics } from '../lib/demoRealtime';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import {
   Bell,
@@ -217,19 +218,67 @@ export default function RealTimeSystem() {
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
-    if (!supabase) return;
+    if (!supabase) {
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      return;
+    }
 
     await executeAsyncSafe(async () => {
       await supabase
         .from('notifications')
         .delete()
         .eq('id', notificationId);
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
     });
   }, [supabase, executeAsyncSafe]);
 
+  const addNotification = useCallback((notification: RealTimeNotification) => {
+    setNotifications(prev => {
+      const deduped = prev.filter(n => n.id !== notification.id);
+      return [notification, ...deduped].slice(0, 25);
+    });
+  }, []);
+
+  const pushNotification = useCallback((partial: Partial<RealTimeNotification> & Pick<RealTimeNotification, 'type' | 'title' | 'message' | 'priority'>) => {
+    addNotification({
+      id: partial.id ?? `demo_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      read: partial.read ?? false,
+      created_at: partial.created_at ?? new Date().toISOString(),
+      ...partial,
+    } as RealTimeNotification);
+  }, [addNotification]);
+
   useEffect(() => {
     requestNotificationPermission();
-    
+
+    if (!supabase) {
+      setNotifications(getDemoNotifications());
+      setLiveMetrics(getDemoMetrics());
+      setIsConnected(true);
+      const stopDemo = startDemoRealtime({
+        onTransaction: (tx) => {
+          pushNotification({
+            type: 'spending_alert',
+            title: 'Demo transaction',
+            message: `$${tx.amount.toFixed(2)} at ${tx.merchant_name}`,
+            priority: 'medium'
+          });
+        },
+        onNotification: (notification) => {
+          pushNotification({
+            id: notification.id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            priority: notification.priority,
+            read: notification.read,
+            created_at: notification.created_at
+          });
+        }
+      });
+      return () => stopDemo?.();
+    }
+
     const unsubscribeNotifications = subscribeToNotifications();
     const unsubscribeMetrics = subscribeToMetrics();
 
@@ -237,7 +286,7 @@ export default function RealTimeSystem() {
       unsubscribeNotifications?.then(cleanup => cleanup?.());
       unsubscribeMetrics?.then(cleanup => cleanup?.());
     };
-  }, [subscribeToNotifications, subscribeToMetrics, requestNotificationPermission]);
+  }, [supabase, subscribeToNotifications, subscribeToMetrics, requestNotificationPermission, pushNotification]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

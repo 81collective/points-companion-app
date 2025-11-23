@@ -5,10 +5,12 @@ export interface RewardsStructure {
 
 export interface CreditCard {
   id: string
-  user_id: string
+  userId: string
   name: string
+  issuer?: string | null
+  network?: string | null
   last4: string
   rewards: string[]
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }

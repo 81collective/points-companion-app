@@ -3,8 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorProvider } from "@/contexts/ErrorContext";
-import ErrorBoundary from "@/components/error/ErrorBoundary";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
+import SessionProviderWrapper from "@/components/providers/SessionProvider";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import OfflineIndicator from "@/components/pwa/OfflineIndicator";
 import ServiceWorkerRegistration from "@/components/pwa/ServiceWorkerRegistration";
@@ -14,6 +15,8 @@ import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
 import { generateMetadata, seoConfigs, generateOrganizationSchema } from "@/lib/seo";
 import Script from "next/script";
 import ForceLightMode from "@/components/layout/ForceLightMode";
+import { Haptics } from "@/components/pwa/Haptics";
+import { reportWebVitals } from "@/lib/performance-monitor";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,7 +31,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Points Companion",
+    title: "PointAdvisor",
   },
   other: {
     'mobile-web-app-capable': 'yes',
@@ -43,6 +46,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
 };
+
+export { reportWebVitals };
 
 export default function RootLayout({
   children,
@@ -67,17 +72,23 @@ export default function RootLayout({
         <link rel="prefetch" href="/dashboard" />
         <link rel="prefetch" href="/cards" />
         
-        {/* Structured data */}
-        <script
   {/* Favicons */}
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="mask-icon" href="/branding/monogram.svg" color="#1d4ed8" />
 
+        {/* Structured data */}
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(organizationSchema),
           }}
         />
+
+  {/* iOS Icons */}
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180x180.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167x167.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120x120.png" />
         
         {/* Performance optimization */}
         <Script
@@ -88,18 +99,21 @@ export default function RootLayout({
       </head>
   <body>
         <ForceLightMode />
+  <Haptics />
         <PerformanceMonitor />
         <ErrorBoundary>
           <ErrorProvider>
             <ReactQueryProvider>
-              <AuthProvider>
-                <ServiceWorkerRegistration />
-                <PWAInstallPrompt />
-                <OfflineIndicator />
-                <AchievementToast />
-                <GamificationTracker />
-                {children}
-              </AuthProvider>
+              <SessionProviderWrapper>
+                <AuthProvider>
+                  <ServiceWorkerRegistration />
+                  <PWAInstallPrompt />
+                  <OfflineIndicator />
+                  <AchievementToast />
+                  <GamificationTracker />
+                  {children}
+                </AuthProvider>
+              </SessionProviderWrapper>
             </ReactQueryProvider>
           </ErrorProvider>
         </ErrorBoundary>

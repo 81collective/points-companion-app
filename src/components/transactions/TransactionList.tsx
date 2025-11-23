@@ -3,20 +3,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, MapPin, CreditCard, ArrowUpRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/lib/supabase';
+interface ApiTransaction {
+  id: string;
+  amount: number;
+  category: string;
+  merchantName?: string;
+  description?: string | null;
+  date: string;
+  locationLat?: number | null;
+  locationLng?: number | null;
+  pointsEarned?: number | null;
+  cardId?: string | null;
+  createdAt: string;
+}
 
 interface Transaction {
   id: string;
   amount: number;
   category: string;
-  merchant: string;
+  merchantName: string;
   description: string | null;
   date: string;
-  location_lat: number | null;
-  location_lng: number | null;
-  points_earned: number;
-  card_id: string | null;
-  created_at: string;
+  locationLat: number | null;
+  locationLng: number | null;
+  pointsEarned: number;
+  cardId: string | null;
+  createdAt: string;
 }
 
 interface TransactionListProps {
@@ -34,8 +46,6 @@ export default function TransactionList({ className = "" }: TransactionListProps
   const [showAddForm, setShowAddForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient();
-
   const categories = [
     'all', 'dining', 'groceries', 'gas', 'shopping', 'travel', 'hotels', 'entertainment', 'utilities', 'other'
   ];
@@ -44,6 +54,13 @@ export default function TransactionList({ className = "" }: TransactionListProps
     try {
       setLoading(true);
       setError(null);
+
+      if (!user?.id) {
+        setTransactions([]);
+        setFilteredTransactions([]);
+        setLoading(false);
+        return;
+      }
 
       // Calculate date range
       const endDate = new Date();
@@ -63,28 +80,41 @@ export default function TransactionList({ className = "" }: TransactionListProps
         }
       }
 
-      let query = supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('date', { ascending: false });
+      const response = await fetch('/api/transactions', { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Failed to load transactions');
+      }
+      const payload = (await response.json()) as { transactions?: ApiTransaction[] };
+      let normalized = (payload.transactions || []).map((tx) => ({
+        id: tx.id,
+        amount: Number(tx.amount || 0),
+        category: tx.category || 'other',
+        merchantName: tx.merchantName || 'Unknown merchant',
+        description: tx.description || null,
+        date: tx.date,
+        locationLat: tx.locationLat ?? null,
+        locationLng: tx.locationLng ?? null,
+        pointsEarned: Number(tx.pointsEarned || 0),
+        cardId: tx.cardId || null,
+        createdAt: tx.createdAt
+      }));
 
       if (selectedPeriod !== 'all') {
-        query = query.gte('date', startDate.toISOString().split('T')[0]);
+        normalized = normalized.filter((tx) => {
+          const txDate = new Date(tx.date);
+          return txDate >= startDate;
+        });
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      setTransactions(data || []);
+      normalized.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setTransactions(normalized);
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError('Failed to load transactions');
     } finally {
       setLoading(false);
     }
-  }, [supabase, user?.id, selectedPeriod]);
+  }, [user?.id, selectedPeriod]);
 
   const filterTransactions = useCallback(() => {
     let filtered = transactions;
@@ -92,7 +122,7 @@ export default function TransactionList({ className = "" }: TransactionListProps
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(tx => 
-        tx.merchant.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.merchantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tx.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         tx.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -238,12 +268,12 @@ export default function TransactionList({ className = "" }: TransactionListProps
                       <span className="text-lg">{getCategoryIcon(transaction.category)}</span>
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{transaction.merchant}</h3>
+                      <h3 className="font-medium text-gray-900">{transaction.merchantName}</h3>
                       <div className="flex items-center space-x-3 text-sm text-gray-500">
                         <span className="capitalize">{transaction.category}</span>
                         <span>•</span>
                         <span>{formatDate(transaction.date)}</span>
-                        {transaction.location_lat && transaction.location_lng && (
+                        {transaction.locationLat && transaction.locationLng && (
                           <>
                             <span>•</span>
                             <div className="flex items-center space-x-1">
@@ -263,10 +293,10 @@ export default function TransactionList({ className = "" }: TransactionListProps
                     <div className="font-semibold text-gray-900">
                       {formatCurrency(transaction.amount)}
                     </div>
-                    {transaction.points_earned > 0 && (
+                    {transaction.pointsEarned > 0 && (
                       <div className="text-sm text-green-600 flex items-center">
                         <ArrowUpRight className="h-3 w-3 mr-1" />
-                        {transaction.points_earned} points
+                        {transaction.pointsEarned} points
                       </div>
                     )}
                   </div>

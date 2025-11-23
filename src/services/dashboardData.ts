@@ -1,29 +1,31 @@
-import { createClient } from '@/lib/supabase';
+import prisma from '@/lib/prisma';
 import { DashboardDataResult } from '@/types/dashboard';
 
 export async function fetchDashboardData(userId: string): Promise<DashboardDataResult> {
-  const supabase = createClient();
-
-  const [{ count: cardCount }, { data: txData }] = await Promise.all([
-    supabase.from('credit_cards').select('*', { head: true, count: 'exact' }).eq('user_id', userId),
-    supabase.from('transactions').select('amount, date, points_earned').eq('user_id', userId).order('date', { ascending: false }).limit(50)
+  const [cardCount, recentTransactions] = await Promise.all([
+    prisma.creditCard.count({ where: { userId } }),
+    prisma.transaction.findMany({
+      where: { userId },
+      select: { date: true, pointsEarned: true },
+      orderBy: { date: 'desc' },
+      take: 50
+    })
   ]);
 
-  const recent = txData || [];
-  const monthlyPoints = recent
-    .filter(r => {
-      const d = new Date(r.date);
+  const monthlyPoints = recentTransactions
+    .filter((tx) => {
+      const date = new Date(tx.date);
       const now = new Date();
-      return d.getUTCFullYear() === now.getUTCFullYear() && d.getUTCMonth() === now.getUTCMonth();
+      return date.getUTCFullYear() === now.getUTCFullYear() && date.getUTCMonth() === now.getUTCMonth();
     })
-    .reduce((sum, r) => sum + (r.points_earned || 0), 0);
+    .reduce((sum, tx) => sum + (tx.pointsEarned ?? 0), 0);
 
-  const totalPoints = recent.reduce((sum, r) => sum + (r.points_earned || 0), 0);
+  const totalPoints = recentTransactions.reduce((sum, tx) => sum + (tx.pointsEarned ?? 0), 0);
 
   return {
-    cardCount: cardCount || 0,
+    cardCount,
     totalPoints,
     monthlyPoints,
-    recentActivityCount: recent.length,
+    recentActivityCount: recentTransactions.length
   };
 }

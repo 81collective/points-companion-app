@@ -1,13 +1,13 @@
+'use client';
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase';
 
 interface Recommendation {
   id: string;
-  created_at: string;
-  recommended_card: string;
-  actual_card_used?: string;
-  feedback_score?: number;
-  points_earned?: number;
+  createdAt: string;
+  recommendedCard: string;
+  actualCardUsed?: string | null;
+  feedbackScore?: number | null;
+  pointsEarned?: number | null;
 }
 
 interface Metrics {
@@ -19,40 +19,55 @@ interface Metrics {
 
 export default function AIPerformanceMetrics() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchMetrics() {
-      const supabase = createClient();
-      // Fetch recommendations and feedback
-      const { data } = await supabase
-        .from('recommendations')
-        .select('*');
-      if (!data) return;
-      const recs = data as Recommendation[];
+      try {
+        setError(null);
+        const response = await fetch('/api/recommendations?limit=500', { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error('Failed to load recommendations');
+        }
+        const payload = (await response.json()) as { recommendations?: Recommendation[] };
+        const recs = payload.recommendations || [];
+        if (!recs.length) {
+          setMetrics({ accuracy: 0, satisfaction: 0, totalPoints: 0, monthly: [] });
+          return;
+        }
       const total = recs.length;
-      const followed = recs.filter((r) => r.actual_card_used === r.recommended_card).length;
+      const followed = recs.filter((r) => r.actualCardUsed === r.recommendedCard).length;
       const accuracy = total ? (followed / total) * 100 : 0;
-      const satisfaction = total ? (recs.filter((r) => r.feedback_score === 1).length / total) * 100 : 0;
-      const totalPoints = recs.reduce((sum, r) => sum + (r.points_earned || 0), 0);
+      const satisfaction = total ? (recs.filter((r) => r.feedbackScore === 1).length / total) * 100 : 0;
+      const totalPoints = recs.reduce((sum, r) => sum + (r.pointsEarned || 0), 0);
       // Monthly trend
       const monthly: Array<{ month: string; accuracy: number; points: number }> = [];
       const grouped: Record<string, Recommendation[]> = {};
       recs.forEach((r) => {
-        const month = new Date(r.created_at).toLocaleString('default', { month: 'short', year: 'numeric' });
+        const month = new Date(r.createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
         if (!grouped[month]) grouped[month] = [];
         grouped[month].push(r);
       });
       Object.entries(grouped).forEach(([month, records]) => {
         const mTotal = records.length;
-        const mFollowed = records.filter(r => r.actual_card_used === r.recommended_card).length;
+        const mFollowed = records.filter(r => r.actualCardUsed === r.recommendedCard).length;
         const mAccuracy = mTotal ? (mFollowed / mTotal) * 100 : 0;
-        const mPoints = records.reduce((sum, r) => sum + (r.points_earned || 0), 0);
+        const mPoints = records.reduce((sum, r) => sum + (r.pointsEarned || 0), 0);
         monthly.push({ month, accuracy: mAccuracy, points: mPoints });
       });
       setMetrics({ accuracy, satisfaction, totalPoints, monthly });
+      } catch (err) {
+        console.error('Failed to load AI performance metrics:', err);
+        setError('Unable to load AI performance metrics');
+        setMetrics(null);
+      }
     }
     fetchMetrics();
   }, []);
+
+  if (error) {
+    return <div className="text-red-600">{error}</div>;
+  }
 
   if (!metrics) return <div>Loading AI performance metrics...</div>;
 

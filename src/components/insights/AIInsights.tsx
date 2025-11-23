@@ -2,7 +2,6 @@
 import React from 'react';
 
 import { useEffect, useState } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
 import { Lightbulb, AlertTriangle, TrendingUp, Sparkles, Target } from 'lucide-react';
 
 interface Insight {
@@ -43,7 +42,6 @@ export default function AIInsights() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'high' | 'actionable'>('all');
-  const { supabase } = useSupabase();
 
   const analyzeSpending = React.useCallback((transactions: Transaction[], cards: CreditCard[]): SpendingAnalysis[] => {
     const categorySpending: { [key: string]: SpendingAnalysis } = {};
@@ -198,23 +196,49 @@ export default function AIInsights() {
     const fetchInsights = async () => {
       setLoading(true);
       try {
-        const { data: transactions, error: txError } = await supabase
-          .from('transactions')
-          .select('*')
-          .gte('date', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-        if (txError) throw txError;
+        const [transactionsRes, cardsRes] = await Promise.all([
+          fetch('/api/transactions', { credentials: 'include' }),
+          fetch('/api/cards', { credentials: 'include' })
+        ]);
 
-        const { data: cards, error: cardError } = await supabase
-          .from('credit_cards')
-          .select('*');
-        if (cardError) throw cardError;
+        if (!transactionsRes.ok || !cardsRes.ok) {
+          throw new Error('Failed to load insights data');
+        }
 
-        if (!transactions || !cards || !transactions.length || !cards.length) {
+        const { transactions: txPayload } = (await transactionsRes.json()) as {
+          transactions?: Array<{ id: string; amount: number; date: string; merchantName?: string; merchant?: string; category?: string; cardId?: string | null; card?: { id: string } | null }>
+        };
+        const { cards: cardsPayload } = (await cardsRes.json()) as {
+          cards?: Array<{ id: string; name: string; rewards?: string[] }>
+        };
+
+        const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const normalizedTransactions: Transaction[] = (txPayload || [])
+          .map(tx => ({
+            id: tx.id,
+            amount: typeof tx.amount === 'number' ? tx.amount : Number(tx.amount),
+            date: tx.date,
+            merchant: tx.merchantName || tx.merchant || 'Unknown merchant',
+            category: tx.category || 'other',
+            card_id: tx.cardId || tx.card?.id || ''
+          }))
+          .filter(tx => {
+            const txDate = new Date(tx.date);
+            return !Number.isNaN(txDate.getTime()) && txDate >= cutoff;
+          });
+
+        const normalizedCards: CreditCard[] = (cardsPayload || []).map(card => ({
+          id: card.id,
+          name: card.name,
+          rewards: Array.isArray(card.rewards) ? card.rewards : []
+        }));
+
+        if (!normalizedTransactions.length || !normalizedCards.length) {
           setInsights([]);
           return;
         }
 
-        const analysis = analyzeSpending(transactions as Transaction[], cards as CreditCard[]);
+        const analysis = analyzeSpending(normalizedTransactions, normalizedCards);
         if (!analysis.length) {
           setInsights([]);
           return;
@@ -229,7 +253,7 @@ export default function AIInsights() {
       }
     };
     fetchInsights();
-  }, [analyzeSpending, supabase]);
+  }, [analyzeSpending]);
 
   const filteredInsights = React.useMemo(() => {
     return insights.filter(insight => {

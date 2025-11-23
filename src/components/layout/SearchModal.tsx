@@ -1,8 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createClient } from '@/lib/supabase'
 
-interface BaseResult { id: string; type: 'card' | 'transaction' | 'insight'; title: string; subtitle?: string; href: string }
+interface BaseResult { id: string; type: 'card' | 'transaction'; title: string; subtitle?: string; href: string }
 
 export default function SearchModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -10,7 +9,6 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
   const [active, setActive] = useState(0)
   const [results, setResults] = useState<BaseResult[]>([])
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -31,15 +29,15 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
   const runSearch = useCallback(async (term: string) => {
     if (!term) { setResults([]); setActive(0); return }
     setLoading(true)
-    const lc = term.toLowerCase()
-
     try {
-      const [cardsRes, txRes] = await Promise.all([
-        supabase.from('credit_cards').select('id, name, issuer').ilike('name', `%${term}%`).limit(5),
-        supabase.from('transactions').select('id, merchant_name, amount, category').ilike('merchant_name', `%${term}%`).limit(5)
-      ])
+      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`)
+      if (!res.ok) throw new Error('Search failed')
+      const data = (await res.json()) as {
+        cards: { id: string; name: string; issuer?: string | null }[]
+        transactions: { id: string; merchantName?: string | null; amount?: number; category?: string | null }[]
+      }
 
-      const cardResults: BaseResult[] = (cardsRes.data || []).map(c => ({
+      const cardResults: BaseResult[] = (data.cards || []).map((c) => ({
         id: c.id,
         type: 'card',
         title: c.name,
@@ -47,26 +45,22 @@ export default function SearchModal({ open, onClose }: { open: boolean; onClose:
         href: '/dashboard/cards'
       }))
 
-      const txResults: BaseResult[] = (txRes.data || []).map(t => ({
+      const txResults: BaseResult[] = (data.transactions || []).map((t) => ({
         id: t.id,
         type: 'transaction',
-        title: `${t.merchant_name || 'Transaction'} ${t.amount ? `$${Number(t.amount).toFixed(2)}` : ''}`.trim(),
+        title: `${t.merchantName || 'Transaction'} ${typeof t.amount === 'number' ? `$${t.amount.toFixed(2)}` : ''}`.trim(),
         subtitle: t.category ? `Transaction • ${t.category}` : 'Transaction',
-        href: '/dashboard/analytics'
+        href: '/dashboard/transactions'
       }))
-
-      // Placeholder insights matching
-      const insightResults: BaseResult[] = lc.includes('dining') ? [{ id: 'insight-dining', type: 'insight', title: 'Optimize dining this week', subtitle: 'Insight • AI', href: '/dashboard/insights' }] : []
-
-      const combined = [...cardResults, ...txResults, ...insightResults]
+      const combined = [...cardResults, ...txResults]
       setResults(combined)
       setActive(0)
-  } catch (_e) {
+    } catch (_e) {
       setResults([])
     } finally {
       setLoading(false)
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     if (!open) return

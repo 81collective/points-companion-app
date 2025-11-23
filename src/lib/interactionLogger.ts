@@ -1,6 +1,3 @@
-// Centralized interaction logging with graceful Supabase fallback
-import { createClient } from '@/lib/supabase'
-
 interface InteractionEventBase {
   type: string
   label?: string
@@ -11,7 +8,6 @@ interface InteractionEventBase {
 
 export async function logInteraction(event: InteractionEventBase) {
   try {
-    const supabase = createClient()
     const payload = {
       event_type: event.type,
       label: event.label || null,
@@ -20,10 +16,14 @@ export async function logInteraction(event: InteractionEventBase) {
       created_at: event.ts || new Date().toISOString()
     }
 
-    // Attempt insert into interaction_events (create table if not existing via migration externally)
-    const { error } = await supabase.from('interaction_events').insert(payload)
-    if (error) {
-      console.warn('[interactionLogger] insert failed, falling back to localStorage', error.message)
+    const res = await fetch('/api/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    if (!res.ok) {
+      console.warn('[interactionLogger] insert failed, falling back to localStorage', await res.text())
       fallbackToLocal(payload)
     }
   } catch (err) {
@@ -58,11 +58,14 @@ export async function flushPendingInteractions() {
     const key = 'pending_interaction_events'
     const raw = localStorage.getItem(key)
     if (!raw) return
-  const items: PendingInteraction[] = JSON.parse(raw) as PendingInteraction[]
+    const items: PendingInteraction[] = JSON.parse(raw) as PendingInteraction[]
     if (!items.length) return
-    const supabase = createClient()
-    const { error } = await supabase.from('interaction_events').insert(items)
-    if (!error) localStorage.removeItem(key)
+    const res = await fetch('/api/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(items)
+    })
+    if (res.ok) localStorage.removeItem(key)
   } catch (err) {
     console.warn('[interactionLogger] flush failed', err)
   }

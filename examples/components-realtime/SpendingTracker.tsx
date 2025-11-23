@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useSupabase } from '../lib/supabaseStub';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { DollarSign, TrendingUp, TrendingDown, AlertCircle, CheckCircle, X, Calendar } from 'lucide-react';
 

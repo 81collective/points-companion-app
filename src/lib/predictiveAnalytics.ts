@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase';
+import prisma from '@/lib/prisma';
 import { getOpenAIClient, isOpenAIConfigured } from './openai-server';
 
 export interface SpendingPrediction {
@@ -9,11 +9,19 @@ export interface SpendingPrediction {
 }
 
 export async function predictSpending(userId: string): Promise<SpendingPrediction> {
-  const supabase = createClient();
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', userId);
+  const transactions = await prisma.transaction.findMany({
+    where: { userId },
+    orderBy: { date: 'desc' }
+  });
+  const serializedTransactions = transactions.map((tx) => ({
+    id: tx.id,
+    amount: Number(tx.amount),
+    date: tx.date.toISOString(),
+    merchant: tx.merchantName,
+    category: tx.category,
+    cardId: tx.cardId,
+    recommendedCardId: tx.recommendedCardId
+  }));
   const openai = getOpenAIClient();
   if (!isOpenAIConfigured || !openai) {
     return {
@@ -23,7 +31,7 @@ export async function predictSpending(userId: string): Promise<SpendingPredictio
       categoryTrends: [],
     };
   }
-  const prompt = `Predict future spending, recommend new cards, forecast annual points, and identify category trends for user: ${JSON.stringify(transactions)}`;
+  const prompt = `Predict future spending, recommend new cards, forecast annual points, and identify category trends for user: ${JSON.stringify(serializedTransactions)}`;
   const completion = await openai.chat.completions.create({
     messages: [{ role: 'user', content: prompt }],
     model: 'gpt-4',

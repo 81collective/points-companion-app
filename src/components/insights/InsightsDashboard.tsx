@@ -5,7 +5,13 @@ import { BarChart, TrendingUp, DollarSign, CreditCard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import AIInsights from './AIInsights';
 import SpendingAnalysis from './SpendingAnalysis';
-import { createClient } from '@/lib/supabase';
+interface ApiTransaction {
+  id: string;
+  amount: number;
+  date: string;
+  category?: string;
+  pointsEarned?: number | null;
+}
 
 interface SpendingData {
   category: string;
@@ -23,12 +29,18 @@ export default function InsightsDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient();
-
   const fetchInsightsData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+
+      if (!user?.id) {
+        setSpendingData([]);
+        setTotalSpending(0);
+        setTotalRewards(0);
+        setLoading(false);
+        return;
+      }
 
       // Calculate date range
       const endDate = new Date();
@@ -49,31 +61,32 @@ export default function InsightsDashboard() {
           break;
       }
 
-      // Fetch transactions data
-      const { data: transactions, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .gte('date', startDate.toISOString().split('T')[0])
-        .lte('date', endDate.toISOString().split('T')[0]);
-
-      if (error) throw error;
+      const response = await fetch('/api/transactions', { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Failed to load transactions');
+      }
+      const payload = (await response.json()) as { transactions?: ApiTransaction[] };
+      const transactions = (payload.transactions || []).filter((tx) => {
+        const txDate = new Date(tx.date);
+        return txDate >= startDate && txDate <= endDate;
+      });
 
       // Process spending by category
       const categorySpending: Record<string, { amount: number; count: number; rewards: number }> = {};
       let total = 0;
       let totalRewardsEarned = 0;
 
-      transactions?.forEach(tx => {
+      transactions.forEach(tx => {
+        const amount = typeof tx.amount === 'number' ? tx.amount : Number(tx.amount);
         const category = tx.category || 'Other';
         if (!categorySpending[category]) {
           categorySpending[category] = { amount: 0, count: 0, rewards: 0 };
         }
-        categorySpending[category].amount += tx.amount;
+        categorySpending[category].amount += amount;
         categorySpending[category].count += 1;
-        categorySpending[category].rewards += tx.points_earned || 0;
-        total += tx.amount;
-        totalRewardsEarned += tx.points_earned || 0;
+        categorySpending[category].rewards += tx.pointsEarned || 0;
+        total += amount;
+        totalRewardsEarned += tx.pointsEarned || 0;
       });
 
       const spendingArray: SpendingData[] = Object.entries(categorySpending).map(([category, data]) => ({
@@ -85,13 +98,13 @@ export default function InsightsDashboard() {
 
       // Process monthly data for trends
       const monthlySpending: Record<string, { amount: number; rewards: number }> = {};
-      transactions?.forEach(tx => {
+      transactions.forEach(tx => {
         const month = new Date(tx.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         if (!monthlySpending[month]) {
           monthlySpending[month] = { amount: 0, rewards: 0 };
         }
-        monthlySpending[month].amount += tx.amount;
-        monthlySpending[month].rewards += tx.points_earned || 0;
+        monthlySpending[month].amount += typeof tx.amount === 'number' ? tx.amount : Number(tx.amount);
+        monthlySpending[month].rewards += tx.pointsEarned || 0;
       });
 
       // Monthly data processed for future chart features
@@ -111,7 +124,7 @@ export default function InsightsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, user?.id, selectedPeriod]);
+  }, [user?.id, selectedPeriod]);
 
   useEffect(() => {
     if (user) {

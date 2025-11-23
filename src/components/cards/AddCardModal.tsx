@@ -6,14 +6,12 @@ import CardSelector from './CardSelector'
 import { autoPopulateRewards, validateRewardStructure } from '@/lib/cardAutoPopulation'
 import { CreditCardTemplate, RewardStructure, RewardCategory } from '@/types/creditCards'
 import { creditCardDatabase } from '@/data/creditCardDatabase'
-import { createClient } from '@/lib/supabase'
 import * as Dialog from '@radix-ui/react-dialog'
 
 interface AddCardModalProps {
   open: boolean
   onClose: () => void
   onAdd: (card: CreditCard) => void
-  userId: string | undefined
   initialName?: string
   initialIssuer?: string
 }
@@ -21,7 +19,7 @@ interface AddCardModalProps {
 // const rewardOptions = ["1x", "1.5x", "2x", "3x", "5x"];
 
 
-const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userId, initialName, initialIssuer }) => {
+const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, initialName, initialIssuer }) => {
   const [selectedCard, setSelectedCard] = React.useState<CreditCardTemplate | null>(null);
   const [rewards, setRewards] = React.useState<RewardStructure[]>([]);
   const [customMode, setCustomMode] = React.useState(false);
@@ -76,23 +74,34 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, userI
       return;
     }
     try {
-      const supabase = createClient();
-      // Convert rewards to text[] for Supabase
       const rewardsTextArray = rewards.map(r => `${r.category}:${r.multiplier}`);
-      const { data, error } = await supabase.from('credit_cards').insert([
-        {
-          user_id: userId,
+      const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: selectedCard ? selectedCard.name : 'Custom Card',
-          last4: lastFour,
-          rewards: rewardsTextArray,
-        }
-      ]).select().single();
-      if (error) {
-        setError(`Unable to add card: ${error.message}`);
-        console.error('Supabase insert error:', error);
-        return;
+          issuer: selectedCard?.issuer ?? initialIssuer ?? null,
+          network: selectedCard?.network ?? null,
+          last4,
+          rewards: rewardsTextArray
+        })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        const message = typeof payload.error === 'string' ? payload.error : 'Unable to add card.'
+        setError(message)
+        console.error('[cards] add card failed', payload)
+        return
       }
-      onAdd(data as CreditCard);
+
+      const payload = (await response.json()) as { card?: CreditCard }
+      if (!payload.card) {
+        setError('Unexpected response from server.')
+        return
+      }
+
+      onAdd(payload.card)
       setSelectedCard(null);
       setRewards([]);
       setLastFour('');

@@ -1,6 +1,5 @@
 import TransactionTester from '../transactions/TransactionTester';
 import { useState, useEffect } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
 import {
   BarChart,
   Bar,
@@ -21,7 +20,7 @@ interface Transaction {
   date: string;
   merchant: string;
   category: string;
-  card_id: string;
+  cardId?: string | null;
 }
 
 interface SpendingData {
@@ -50,7 +49,6 @@ const CATEGORY_COLORS: { [key: string]: string } = {
 export default function SpendingAnalysis() {
   const [monthlyData, setMonthlyData] = useState<SpendingData[]>([]);
   const [categoryData, setCategoryData] = useState<CategoryTotal[]>([]);
-  const { supabase } = useSupabase();
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -58,18 +56,24 @@ export default function SpendingAnalysis() {
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-        const { data: transactions, error } = await supabase
-          .from('transactions')
-          .select('*')
-          .gte('date', sixMonthsAgo.toISOString())
-          .order('date', { ascending: true });
+        const response = await fetch('/api/transactions', { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error('Failed to load transactions');
+        }
 
-        if (error) throw error;
+        const payload = (await response.json()) as { transactions?: Transaction[] };
+        const normalized = (payload.transactions || []).map((tx) => ({
+          ...tx,
+          amount: typeof tx.amount === 'number' ? tx.amount : Number(tx.amount),
+        }));
 
-        // Process monthly data
-        setMonthlyData(processMonthlyData(transactions));
-        // Process category data
-        setCategoryData(processCategoryData(transactions));
+        const recent = normalized.filter((tx) => {
+          const txDate = new Date(tx.date);
+          return !Number.isNaN(txDate.getTime()) && txDate >= sixMonthsAgo;
+        });
+
+        setMonthlyData(processMonthlyData(recent));
+        setCategoryData(processCategoryData(recent));
       } catch (err) {
         console.error('Error fetching transactions:', err);
       } finally {
@@ -77,7 +81,7 @@ export default function SpendingAnalysis() {
       }
     };
     fetchTransactions();
-  }, [supabase]);
+  }, []);
 
   function processMonthlyData(transactions: Transaction[]): SpendingData[] {
     const monthlySpending: { [key: string]: SpendingData } = {};

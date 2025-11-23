@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CreditCard } from './types'
-import { createClient } from '@/lib/supabase'
 import * as Dialog from '@radix-ui/react-dialog'
 
 const cardSchema = z.object({
@@ -65,25 +64,42 @@ const EditCardModal: React.FC<EditCardModalProps> = ({ open, onClose, card, onUp
   const onSubmit = async (values: CardFormValues) => {
     setError('');
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.from('credit_cards').update({
-        name: sanitizeCardName(values.name),
-        last4: values.last4,
-        rewards: [
-          `dining:${values.dining}`,
-          `gas:${values.gas}`,
-          `groceries:${values.groceries}`,
-          `travel:${values.travel}`,
-          `online_shopping:${values.online_shopping}`,
-          `everything_else:${values.everything_else}`,
-        ],
-      }).eq('id', card?.id).select().single();
-      if (error) {
-        setError('Unable to update card. Please try again or contact support.');
-        console.error('Edit card error:', error);
+      if (!card?.id) {
+        setError('Card reference missing. Please close and reopen the modal.');
         return;
       }
-      onUpdate(data as CreditCard);
+
+      const response = await fetch(`/api/cards/${card.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: sanitizeCardName(values.name),
+          last4: values.last4,
+          rewards: [
+            `dining:${values.dining}`,
+            `gas:${values.gas}`,
+            `groceries:${values.groceries}`,
+            `travel:${values.travel}`,
+            `online_shopping:${values.online_shopping}`,
+            `everything_else:${values.everything_else}`
+          ]
+        })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        const message = typeof payload.error === 'string' ? payload.error : 'Unable to update card. Please try again or contact support.'
+        setError(message)
+        console.error('Edit card error:', payload)
+        return
+      }
+
+      const payload = (await response.json()) as { card?: CreditCard }
+      if (!payload.card) {
+        setError('Unexpected response from server.')
+        return
+      }
+      onUpdate(payload.card)
       onClose();
     } catch (err: unknown) {
       setError('Network error. Please check your connection and try again.');

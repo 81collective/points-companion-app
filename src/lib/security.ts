@@ -2,7 +2,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 
 interface SecurityEvent {
@@ -236,7 +235,6 @@ export function useSecurityMonitor() {
     failedLogins: 0
   });
   
-  const { supabase: _supabase } = useSupabase();
   const { executeAsyncSafe } = useErrorHandler();
   const monitor = SecurityMonitor.getInstance();
 

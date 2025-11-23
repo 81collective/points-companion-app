@@ -1,5 +1,5 @@
+'use client';
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase';
 
 interface TransactionDetails {
   merchant?: string;
@@ -9,13 +9,13 @@ interface TransactionDetails {
 
 interface Recommendation {
   id: string;
-  transaction_details: TransactionDetails;
-  recommended_card: string;
-  actual_card_used: string | null;
-  points_earned: number | null;
+  transactionDetails: TransactionDetails;
+  recommendedCard: string;
+  actualCardUsed: string | null;
+  pointsEarned: number | null;
   feedback: string | null;
-  feedback_score: number | null;
-  created_at: string;
+  feedbackScore: number | null;
+  createdAt: string;
 }
 
 export default function RecommendationHistory() {
@@ -25,29 +25,34 @@ export default function RecommendationHistory() {
 
   useEffect(() => {
     async function fetchRecommendations() {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from('recommendations')
-        .select('*')
-        .order('created_at', { ascending: false });
-      setRecommendations(data || []);
+      try {
+        const response = await fetch('/api/recommendations?limit=200', { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error('Failed to load recommendations');
+        }
+        const payload = (await response.json()) as { recommendations?: Recommendation[] };
+        setRecommendations(payload.recommendations || []);
+      } catch (error) {
+        console.error('Failed to load recommendation history:', error);
+        setRecommendations([]);
+      }
     }
     fetchRecommendations();
   }, []);
 
   // Filter and search logic
   const filtered = recommendations.filter(rec => {
-    if (search && !rec.recommended_card.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filter === 'followed' && rec.actual_card_used !== rec.recommended_card) return false;
-    if (filter === 'ignored' && rec.actual_card_used === rec.recommended_card) return false;
+    if (search && !rec.recommendedCard.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filter === 'followed' && rec.actualCardUsed !== rec.recommendedCard) return false;
+    if (filter === 'ignored' && rec.actualCardUsed === rec.recommendedCard) return false;
     return true;
   });
 
   // Accuracy and points metrics
   const total = recommendations.length;
-  const followed = recommendations.filter(r => r.actual_card_used === r.recommended_card).length;
+  const followed = recommendations.filter(r => r.actualCardUsed === r.recommendedCard).length;
   const accuracy = total ? ((followed / total) * 100).toFixed(1) : '0';
-  const points = recommendations.reduce((sum, r) => sum + (r.points_earned || 0), 0);
+  const points = recommendations.reduce((sum, r) => sum + (r.pointsEarned || 0), 0);
 
   return (
     <div className="p-6 bg-white rounded shadow max-w-3xl mx-auto">
@@ -84,11 +89,11 @@ export default function RecommendationHistory() {
         <tbody>
           {filtered.map(rec => (
             <tr key={rec.id} className="border-b">
-              <td className="p-2 border">{new Date(rec.created_at).toLocaleDateString()}</td>
-              <td className="p-2 border">{rec.transaction_details?.merchant || '-'}</td>
-              <td className="p-2 border">{rec.recommended_card}</td>
-              <td className="p-2 border">{rec.actual_card_used || '-'}</td>
-              <td className="p-2 border">{rec.points_earned ?? '-'}</td>
+              <td className="p-2 border">{new Date(rec.createdAt).toLocaleDateString()}</td>
+              <td className="p-2 border">{rec.transactionDetails?.merchant || '-'}</td>
+              <td className="p-2 border">{rec.recommendedCard}</td>
+              <td className="p-2 border">{rec.actualCardUsed || '-'}</td>
+              <td className="p-2 border">{rec.pointsEarned ?? '-'}</td>
               <td className="p-2 border">{rec.feedback ?? '-'}</td>
             </tr>
           ))}

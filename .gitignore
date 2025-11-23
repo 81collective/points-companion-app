@@ -49,3 +49,4 @@ bundle-analyzer-report.html
 
 # jest cache
 .jest-cache/
+.env*.local

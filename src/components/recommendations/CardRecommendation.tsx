@@ -2,7 +2,6 @@
 import React from 'react';
 
 import { useState, useEffect } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
 import type { CreditCard, Recommendation } from '@/types/recommendation.types';
 
 interface CardRecommendationProps {
@@ -16,22 +15,19 @@ export default function CardRecommendation({ amount, merchant, category }: CardR
   const [error, setError] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [cards, setCards] = useState<CreditCard[]>([]);
-  const { supabase } = useSupabase();
-
   const fetchUserCards = React.useCallback(async () => {
     try {
-      const { data: userCards, error } = await supabase
-        .from('credit_cards')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCards(userCards);
+      const response = await fetch('/api/cards', { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Failed to load cards');
+      }
+      const payload = (await response.json()) as { cards?: CreditCard[] };
+      setCards(payload.cards || []);
     } catch (err) {
       setError('Failed to load your credit cards');
       console.error('Error fetching cards:', err);
     }
-  }, [supabase]);
+  }, []);
 
   const getRecommendation = async () => {
     setLoading(true);

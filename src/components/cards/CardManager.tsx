@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, CreditCard, Trash2, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreditCard as CreditCardType } from './types';
-import { createClient } from '@/lib/supabase';
 
 export default function CardManager() {
   const { user } = useAuth();
@@ -13,29 +12,29 @@ export default function CardManager() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient();
-
   const fetchUserCards = useCallback(async () => {
+    if (!user) {
+      setCards([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
-        .from('credit_cards')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setCards(data || []);
+      const response = await fetch('/api/cards', { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      const payload = (await response.json()) as { cards?: CreditCardType[] };
+      setCards(payload.cards || []);
     } catch (err) {
       console.error('Error fetching cards:', err);
       setError('Failed to load your cards');
     } finally {
       setLoading(false);
     }
-  }, [supabase, user?.id]);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -47,14 +46,11 @@ export default function CardManager() {
     if (!confirm('Are you sure you want to delete this card?')) return;
 
     try {
-      const { error } = await supabase
-        .from('credit_cards')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
+      const response = await fetch(`/api/cards/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Failed to delete card');
+      }
       setCards(prev => prev.filter(card => card.id !== id));
     } catch (err) {
       console.error('Error deleting card:', err);
@@ -145,7 +141,7 @@ export default function CardManager() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Added</span>
                     <span className="text-sm font-medium text-gray-900">
-                      {new Date(card.created_at).toLocaleDateString()}
+                      {new Date(card.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

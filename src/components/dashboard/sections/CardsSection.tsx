@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/lib/supabase';
 import CardList from '@/components/cards/CardList';
 import AddCardModal from '@/components/cards/AddCardModal';
 import EditCardModal from '@/components/cards/EditCardModal';
@@ -20,16 +19,25 @@ export default function CardsSection() {
   const [feedback, setFeedback] = useState<string>('');
 
   const fetchCards = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setCards([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const supabase = createClient();
-    const { data } = await supabase
-      .from('credit_cards')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    setCards((data as CreditCard[]) || []);
-    setLoading(false);
+    try {
+      const response = await fetch('/api/cards', { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error('Unable to load cards');
+      }
+      const payload = (await response.json()) as { cards?: CreditCard[] };
+      setCards(payload.cards || []);
+    } catch (error) {
+      console.error('[cards] fetch failed', error);
+      setFeedback('Unable to load cards right now.');
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(()=>{ fetchCards(); }, [fetchCards]);
@@ -46,13 +54,18 @@ export default function CardsSection() {
     setActionLoadingId(deleteCard.id);
     setFeedback('');
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from('credit_cards').delete().eq('id', deleteCard.id);
-      if (error) throw error;
+      const response = await fetch(`/api/cards/${deleteCard.id}`, { method: 'DELETE', credentials: 'include' });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Unable to delete card');
+      }
       setFeedback('Card deleted successfully!');
       setDeleteCard(null);
       await fetchCards();
-    } catch { setFeedback('Failed to delete card.'); }
+    } catch (error) {
+      console.error('[cards] delete failed', error);
+      setFeedback('Failed to delete card.');
+    }
     setActionLoadingId(null);
   };
 
@@ -76,7 +89,7 @@ export default function CardsSection() {
       ) : (
         <CardList cards={cards} onEdit={c=>setEditCard(c)} onDelete={c=>setDeleteCard(c)} loadingId={actionLoadingId} />
       )}
-      <AddCardModal open={showAddModal} onClose={()=>setShowAddModal(false)} onAdd={handleAddCard} userId={user?.id} />
+      <AddCardModal open={showAddModal} onClose={()=>setShowAddModal(false)} onAdd={handleAddCard} />
       <EditCardModal open={!!editCard} onClose={()=>setEditCard(null)} card={editCard} onUpdate={handleEditCard} />
       <DeleteCardDialog open={!!deleteCard} onClose={()=>setDeleteCard(null)} onDelete={handleDeleteCard} loading={!!actionLoadingId} />
     </div>

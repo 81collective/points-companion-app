@@ -51,7 +51,7 @@ export default function Header() {
             <h1 className="text-xl font-bold text-gray-900">PointAdvisor</h1>
             <nav className="hidden md:flex gap-4">
               <a href="/dashboard" className="text-gray-700 hover:text-blue-700 font-medium transition">Dashboard</a>
-              <a href="/dashboard/cards" className="text-gray-700 hover:text-blue-700 font-medium transition">My Cards</a>
+              <a href="/dashboard/cards" className="text-gray-700 hover:text-blue-700 font-medium transition">My Wallet</a>
             </nav>
           </div>
           <div className="flex items-center gap-4">
@@ -62,10 +62,10 @@ export default function Header() {
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {profile?.first_name ? profile.first_name[0].toUpperCase() : user?.email?.[0].toUpperCase()}
+                  {profile?.firstName ? profile.firstName[0].toUpperCase() : user?.email?.[0].toUpperCase()}
                 </div>
                 <span className="text-sm font-medium text-gray-700">
-                  {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : user?.email}
+                  {profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : user?.email}
                 </span>
               </button>
               {showDropdown && (

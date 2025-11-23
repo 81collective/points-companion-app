@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useSupabase } from '../lib/supabaseStub';
+import { getDemoTransactions } from '../lib/demoRealtime';
 import { CreditCard, TrendingUp, Gift, Calendar, Target, Zap, Clock, X, ExternalLink } from 'lucide-react';
 
 interface Transaction {
@@ -38,6 +39,12 @@ export default function SmartNotifications({ max = 3, types = ['tip', 'card_reco
   const { supabase } = useSupabase();
 
   const generateSmartNotifications = React.useCallback(async () => {
+    if (!supabase) {
+      const smartNotifications = await analyzeAndGenerateNotifications(getDemoTransactions(12) as Transaction[]);
+      setNotifications(smartNotifications);
+      return;
+    }
+
     try {
       const { data: transactions } = await supabase
         .from('transactions')

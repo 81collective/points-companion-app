@@ -1,13 +1,11 @@
 "use client"
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { authenticator } from 'otplib'
 
 export default function TwoFactorSetup() {
   const { user } = useAuth()
-  const supabase = createClient()
   const [enabled, setEnabled] = useState(false)
   const [secret, setSecret] = useState('')
   const [qr, setQr] = useState<string | null>(null)
@@ -18,11 +16,14 @@ export default function TwoFactorSetup() {
   useEffect(() => {
     if (!user) return
     ;(async () => {
-      const { data } = await supabase.from('user_totp_secrets').select('enabled').eq('user_id', user.id).maybeSingle()
-      if (data) setEnabled(data.enabled)
+      const res = await fetch('/api/totp', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        setEnabled(Boolean(data.enabled))
+      }
       setLoading(false)
     })()
-  }, [user, supabase])
+  }, [user])
 
   const begin = async () => {
     if (!user) return
@@ -39,8 +40,12 @@ export default function TwoFactorSetup() {
     setStatus('verifying')
     const ok = authenticator.check(code, secret)
     if (!ok) { setStatus('error'); return }
-    const { error } = await supabase.from('user_totp_secrets').upsert({ user_id: user.id, secret, enabled: true, updated_at: new Date().toISOString() })
-    if (error) { setStatus('error'); return }
+    const res = await fetch('/api/totp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret })
+    })
+    if (!res.ok) { setStatus('error'); return }
     setEnabled(true)
     setStatus('saved')
     setTimeout(() => setStatus('idle'), 2000)
@@ -48,7 +53,7 @@ export default function TwoFactorSetup() {
 
   const disable = async () => {
     if (!user) return
-    await supabase.from('user_totp_secrets').update({ enabled: false }).eq('user_id', user.id)
+    await fetch('/api/totp', { method: 'DELETE' })
     setEnabled(false)
     setSecret('')
     setQr(null)

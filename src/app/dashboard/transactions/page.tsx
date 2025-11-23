@@ -1,43 +1,61 @@
 "use client";
 import React, { useState } from 'react';
 import TransactionList from '@/components/transactions/TransactionList';
-import { createClient } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function TransactionsPage() {
-  const [userId, setUserId] = useState<string>('');
+  const { user } = useAuth();
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-
-  React.useEffect(() => {
-    async function getUserId() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || '');
-    }
-    getUserId();
-  }, []);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [importError, setImportError] = useState<string | null>(null);
 
   async function handleCsvImport() {
-    if (!csvFile || !userId) return;
+    if (!csvFile || !user?.id) return;
     setImporting(true);
-    const text = await csvFile.text();
-    // Parse CSV and insert transactions
-    // (Assume columns: amount,merchant_name,category,transaction_date,points_earned,notes)
-    const rows = text.split('\n').slice(1).map(r => r.split(','));
-    const supabase = createClient();
-    const inserts = rows.map(([amount, merchant_name, category, transaction_date, points_earned, notes]) => ({
-      user_id: userId,
-      amount: parseFloat(amount),
-      merchant_name,
-      category,
-      transaction_date,
-      points_earned: points_earned ? parseInt(points_earned) : null,
-      notes,
-    }));
-    await supabase.from('transactions').insert(inserts);
-    setImporting(false);
-    setCsvFile(null);
-    // Optionally refresh list
+    setImportError(null);
+    try {
+      const text = await csvFile.text();
+      const rows = text
+        .split('\n')
+        .slice(1)
+        .map(r => r.split(','))
+        .filter(cells => cells.length >= 4);
+
+      for (const [amount, merchantName, category, transactionDate, pointsEarned, notes] of rows) {
+        const parsedAmount = Number(amount);
+        if (Number.isNaN(parsedAmount)) continue;
+        const parsedDate = new Date(transactionDate || Date.now());
+        if (Number.isNaN(parsedDate.getTime())) continue;
+
+        const response = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            amount: parsedAmount,
+            merchantName: merchantName?.trim() || 'Unknown merchant',
+            category: category?.trim() || 'other',
+            date: parsedDate.toISOString(),
+            pointsEarned: pointsEarned ? Number(pointsEarned) : null,
+            description: notes?.trim() || null
+          })
+        });
+
+        if (!response.ok) {
+          const details = await response.json().catch(() => ({}));
+          throw new Error(details?.error || 'Transaction import failed');
+        }
+      }
+
+      setRefreshKey(prev => prev + 1);
+      setCsvFile(null);
+    } catch (error) {
+      console.error('CSV import failed', error);
+      setImportError('Failed to import CSV. Please verify the file format.');
+    } finally {
+      setImporting(false);
+    }
   }
 
   return (
@@ -52,9 +70,10 @@ export default function TransactionsPage() {
         >
           {importing ? 'Importing…' : 'Import CSV'}
         </button>
+        {importError && <p className="text-sm text-red-600">{importError}</p>}
       </div>
       <div className="surface p-4 surface-hover">
-        <TransactionList />
+        <TransactionList key={refreshKey} />
       </div>
     </div>
   );

@@ -1,22 +1,30 @@
-// src/contexts/AuthContext.tsx - Remove unused error variables
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { User } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { signIn as nextAuthSignIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react'
+import type { DashboardPreferences } from '@/types/preferences'
 
 interface Profile {
   id: string
   email: string
-  first_name: string | null
-  last_name: string | null
-  avatar_url: string | null
-  created_at: string
-  updated_at: string
+  firstName: string | null
+  lastName: string | null
+  avatarUrl: string | null
+  dashboardPreferences?: DashboardPreferences
+  createdAt: string
+  updatedAt: string
+}
+
+interface AuthUser {
+  id: string
+  email?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  avatarUrl?: string | null
 }
 
 interface AuthContextType {
-  user: User | null
+  user: AuthUser | null
   profile: Profile | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error?: string }>
@@ -27,170 +35,144 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+async function requestProfile() {
+  const response = await fetch('/api/profile', { cache: 'no-store' })
+  if (!response.ok) {
+    throw new Error('Failed to fetch profile')
+  }
+  const payload = await response.json()
+  return payload.profile as Profile | null
+}
+
+async function patchProfile(updates: Partial<Profile>) {
+  const response = await fetch('/api/profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates)
+  })
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}))
+    throw new Error(payload.error ?? 'Unable to update profile')
+  }
+
+  const payload = await response.json()
+  return payload.profile as Profile
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const { data: session, status } = useSession()
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [hydratingProfile, setHydratingProfile] = useState(false)
 
-  const debugEnabled = typeof window !== 'undefined' && (window as unknown as { __AUTH_DEBUG?: boolean }).__AUTH_DEBUG
-  const debugLog = useCallback((...args: unknown[]) => { if (debugEnabled) console.log('[AuthDebug]', ...args) }, [debugEnabled])
+  const user = useMemo<AuthUser | null>(() => {
+    if (!session?.user) {
+      return null
+    }
 
-  const fetchProfile = useCallback(async (userId: string) => {
+    return {
+      id: session.user.id,
+      email: session.user.email,
+      firstName: session.user.firstName,
+      lastName: session.user.lastName,
+      avatarUrl: session.user.avatarUrl
+    }
+  }, [session?.user])
+
+  const fetchProfile = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error)
-        return
-      }
-
+      const data = await requestProfile()
       setProfile(data)
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error('[Auth] profile fetch failed', error)
     }
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        debugLog('Fetching initial session...')
-        const start = performance.now()
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) {
-          debugLog('getSession error', error.message)
-        }
-        debugLog('getSession complete', { ms: Math.round(performance.now() - start), hasSession: !!session })
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        }
-      } catch (err) {
-        console.error('[Auth] getInitialSession fatal', err)
-      } finally {
-        setLoading(false)
-      }
+    if (!user?.id) {
+      setProfile(null)
+      setHydratingProfile(false)
+      return
     }
 
-    getInitialSession()
+    let mounted = true
+    setHydratingProfile(true)
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      debugLog('Auth state change', { event, hasSession: !!session })
-      setUser(session?.user ?? null)
-      try {
-        if (session?.user) {
-          await fetchProfile(session.user.id)
-        } else {
-          setProfile(null)
+    requestProfile()
+      .then((data) => {
+        if (mounted) {
+          setProfile(data)
         }
-      } catch (err) {
-        console.error('[Auth] onAuthStateChange profile fetch error', err)
-      } finally {
-        setLoading(false)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase.auth, fetchProfile, debugLog])
-
-  const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName
-          }
+      })
+      .catch((error) => {
+        console.error('[Auth] profile fetch failed', error)
+      })
+      .finally(() => {
+        if (mounted) {
+          setHydratingProfile(false)
         }
       })
 
-      if (error) {
-        return { error: error.message }
-      }
-
-      // Create profile if user was created
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email!,
-            first_name: firstName || null,
-            last_name: lastName || null
-          })
-
-        if (profileError) {
-          console.error('Error creating profile:', profileError)
-        }
-      }
-
-      return {}
-    } catch {
-      return { error: 'An unexpected error occurred' }
+    return () => {
+      mounted = false
     }
-  }
+  }, [user?.id])
 
-  const signIn = async (email: string, password: string) => {
-    const start = performance.now()
-    debugLog('signIn attempt', { emailMasked: email.replace(/(^.).+(@.*$)/, '$1***$2') })
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      const dur = Math.round(performance.now() - start)
-      if (error) {
-        debugLog('signIn error', { message: error.message, ms: dur })
-        return { error: error.message }
-      }
-      debugLog('signIn success', { userId: data.user?.id, ms: dur })
-      return {}
-    } catch (err) {
-      debugLog('signIn fatal', err)
-      return { error: 'Unexpected sign-in failure' }
+  const signIn = useCallback(async (email: string, password: string) => {
+    const result = await nextAuthSignIn('credentials', {
+      email,
+      password,
+      redirect: false
+    })
+
+    if (result?.error) {
+      return { error: result.error }
     }
-  }
 
-  const signOut = async () => {
+    await fetchProfile()
+    return {}
+  }, [fetchProfile])
+
+  const signUp = useCallback(async (email: string, password: string, firstName?: string, lastName?: string) => {
     try {
-      await supabase.auth.signOut()
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, firstName, lastName })
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        return { error: payload.error ?? 'Unable to create account' }
+      }
+
+      await signIn(email, password)
+      return {}
     } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }
-
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: 'No user logged in' }
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', user.id)
-
-      if (error) {
-        return { error: error.message }
-      }
-
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...updates } : null)
-      return {}
-    } catch {
+      console.error('[Auth] signUp failed', error)
       return { error: 'An unexpected error occurred' }
     }
-  }
+  }, [signIn])
 
-  const value = {
+  const signOut = useCallback(async () => {
+    await nextAuthSignOut({ redirect: false })
+    setProfile(null)
+  }, [])
+
+  const updateProfile = useCallback(async (updates: Partial<Profile>) => {
+    try {
+      const updated = await patchProfile(updates)
+      setProfile(updated)
+      return {}
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to update profile' }
+    }
+  }, [])
+
+  const value: AuthContextType = {
     user,
     profile,
-    loading,
+    loading: status === 'loading' || hydratingProfile,
     signIn,
     signUp,
     signOut,

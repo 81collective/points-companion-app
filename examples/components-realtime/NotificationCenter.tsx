@@ -4,8 +4,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, BellRing, CreditCard, TrendingUp, Award, AlertTriangle, X, Trash2, Settings, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useSupabase } from '../lib/supabaseStub';
 import { createRealtimeChannel } from '@/lib/realtime';
+import { startDemoRealtime } from '../lib/demoRealtime';
 
 export interface Notification {
   id: string;
@@ -89,7 +90,28 @@ const NotificationCenter: React.FC = () => {
   }, [user, addNotification]);
 
   const setupRealtimeSubscription = useCallback(() => {
-    if (!user || !supabase) return;
+    if (!user) {
+      generateDemoNotifications();
+      return startDemoRealtime({ onNotification: (notification) => addNotification({
+        type: 'alert',
+        title: notification.title,
+        message: notification.message,
+        data: {},
+        priority: notification.priority
+      }) });
+    }
+
+    if (!supabase) {
+      generateDemoNotifications();
+      setIsConnected(true);
+      return startDemoRealtime({ onNotification: (notification) => addNotification({
+        type: 'alert',
+        title: notification.title,
+        message: notification.message,
+        data: {},
+        priority: notification.priority
+      }) });
+    }
     // If already subscribed for this user id, skip
   if (unsubscribeRef.current?.userId === user.id) return;
     // Clean previous subscription
@@ -131,7 +153,7 @@ const NotificationCenter: React.FC = () => {
     }, { userId: user.id });
     unsubscribeRef.current = tagged;
     generateDemoNotifications();
-  }, [user, supabase, handleTransactionEvent, handleLoyaltyEvent, generateDemoNotifications]);
+  }, [user, supabase, handleTransactionEvent, handleLoyaltyEvent, generateDemoNotifications, addNotification]);
 
   // Load notifications from localStorage on mount & setup realtime
   useEffect(() => {
@@ -145,8 +167,8 @@ const NotificationCenter: React.FC = () => {
         }
       }
     } catch { /* ignore */ }
-    setupRealtimeSubscription();
-    return () => { unsubscribeRef.current?.(); };
+    const cleanup = setupRealtimeSubscription();
+    return () => { cleanup?.(); unsubscribeRef.current?.(); };
   }, [setupRealtimeSubscription]);
 
   // Persist notifications (debounced via microtask) when list changes

@@ -1,13 +1,12 @@
 // Enhanced analytics hook with advanced calculations
 import { useState, useEffect, useCallback } from 'react';
-import { useSupabase } from '@/hooks/useSupabase';
 
 export interface Transaction {
   id: string;
   amount: number;
   date: string;
   category: string;
-  card_id: string;
+  cardId?: string | null;
   description?: string;
   merchant?: string;
 }
@@ -15,10 +14,7 @@ export interface Transaction {
 export interface CreditCard {
   id: string;
   name: string;
-  type: string;
-  rewards_rate: number;
-  annual_fee: number;
-  categories: string[];
+  rewards?: string[];
 }
 
 export interface EnhancedAnalytics {
@@ -72,7 +68,50 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
   const [analytics, setAnalytics] = useState<EnhancedAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { supabase } = useSupabase();
+
+  const normalizeCategory = (value?: string) => (value ? value.trim().toLowerCase() : '');
+
+  const parseMultiplier = (raw?: string) => {
+    if (!raw) return 1;
+    const match = raw.match(/([0-9]+(?:\.[0-9]+)?)/);
+    return match ? Number(match[1]) : 1;
+  };
+
+  const getRewardMultiplier = (card: CreditCard | undefined, category?: string) => {
+    if (!card) return 1;
+    const normalized = normalizeCategory(category);
+    const rewards = card.rewards || [];
+
+    if (normalized) {
+      const matched = rewards
+        .map((entry) => entry.split(':'))
+        .find(([entryCategory]) => normalizeCategory(entryCategory) === normalized);
+      if (matched) {
+        return parseMultiplier(matched[1]);
+      }
+    }
+
+    const maxMultiplier = rewards.reduce((max, entry) => {
+      const [, value] = entry.split(':');
+      const parsed = parseMultiplier(value);
+      return parsed > max ? parsed : max;
+    }, 0);
+
+    return maxMultiplier || 1;
+  };
+
+  const getBestCardForCategory = (cards: CreditCard[], category?: string) => {
+    let bestCard: CreditCard | undefined;
+    let bestRate = 0;
+    cards.forEach((card) => {
+      const rate = getRewardMultiplier(card, category);
+      if (rate > bestRate) {
+        bestCard = card;
+        bestRate = rate;
+      }
+    });
+    return { card: bestCard, rate: bestRate || 1 };
+  };
 
   const calculateTimeRange = useCallback((range: string) => {
     const now = new Date();
@@ -81,39 +120,40 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
   }, []);
 
   const fetchAnalytics = useCallback(async () => {
-    if (!supabase) return;
-    
     setLoading(true);
     setError(null);
 
     try {
       const startDate = calculateTimeRange(timeRange);
       const lastYearStart = calculateTimeRange(`${parseInt(timeRange.replace('m', '')) + 12}m`);
+      const [transactionsResponse, cardsResponse] = await Promise.all([
+        fetch('/api/transactions', { credentials: 'include' }),
+        fetch('/api/cards', { credentials: 'include' })
+      ]);
 
-      // Fetch transactions for current period
-      const { data: transactions, error: txError } = await supabase
-        .from('transactions')
-        .select('*')
-        .gte('date', startDate.toISOString())
-        .order('date', { ascending: true });
+      if (!transactionsResponse.ok) {
+        throw new Error('Failed to load transactions');
+      }
 
-      if (txError) throw txError;
+      if (!cardsResponse.ok) {
+        throw new Error('Failed to load cards');
+      }
 
-      // Fetch transactions for year-over-year comparison
-      const { data: lastYearTransactions, error: lyError } = await supabase
-        .from('transactions')
-        .select('*')
-        .gte('date', lastYearStart.toISOString())
-        .lt('date', startDate.toISOString());
+      const transactionsPayload = (await transactionsResponse.json()) as { transactions?: Transaction[] };
+      const cardsPayload = (await cardsResponse.json()) as { cards?: CreditCard[] };
 
-      if (lyError) throw lyError;
+      const allTransactions = (transactionsPayload.transactions || []).map((tx) => ({
+        ...tx,
+        amount: typeof tx.amount === 'number' ? tx.amount : Number(tx.amount)
+      }));
 
-      // Fetch credit cards
-      const { data: cards, error: cardError } = await supabase
-        .from('credit_cards')
-        .select('*');
+      const transactions = allTransactions.filter((tx) => new Date(tx.date) >= startDate);
+      const lastYearTransactions = allTransactions.filter((tx) => {
+        const txDate = new Date(tx.date);
+        return txDate >= lastYearStart && txDate < startDate;
+      });
 
-      if (cardError) throw cardError;
+      const cards = cardsPayload.cards || [];
 
       const enhancedAnalytics = calculateEnhancedAnalytics(
         transactions || [],
@@ -139,17 +179,16 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
     const totalSpending = transactions.reduce((sum, tx) => sum + tx.amount, 0);
     const totalRewards = transactions.reduce((sum, tx) => {
       // Find card and calculate actual rewards
-      const card = cards.find(c => c.id === tx.card_id);
-      return sum + (card ? tx.amount * (card.rewards_rate / 100) : tx.amount * 0.01);
+      const card = cards.find(c => c.id === tx.cardId);
+      const multiplier = getRewardMultiplier(card, tx.category);
+      return sum + tx.amount * (multiplier / 100);
     }, 0);
 
     // Calculate potential rewards with optimal cards
     const potentialRewards = transactions.reduce((sum, tx) => {
       // Find best card for this category
-      const bestCard = cards.find(c => c.categories.includes(tx.category)) || 
-                      cards.reduce((best, current) => 
-                        current.rewards_rate > best.rewards_rate ? current : best, cards[0]);
-      return sum + (bestCard ? tx.amount * (bestCard.rewards_rate / 100) : tx.amount * 0.01);
+      const { card: bestCard, rate } = getBestCardForCategory(cards, tx.category);
+      return sum + tx.amount * ((bestCard ? rate : 1) / 100);
     }, 0);
 
     const efficiency = potentialRewards > 0 ? (totalRewards / potentialRewards) * 100 : 0;
@@ -162,13 +201,11 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
         monthlyData[month] = { spending: 0, rewards: 0, potential: 0 };
       }
       
-      const card = cards.find(c => c.id === tx.card_id);
-      const actualRewards = card ? tx.amount * (card.rewards_rate / 100) : tx.amount * 0.01;
+      const card = cards.find(c => c.id === tx.cardId);
+      const actualRewards = tx.amount * (getRewardMultiplier(card, tx.category) / 100);
       
-      const bestCard = cards.find(c => c.categories.includes(tx.category)) || 
-                      cards.reduce((best, current) => 
-                        current.rewards_rate > best.rewards_rate ? current : best, cards[0]);
-      const potentialReward = bestCard ? tx.amount * (bestCard.rewards_rate / 100) : tx.amount * 0.01;
+      const { card: bestCard, rate } = getBestCardForCategory(cards, tx.category);
+      const potentialReward = tx.amount * ((bestCard ? rate : 1) / 100);
 
       monthlyData[month].spending += tx.amount;
       monthlyData[month].rewards += actualRewards;
@@ -189,8 +226,8 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
         categoryData[tx.category] = { amount: 0, rewards: 0, count: 0 };
       }
       
-      const card = cards.find(c => c.id === tx.card_id);
-      const rewards = card ? tx.amount * (card.rewards_rate / 100) : tx.amount * 0.01;
+      const card = cards.find(c => c.id === tx.cardId);
+      const rewards = tx.amount * (getRewardMultiplier(card, tx.category) / 100);
       
       categoryData[tx.category].amount += tx.amount;
       categoryData[tx.category].rewards += rewards;
@@ -202,23 +239,24 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
       amount: Math.round(data.amount),
       rewards: Math.round(data.rewards),
       count: data.count,
-      avgTransaction: Math.round(data.amount / data.count),
-      efficiency: Math.round((data.rewards / data.amount) * 10000) / 100 // Percentage with 2 decimals
+      avgTransaction: data.count ? Math.round(data.amount / data.count) : 0,
+      efficiency: data.amount > 0 ? Math.round((data.rewards / data.amount) * 10000) / 100 : 0 // Percentage with 2 decimals
     }));
 
     // Card performance
     const cardData: { [key: string]: { spending: number; rewards: number; transactions: number } } = {};
     transactions.forEach(tx => {
-      if (!cardData[tx.card_id]) {
-        cardData[tx.card_id] = { spending: 0, rewards: 0, transactions: 0 };
+      const key = tx.cardId || 'unassigned';
+      if (!cardData[key]) {
+        cardData[key] = { spending: 0, rewards: 0, transactions: 0 };
       }
       
-      const card = cards.find(c => c.id === tx.card_id);
-      const rewards = card ? tx.amount * (card.rewards_rate / 100) : tx.amount * 0.01;
+      const card = cards.find(c => c.id === tx.cardId);
+      const rewards = tx.amount * (getRewardMultiplier(card, tx.category) / 100);
       
-      cardData[tx.card_id].spending += tx.amount;
-      cardData[tx.card_id].rewards += rewards;
-      cardData[tx.card_id].transactions += 1;
+      cardData[key].spending += tx.amount;
+      cardData[key].rewards += rewards;
+      cardData[key].transactions += 1;
     });
 
     const cardPerformance = Object.entries(cardData).map(([cardId, data]) => {
@@ -231,8 +269,8 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
         spending: Math.round(data.spending),
         rewards: Math.round(data.rewards),
         transactions: data.transactions,
-        efficiency: Math.round((data.rewards / data.spending) * 10000) / 100,
-        utilization: Math.round((data.spending / totalSpending) * 100)
+        efficiency: data.spending > 0 ? Math.round((data.rewards / data.spending) * 10000) / 100 : 0,
+        utilization: totalSpending > 0 ? Math.round((data.spending / totalSpending) * 100) : 0
       };
     });
 
@@ -240,11 +278,9 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
     const optimizationOpportunities = categoryBreakdown
       .filter(cat => cat.efficiency < 3.0) // Less than 3% rewards rate
       .map(cat => {
-        const bestCard = cards.find(c => c.categories.includes(cat.category.toLowerCase())) ||
-                        cards.reduce((best, current) => 
-                          current.rewards_rate > best.rewards_rate ? current : best, cards[0]);
+        const { card: bestCard, rate } = getBestCardForCategory(cards, cat.category);
         
-        const potentialRewards = bestCard ? cat.amount * (bestCard.rewards_rate / 100) : cat.rewards;
+        const potentialRewards = bestCard ? cat.amount * (rate / 100) : cat.rewards;
         const impact = potentialRewards - cat.rewards;
         
         return {
@@ -253,7 +289,7 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
           currentRewards: cat.rewards,
           potentialRewards: Math.round(potentialRewards),
           impact: Math.round(impact),
-          recommendation: `Use ${bestCard?.name || 'a better card'} for ${cat.category} to earn ${bestCard?.rewards_rate || 2}% instead of ${cat.efficiency}%`
+          recommendation: `Use ${bestCard?.name || 'a better card'} for ${cat.category} to earn ${(bestCard ? rate : 2).toFixed(1)}% instead of ${cat.efficiency}%`
         };
       })
       .filter(opp => opp.impact > 10) // Only show opportunities with >$10 impact
@@ -263,8 +299,8 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
     // Year-over-year comparison
     const lastYearSpending = lastYearTransactions.reduce((sum, tx) => sum + tx.amount, 0);
     const lastYearRewards = lastYearTransactions.reduce((sum, tx) => {
-      const card = cards.find(c => c.id === tx.card_id);
-      return sum + (card ? tx.amount * (card.rewards_rate / 100) : tx.amount * 0.01);
+      const card = cards.find(c => c.id === tx.cardId);
+      return sum + tx.amount * (getRewardMultiplier(card, tx.category) / 100);
     }, 0);
 
     const yearOverYear = {

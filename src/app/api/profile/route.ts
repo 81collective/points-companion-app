@@ -1,0 +1,62 @@
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import prisma from '@/lib/prisma'
+import { authOptions } from '@/lib/auth/options'
+
+export async function GET() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const profile = await prisma.profile.findUnique({
+    where: { userId: session.user.id }
+  })
+
+  return NextResponse.json({ profile })
+}
+
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const updates = await request.json()
+
+  try {
+    const profile = await prisma.profile.upsert({
+      where: { userId: session.user.id },
+      update: {
+        firstName: updates.firstName ?? undefined,
+        lastName: updates.lastName ?? undefined,
+        avatarUrl: updates.avatarUrl ?? undefined,
+        dashboardPreferences: updates.dashboardPreferences ?? undefined
+      },
+      create: {
+        userId: session.user.id,
+        email: session.user.email ?? '',
+        firstName: updates.firstName ?? null,
+        lastName: updates.lastName ?? null,
+        avatarUrl: updates.avatarUrl ?? null,
+        dashboardPreferences: updates.dashboardPreferences ?? {}
+      }
+    })
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        firstName: updates.firstName ?? undefined,
+        lastName: updates.lastName ?? undefined,
+        avatarUrl: updates.avatarUrl ?? undefined
+      }
+    })
+
+    return NextResponse.json({ profile })
+  } catch (error) {
+    console.error('[profile] failed to update profile', error)
+    return NextResponse.json({ error: 'Unable to update profile' }, { status: 500 })
+  }
+}

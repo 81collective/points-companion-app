@@ -14,7 +14,8 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useSupabase } from '../lib/supabaseStub';
+import { startDemoRealtime, DemoTransaction, DemoLoyaltyAccount } from '../lib/demoRealtime';
 
 interface LiveMetric {
   id: string;
@@ -49,19 +50,58 @@ const LiveDashboard: React.FC = () => {
   interface TransactionRow { amount?: string | number; merchant_name?: string }
   interface LoyaltyRow { points?: number | string; program_name?: string }
 
+  const addActivity = useCallback((activity: Omit<LiveActivity, 'id'>) => {
+    const newActivity: LiveActivity = {
+      ...activity,
+      id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
+    setRecentActivity(prev => [newActivity, ...prev].slice(0, 20));
+  }, []);
+
+  const updateMetric = useCallback((metricType: string, value: number) => {
+    setLiveMetrics(prev => prev.map(metric => {
+      if (metric.id === metricType) {
+        const newValue = typeof metric.value === 'number' ? metric.value + value : value;
+        const change = typeof metric.value === 'number'
+          ? ((newValue - metric.value) / metric.value) * 100
+          : 0;
+
+        return {
+          ...metric,
+          value: newValue,
+          change,
+          trend: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
+        };
+      }
+      return metric;
+    }));
+  }, []);
+
+  const recordTransaction = useCallback((transaction: { amount?: number | string; merchant_name?: string }) => {
+    const amt = typeof transaction.amount === 'string' ? parseFloat(transaction.amount) : Number(transaction.amount || 0);
+    addActivity({
+      type: 'transaction',
+      message: `New transaction: $${amt.toFixed(2)} at ${transaction.merchant_name || 'Unknown merchant'}`,
+      timestamp: new Date().toISOString()
+    });
+    updateMetric('totalSpending', amt);
+  }, [addActivity, updateMetric]);
+
   const handleTransactionUpdate = useCallback((payload: Record<string, unknown>) => {
     const pg = payload as unknown as PostgresPayload<TransactionRow>;
     if (pg.eventType === 'INSERT' && pg.new) {
-      const transaction = pg.new;
-      addActivity({
-        type: 'transaction',
-        message: `New transaction: $${transaction.amount} at ${transaction.merchant_name}`,
-        timestamp: new Date().toISOString()
-      });
-      const amt = typeof transaction.amount === 'string' ? parseFloat(transaction.amount) : Number(transaction.amount || 0);
-      updateMetric('totalSpending', amt);
+      recordTransaction(pg.new);
     }
-  }, []);
+  }, [recordTransaction]);
+
+  const recordLoyalty = useCallback((program_name: string, deltaPoints: number) => {
+    addActivity({
+      type: 'bonus',
+      message: `Earned ${deltaPoints} ${program_name} points`,
+      timestamp: new Date().toISOString()
+    });
+    updateMetric('totalPoints', deltaPoints);
+  }, [addActivity, updateMetric]);
 
   const handleLoyaltyUpdate = useCallback((payload: Record<string, unknown>) => {
     const pg = payload as unknown as PostgresPayload<LoyaltyRow> & { old: LoyaltyRow };
@@ -70,24 +110,32 @@ const LiveDashboard: React.FC = () => {
       const oldPts = Number(pg.old.points || 0);
       if (newPts > oldPts) {
         const pointsEarned = newPts - oldPts;
-        addActivity({
-          type: 'bonus',
-          message: `Earned ${pointsEarned} ${pg.new.program_name} points`,
-          timestamp: new Date().toISOString()
-        });
-        updateMetric('totalPoints', pointsEarned);
+        recordLoyalty(pg.new.program_name || 'Loyalty program', pointsEarned);
       }
     }
-  }, []);
+  }, [recordLoyalty]);
 
   const simulateLiveActivity = useCallback(() => {
     setTimeout(() => { addActivity({ type: 'recommendation', message: 'New card recommendation: Chase Sapphire Preferred for dining', timestamp: new Date().toISOString() }); }, 3000);
     setTimeout(() => { addActivity({ type: 'transaction', message: 'New transaction: $89.50 at Whole Foods', timestamp: new Date().toISOString() }); updateMetric('totalSpending', 89.50); }, 6000);
     setTimeout(() => { addActivity({ type: 'bonus', message: 'Earned 450 Chase Ultimate Rewards points', timestamp: new Date().toISOString() }); updateMetric('totalPoints', 450); }, 9000);
-  }, []);
+  }, [addActivity, updateMetric]);
 
   const setupRealtimeConnection = useCallback(() => {
-    if (!user) return;
+    if (!user) {
+      simulateLiveActivity();
+      const stopDemo = startDemoRealtime({ onTransaction: (tx) => recordTransaction(tx), onLoyaltyUpdate: (acct, delta) => recordLoyalty(acct.program_name, delta) });
+      return () => stopDemo?.();
+    }
+
+    if (!supabase) {
+      setActiveUsers(1);
+      const stopDemo = startDemoRealtime({ onTransaction: (tx: DemoTransaction) => recordTransaction(tx), onLoyaltyUpdate: (acct: DemoLoyaltyAccount, delta) => recordLoyalty(acct.program_name, delta) });
+      simulateLiveActivity();
+      setIsConnected(true);
+      setConnectionTime(new Date());
+      return () => stopDemo?.();
+    }
     const channel = supabase
       .channel('live-dashboard')
       .on('presence', { event: 'sync' }, () => {
@@ -117,7 +165,11 @@ const LiveDashboard: React.FC = () => {
         }
       });
     simulateLiveActivity();
-  }, [user, supabase, handleTransactionUpdate, handleLoyaltyUpdate, simulateLiveActivity]);
+    return () => {
+      try { channel.unsubscribe?.(); } catch { /* noop */ }
+      try { supabase.removeChannel?.(channel); } catch { /* noop */ }
+    };
+  }, [user, supabase, handleTransactionUpdate, handleLoyaltyUpdate, simulateLiveActivity, recordTransaction, recordLoyalty, addActivity]);
 
   const initializeLiveMetrics = useCallback(() => {
     setLiveMetrics([
@@ -161,43 +213,13 @@ const LiveDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      setupRealtimeConnection();
-      initializeLiveMetrics();
-    }
+    const cleanup = setupRealtimeConnection();
+    initializeLiveMetrics();
     return () => {
-      // Guard in case SSR stub does not implement removeAllChannels
-      const anyClient = supabase as unknown as { removeAllChannels?: () => void };
-      anyClient.removeAllChannels?.();
+      cleanup?.();
+      supabase?.removeAllChannels?.();
     };
-  }, [user, setupRealtimeConnection, supabase, initializeLiveMetrics]);
-
-  const addActivity = (activity: Omit<LiveActivity, 'id'>) => {
-    const newActivity: LiveActivity = {
-      ...activity,
-      id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    };
-    
-    setRecentActivity(prev => [newActivity, ...prev].slice(0, 20));
-  };
-
-  const updateMetric = (metricType: string, value: number) => {
-    setLiveMetrics(prev => prev.map(metric => {
-      if (metric.id === metricType) {
-        const newValue = typeof metric.value === 'number' ? metric.value + value : value;
-        const change = typeof metric.value === 'number' ? 
-          ((newValue - metric.value) / metric.value) * 100 : 0;
-        
-        return {
-          ...metric,
-          value: newValue,
-          change,
-          trend: change > 0 ? 'up' : change < 0 ? 'down' : 'stable'
-        };
-      }
-      return metric;
-    }));
-  };
+  }, [setupRealtimeConnection, supabase, initializeLiveMetrics]);
 
   // moved initializeLiveMetrics above and wrapped with useCallback
 
