@@ -82,7 +82,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, initi
           name: selectedCard ? selectedCard.name : 'Custom Card',
           issuer: selectedCard?.issuer ?? initialIssuer ?? null,
           network: null,
-          last4,
+          last4: lastFour,
           rewards: rewardsTextArray
         })
       })

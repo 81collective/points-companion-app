@@ -71,11 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return {
-      id: session.user.id,
+      id: (session.user as { id: string }).id,
       email: session.user.email,
-      firstName: session.user.firstName,
-      lastName: session.user.lastName,
-      avatarUrl: session.user.avatarUrl
+      firstName: (session.user as { firstName?: string }).firstName,
+      lastName: (session.user as { lastName?: string }).lastName,
+      avatarUrl: (session.user as { avatarUrl?: string }).avatarUrl
     }
   }, [session?.user])
 

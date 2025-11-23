@@ -1,10 +1,11 @@
-import type { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { compare } from 'bcryptjs'
-import prisma from '@/lib/prisma'
+import type { AuthOptions, User } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { compare } from 'bcryptjs';
+import prisma from '@/lib/prisma';
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: 'jwt'
@@ -50,18 +51,18 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id
-        token.firstName = (user as { firstName?: string | null }).firstName ?? null
-        token.lastName = (user as { lastName?: string | null }).lastName ?? null
-        token.avatarUrl = (user as { avatarUrl?: string | null }).avatarUrl ?? null
+        token.firstName = (user as User & { firstName?: string | null }).firstName ?? null
+        token.lastName = (user as User & { lastName?: string | null }).lastName ?? null
+        token.avatarUrl = (user as User & { avatarUrl?: string | null }).avatarUrl ?? null
       }
       return token
     },
     async session({ session, token }) {
       if (session.user && token) {
-        session.user.id = token.sub as string
-        session.user.firstName = (token.firstName as string | null) ?? undefined
-        session.user.lastName = (token.lastName as string | null) ?? undefined
-        session.user.avatarUrl = (token.avatarUrl as string | null) ?? undefined
+        (session.user as { id?: string }).id = token.sub as string;
+        (session.user as { firstName?: string }).firstName = (token.firstName as string | null) ?? undefined;
+        (session.user as { lastName?: string }).lastName = (token.lastName as string | null) ?? undefined;
+        (session.user as { avatarUrl?: string }).avatarUrl = (token.avatarUrl as string | null) ?? undefined
       }
       return session
     }
