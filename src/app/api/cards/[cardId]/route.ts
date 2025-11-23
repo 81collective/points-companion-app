@@ -37,12 +37,12 @@ function formatCard(card: CardRecord) {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { cardId: string } }
+  { params }: { params: Promise<{ cardId: string }> }
 ) {
   try {
     const session = await requireServerSession()
     const payload = await request.json()
-    const { cardId } = params
+    const { cardId } = await params
 
     const existing = await prisma.creditCard.findUnique({ where: { id: cardId } })
     if (!existing || existing.userId !== session.user!.id) {
@@ -71,11 +71,11 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { cardId: string } }
+  { params }: { params: Promise<{ cardId: string }> }
 ) {
   try {
     const session = await requireServerSession()
-    const { cardId } = params
+    const { cardId } = await params
     const result = await prisma.creditCard.deleteMany({ where: { id: cardId, userId: session.user!.id } })
     if (!result.count) {
       return NextResponse.json({ error: 'Card not found' }, { status: 404 })
