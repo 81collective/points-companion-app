@@ -10,6 +10,6 @@ export async function requireServerSession(): Promise<Session> {
   return session
 }
 
-export function getOptionalServerSession() {
-  return getServerSession(authOptions)
+export async function getOptionalServerSession(): Promise<Session | null> {
+  return getServerSession(authOptions);
 }

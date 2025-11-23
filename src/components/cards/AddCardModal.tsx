@@ -81,7 +81,7 @@ const AddCardModal: React.FC<AddCardModalProps> = ({ open, onClose, onAdd, initi
         body: JSON.stringify({
           name: selectedCard ? selectedCard.name : 'Custom Card',
           issuer: selectedCard?.issuer ?? initialIssuer ?? null,
-          network: selectedCard?.network ?? null,
+          network: null,
           last4,
           rewards: rewardsTextArray
         })

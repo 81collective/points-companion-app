@@ -114,7 +114,14 @@ async function generateRecommendations({ category, businessId, businessName, lat
         category: category || 'general',
         latitude: lat ? parseFloat(lat) : 0,
         longitude: lng ? parseFloat(lng) : 0,
-        address: 'Location provided'
+        address: 'Location provided',
+        website: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        placeId: null,
+        rating: null,
+        priceLevel: null,
+        phone: null
       };
       console.log('🏢 Created temporary business object for:', businessName);
     }
