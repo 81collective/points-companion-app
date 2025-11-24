@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import prisma from '@/lib/prisma';
 import { creditCardDatabase } from '@/data/creditCardDatabase';
 import { RewardCategory } from '@/types/creditCards';
@@ -6,7 +7,7 @@ import { apiCache } from '@/lib/apiCache';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const category = searchParams.get('category');
     const businessId = searchParams.get('businessId');
     const businessName = searchParams.get('businessName');

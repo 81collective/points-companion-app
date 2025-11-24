@@ -11,6 +11,8 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "typecheck": "tsc --noEmit",
+    "test:ci": "jest --ci --coverage --runInBand",
+    "test:smoke": "node scripts/test-getRequestUrl.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "update-cards": "node scripts/update-cards.mjs",
     "check-cards": "node scripts/check-cards.mjs",

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
     const category = searchParams.get('category') || 'restaurant';

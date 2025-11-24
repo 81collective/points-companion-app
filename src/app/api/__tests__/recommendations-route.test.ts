@@ -1,10 +1,10 @@
 // Regression tests for /api/recommendations route covering Prisma-backed GET and POST handlers
 
-const mockFindMany = jest.fn();
-const mockCreate = jest.fn(() => Promise.resolve({ id: 'rec-persisted' }));
-const mockTransaction = jest.fn(async (operations: Promise<unknown>[]) => Promise.all(operations));
-const mockRequireSession = jest.fn();
-const mockOptionalSession = jest.fn();
+const mockFindMany: any = jest.fn((..._args: any[]) => undefined);
+const mockCreate: any = jest.fn((..._args: any[]) => Promise.resolve({ id: 'rec-persisted' }));
+const mockTransaction: any = jest.fn(async (operations: Promise<unknown>[] | any[]) => Promise.all(operations));
+const mockRequireSession: any = jest.fn((..._args: any[]) => undefined);
+const mockOptionalSession: any = jest.fn((..._args: any[]) => undefined);
 const mockChatCompletion = jest.fn(async () => ({
   choices: [
     { message: { content: JSON.stringify([{ cardId: 'card-1', cardName: 'Card One', reason: 'Best for dining', score: 123 }]) } }
@@ -26,17 +26,17 @@ jest.mock('next/server', () => ({
 jest.mock('@/lib/prisma', () => ({
   __esModule: true,
   default: {
-    recommendation: {
-      findMany: (...args: unknown[]) => mockFindMany(...args),
-      create: (...args: unknown[]) => mockCreate(...args)
+      recommendation: {
+        findMany: (...args: any[]) => mockFindMany(...args),
+        create: (...args: any[]) => mockCreate(...args)
     },
-    $transaction: (...args: unknown[]) => mockTransaction(...args)
+    $transaction: (...args: any[]) => mockTransaction(...args)
   }
 }));
 
 jest.mock('@/lib/auth/session', () => ({
-  requireServerSession: (...args: unknown[]) => mockRequireSession(...args),
-  getOptionalServerSession: (...args: unknown[]) => mockOptionalSession(...args)
+  requireServerSession: (...args: any[]) => mockRequireSession(...args),
+  getOptionalServerSession: (...args: any[]) => mockOptionalSession(...args)
 }));
 
 jest.mock('@/lib/openai-server', () => ({

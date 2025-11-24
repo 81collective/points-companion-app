@@ -1,5 +1,15 @@
 // Performance-optimized Next.js configuration
 import type { NextConfig } from 'next';
+
+// Ensure NEXTAUTH_URL is a sensible value to avoid build-time errors
+// when the environment variable is set to an empty string in CI/local env.
+const normalizedSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000').toString();
+if (!process.env.NEXTAUTH_URL || String(process.env.NEXTAUTH_URL).trim() === '') {
+  process.env.NEXTAUTH_URL = normalizedSiteUrl;
+}
+if (!process.env.NEXTAUTH_URL_INTERNAL || String(process.env.NEXTAUTH_URL_INTERNAL).trim() === '') {
+  process.env.NEXTAUTH_URL_INTERNAL = process.env.NEXTAUTH_URL;
+}
 import {
   imageConfig,
   compressionConfig,

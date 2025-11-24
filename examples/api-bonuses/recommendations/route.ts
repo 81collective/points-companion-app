@@ -2,11 +2,12 @@
 // Points Companion - AI-Powered Spending Suggestions
 
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import { SpendingRecommendation } from '@/types/welcomeBonus';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const bonusId = searchParams.get('bonusId');
     const urgency = searchParams.get('urgency');
 

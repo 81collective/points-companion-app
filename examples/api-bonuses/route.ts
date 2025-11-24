@@ -2,6 +2,7 @@
 // Points Companion - Welcome Bonus Management
 
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import { WelcomeBonusTracker } from '@/types/welcomeBonus';
 
 // Mock data for development - replace with Supabase queries
@@ -161,7 +162,7 @@ const mockBonuses: WelcomeBonusTracker[] = [
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     
     // Parse query parameters
     const status = searchParams.get('status')?.split(',') || ['active'];
@@ -363,7 +364,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const id = searchParams.get('id');
 
     if (!id) {

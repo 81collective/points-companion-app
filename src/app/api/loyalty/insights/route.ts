@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import { LoyaltyInsight, LoyaltyInsightsResponse } from '@/types/loyalty';
 
 export async function GET() {
@@ -60,7 +61,7 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const insightId = searchParams.get('id');
     const body = await request.json();
 

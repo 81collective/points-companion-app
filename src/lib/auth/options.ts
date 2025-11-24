@@ -1,5 +1,18 @@
 import type { User, Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+
+type ExtendedUser = User & {
+  id?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrl?: string | null;
+};
+
+type ExtendedJWT = JWT & {
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrl?: string | null;
+};
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare } from 'bcryptjs';
@@ -48,18 +61,21 @@ export const authOptions = {
     })
   ],
   callbacks: {
+     
     jwt: async ({ token, user }: { token: JWT; user?: User }) => {
       if (user) {
-        token.sub = user.id
-        token.firstName = user.firstName ?? null
-        token.lastName = user.lastName ?? null
-        token.avatarUrl = user.avatarUrl ?? null
+        const u = user as ExtendedUser;
+        const tk = token as ExtendedJWT;
+        tk.sub = u.id;
+        tk.firstName = u.firstName ?? null;
+        tk.lastName = u.lastName ?? null;
+        tk.avatarUrl = u.avatarUrl ?? null;
       }
-      return token
+      return token as JWT
     },
     session: async ({ session, token }: { session: Session; token: JWT }) => {
       if (session.user && token.sub) {
-        session.user.id = token.sub
+        session.user.id = token.sub as string
         session.user.firstName = token.firstName ?? undefined
         session.user.lastName = token.lastName ?? undefined
         session.user.avatarUrl = token.avatarUrl ?? undefined

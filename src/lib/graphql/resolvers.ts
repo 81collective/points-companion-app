@@ -286,6 +286,17 @@ export const resolvers = {
       return null;
     },
 
+    // Loyalty programs
+    loyaltyPrograms: async (_parent: unknown, { category: _category }: { category?: string }, _context: Context) => {
+      // Return empty list or fetch from a loyalty service / database
+      return [];
+    },
+
+    loyaltyProgram: async (_parent: unknown, { id: _id }: { id: string }, _context: Context) => {
+      // Return null or fetch a loyalty program by id
+      return null;
+    },
+
     // User queries
     userProfile: async (_parent: unknown, _args: unknown, context: Context) => {
       if (!context.user) {
@@ -338,6 +349,44 @@ export const resolvers = {
         throw new Error('Failed to fetch user profile');
       }
     },
+
+    // User cards list
+    userCards: async (_parent: unknown, _args: unknown, context: Context) => {
+      if (!context.user) return [];
+      try {
+        const cards = await prisma.creditCard.findMany({ where: { userId: context.user.id } });
+        // Map to GraphQL UserCard shape
+        return cards.map((c: { id: string; name?: string; issuer?: string | null; createdAt?: Date }) => ({
+          id: c.id,
+          cardId: c.id,
+          card: {
+            id: c.id,
+            name: c.name,
+            issuer: c.issuer ?? 'Unknown',
+            category: 'CREDIT_CARD',
+            rewardRate: 1,
+            annualFee: 0,
+            signupBonus: null,
+            imageUrl: null,
+            applyUrl: null,
+            features: [],
+            pros: [],
+            cons: [],
+            bestFor: [],
+            matchScore: 0,
+            monthlyValue: 0,
+          },
+          addedDate: c.createdAt?.toISOString?.() ?? new Date().toISOString(),
+          isActive: true,
+          notes: null
+        }));
+      } catch (error) {
+        console.error('GraphQL userCards error:', error);
+        return [];
+      }
+    },
+
+    // User analytics moved to Query block
 
     // Health check
     health: async () => {
@@ -402,6 +451,11 @@ export const resolvers = {
         throw new Error('Failed to update user profile');
       }
     },
+    
+    // User cards list
+    // (moved to Query block) - mutation-specific userCards removed
+
+    // User analytics moved to Query block
 
     // Card mutations
     addUserCard: async (

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 
 // Service Worker API endpoint for background sync and updates
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+  const { searchParams } = getRequestUrl(request);
   const action = searchParams.get('action');
 
   if (action === 'sync') {

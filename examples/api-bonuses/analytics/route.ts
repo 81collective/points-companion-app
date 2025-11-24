@@ -2,11 +2,12 @@
 // Points Companion - Analytics and Insights
 
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import { BonusAnalytics } from '@/types/welcomeBonus';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const timeframe = searchParams.get('timeframe') || '30d';
 
     // Mock analytics data - replace with actual Supabase queries

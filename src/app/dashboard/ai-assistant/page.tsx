@@ -1,5 +1,5 @@
 "use client";
-import ChatInterface from '@/components/chat/ChatInterface';
+import { ChatInterface } from '@/components/chat';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useUserCards';
 

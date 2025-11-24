@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireServerSession } from '@/lib/auth/session'
+import getRequestUrl from '@/lib/getRequestUrl';
 
 export async function GET(request: NextRequest) {
   const session = await requireServerSession()
-  const { searchParams } = new URL(request.url)
+  const { searchParams } = getRequestUrl(request);
   const term = searchParams.get('q')?.trim()
 
   if (!term) {

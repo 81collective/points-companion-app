@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import { LoyaltyAccount, LoyaltyAccountsResponse } from '@/types/loyalty';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     
     // Get query parameters
     const page = parseInt(searchParams.get('page') || '1');

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import { getAllPrograms, getProgramById, getProgramsByCategory } from '@/lib/loyaltyPrograms';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const category = searchParams.get('category');
     const programId = searchParams.get('id');
     const search = searchParams.get('search');

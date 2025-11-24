@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 import { getOptionalServerSession } from '@/lib/auth/session'
 
 interface IncomingEvent {
@@ -31,12 +32,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No interaction events provided' }, { status: 400 })
     }
 
+    function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+      try {
+        return JSON.parse(JSON.stringify(value ?? {})) as Prisma.InputJsonValue
+      } catch {
+        return {}
+      }
+    }
+
     const created = await prisma.interactionEvent.createMany({
       data: events.map((event) => ({
         userId,
         eventType: event.event_type || event.type || 'unknown',
         label: event.label ?? null,
-        meta: event.meta || event.metadata || {},
+        meta: toInputJsonValue(event.meta || event.metadata || {}),
         path: event.path ?? null,
         createdAt:
           event.created_at || event.ts

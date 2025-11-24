@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getRequestUrl from '@/lib/getRequestUrl';
 import prisma from '@/lib/prisma';
 import { CATEGORY_MAP, CategoryKey } from '@/lib/places/categories';
 import { scorePlace, haversineMeters, type BasicPlace } from '@/lib/places/score';
@@ -287,7 +288,7 @@ async function getCachedOrFetch(q: NearbyOptions): Promise<Aggregated> {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = getRequestUrl(request);
     const lat = searchParams.get('lat') || searchParams.get('latitude');
     const lng = searchParams.get('lng') || searchParams.get('longitude');
     const radius = searchParams.get('radius') || '1500';

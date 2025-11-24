@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import getRequestUrl from '@/lib/getRequestUrl'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import { requireServerSession, getOptionalServerSession } from '@/lib/auth/session'
@@ -8,11 +9,12 @@ import type { RecommendationRequest, RecommendationResponse } from '@/types/reco
 let lastRequestTime = 0
 const RATE_LIMIT_MS = 2000
 
-function parseJsonDetails(value: unknown): Prisma.JsonValue {
-  if (value && typeof value === 'object') {
-    return value as Prisma.JsonObject
+function parseJsonDetails(value: unknown): Prisma.InputJsonValue {
+  try {
+    return JSON.parse(JSON.stringify(value ?? {})) as Prisma.InputJsonValue
+  } catch {
+    return {}
   }
-  return {}
 }
 
 function serializeRecommendation(record: NonNullable<Awaited<ReturnType<typeof prisma.recommendation.findFirst>>>) {
@@ -33,7 +35,7 @@ function serializeRecommendation(record: NonNullable<Awaited<ReturnType<typeof p
 export async function GET(request: NextRequest) {
   const session = await requireServerSession()
 
-  const { searchParams } = new URL(request.url)
+    const { searchParams } = getRequestUrl(request);
   const limitParam = Number(searchParams.get('limit') ?? '100')
   const limit = Number.isFinite(limitParam) ? Math.min(Math.max(Math.floor(limitParam), 1), 500) : 100
 
