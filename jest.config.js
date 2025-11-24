@@ -65,6 +65,7 @@ module.exports = {
     '!src/**/*.spec.{ts,tsx}',
     '!src/**/index.ts',
     '!src/types/**',
+    '!src/app/**',
   ],
 
   coverageDirectory: '<rootDir>/coverage',
