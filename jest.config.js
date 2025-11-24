@@ -101,8 +101,8 @@ module.exports = {
   ],
 
   // Global setup and teardown
-  globalSetup: '<rootDir>/src/test/globalSetup.ts',
-  globalTeardown: '<rootDir>/src/test/globalTeardown.ts',
+  globalSetup: '<rootDir>/src/test/globalSetup.js',
+  globalTeardown: '<rootDir>/src/test/globalTeardown.js',
 
   // Mock configuration
   clearMocks: true,
