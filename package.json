@@ -34,7 +34,8 @@
     "test:performance": "jest --testPathPatterns=performance",
     "test:integration": "jest --testPathPatterns=integration",
     "precommit": "lint-staged",
-    "ci": "npm run typecheck && npm run lint && npm test"
+    "ci": "npm run typecheck && npm run lint && npm test",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "dependencies": {
     "@apollo/client": "^4.0.4",
@@ -106,7 +107,9 @@
     "@types/react-dom": "^19",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "autoprefixer": "^10.4.16",
+    "conventional-changelog-cli": "^4.1.0",
     "babel-plugin-transform-require-ignore": "^0.1.1",
+    "conventional-changelog-cli": "^4.1.0",
     "cross-env": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",

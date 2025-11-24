@@ -159,6 +159,12 @@ npx prisma db push && prisma studio  # sync schema / inspect data without Supaba
 ```
 Legacy Supabase SQL files remain under `supabase/migrations` for reference only; they no longer drive the application.
 
+## Changelog automation
+
+1. Follow the [Conventional Commits](https://www.conventionalcommits.org/) style when writing commit messages so entries can be categorized automatically.
+2. Run `npm run changelog` before cutting a release; the script uses `conventional-changelog` to update `CHANGELOG.md` in place.
+3. Review the generated diff (you can edit the notes manually), commit the updated changelog, and then create your release tag.
+
 ## Verification scripts
 
 The `scripts/` directory still contains a handful of smoke-test utilities. They now read the same Neon/NextAuth environment variables noted above. Run them with Node as needed:
