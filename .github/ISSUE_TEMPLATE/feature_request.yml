@@ -1,0 +1,66 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please fill out this template.
+        
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem does this feature solve?
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the solution you'd like
+      placeholder: I would like to be able to...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any alternative solutions or workarounds you've considered
+      
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      description: Which part of the application would this affect?
+      options:
+        - Cards/Recommendations
+        - Dashboard
+        - Authentication
+        - Transactions
+        - Analytics
+        - Performance
+        - Developer Experience
+        - Other
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Suggested priority
+      description: How important is this feature to you?
+      options:
+        - Nice to have
+        - Would improve my experience
+        - Critical for my use case
+        
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups or examples
+      description: Any visual mockups, sketches, or examples from other apps
