@@ -45,8 +45,8 @@ module.exports = {
   moduleDirectories: ['node_modules', '<rootDir>/src'],
 
   // Ignore build and example directories to avoid haste module collisions (e.g., .next)
-  modulePathIgnorePatterns: ['<rootDir>/.next', '<rootDir>/examples'],
-  testPathIgnorePatterns: ['<rootDir>/.next', '<rootDir>/examples'],
+  modulePathIgnorePatterns: ['<rootDir>/.next', '<rootDir>/examples', '<rootDir>/src/app'],
+  testPathIgnorePatterns: ['<rootDir>/.next', '<rootDir>/examples', '<rootDir>/src/app'],
 
   // Module file extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
