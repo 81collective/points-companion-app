@@ -1,0 +1,552 @@
+# Other Issuer Credit Cards - US Market
+# Includes: Discover, Bank of America, Wells Fargo, US Bank, Bilt, Apple, etc.
+# Last updated: 2025-11-24
+
+# ============================================================
+# DISCOVER
+# ============================================================
+
+[meta_discover]
+issuer = "Discover"
+issuer_code = "discover"
+currency = "Cashback"
+point_value_cents = 1.0
+
+[cards.discover-it]
+id = "discover-it-cash-back"
+name = "Discover it Cash Back"
+nickname = "Discover it"
+issuer = "Discover"
+network = "Discover"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.discover-it.rewards]
+rotating = 5
+everything_else = 1
+
+[cards.discover-it.rewards_caps]
+rotating = { quarterly_limit = 1500, then_rate = 1 }
+
+[cards.discover-it.rotating_categories]
+current_quarter = "2025-Q4"
+categories = ["amazon", "target", "walmart"]
+next_quarter = "2026-Q1"
+next_categories = ["grocery_stores", "walgreens", "cvs"]
+
+[cards.discover-it.bonus]
+amount = 0
+type = "match"
+description = "Cashback Match - Discover matches all cash back earned in first year"
+expires = "2025-12-31"
+
+# ---
+
+[cards.discover-it-miles]
+id = "discover-it-miles"
+name = "Discover it Miles"
+nickname = "Discover Miles"
+issuer = "Discover"
+network = "Discover"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.discover-it-miles.rewards]
+everything_else = 1.5
+
+[cards.discover-it-miles.bonus]
+amount = 0
+type = "match"
+description = "Miles Match - Discover matches all miles earned in first year"
+
+# ============================================================
+# BANK OF AMERICA
+# ============================================================
+
+[meta_bofa]
+issuer = "Bank of America"
+issuer_code = "bofa"
+currency = "Cash Rewards"
+point_value_cents = 1.0
+preferred_rewards_boost = "10-75% bonus with Preferred Rewards"
+
+[cards.bofa-customized-cash]
+id = "bofa-customized-cash"
+name = "Bank of America Customized Cash Rewards"
+nickname = "Customized Cash"
+issuer = "Bank of America"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.bofa-customized-cash.rewards]
+choice_category = 3    # User picks from gas, online, dining, travel, drugstores, home improvement
+groceries = 2
+wholesale = 2
+everything_else = 1
+
+[cards.bofa-customized-cash.rewards_caps]
+choice_category = { quarterly_limit = 2500, then_rate = 1 }
+groceries = { quarterly_limit = 2500, then_rate = 1 }
+
+[cards.bofa-customized-cash.bonus]
+amount = 200
+type = "cash"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.bofa-premium-rewards]
+id = "bofa-premium-rewards"
+name = "Bank of America Premium Rewards Credit Card"
+nickname = "Premium Rewards"
+issuer = "Bank of America"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.bofa-premium-rewards.rewards]
+travel = 2
+dining = 2
+everything_else = 1.5
+
+[cards.bofa-premium-rewards.bonus]
+amount = 60000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.bofa-premium-rewards.benefits]
+tsa_precheck_credit = 100
+airline_incidental_credit = 100
+
+# ---
+
+[cards.bofa-unlimited-cash]
+id = "bofa-unlimited-cash"
+name = "Bank of America Unlimited Cash Rewards"
+nickname = "Unlimited Cash"
+issuer = "Bank of America"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.bofa-unlimited-cash.rewards]
+everything_else = 1.5
+
+[cards.bofa-unlimited-cash.bonus]
+amount = 200
+type = "cash"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.alaska-visa]
+id = "bofa-alaska-visa"
+name = "Alaska Airlines Visa Signature"
+nickname = "Alaska Card"
+issuer = "Bank of America"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.alaska-visa.rewards]
+alaska = 3
+everything_else = 1
+
+[cards.alaska-visa.bonus]
+amount = 70000
+type = "miles"
+spend_required = 3000
+time_months = 3
+additional_bonus = { amount = 40000, first_purchase = true }
+expires = "2025-12-31"
+
+[cards.alaska-visa.benefits]
+companion_fare = true
+first_checked_bag_free = true
+priority_boarding = true
+
+# ---
+
+[cards.jetblue-plus]
+id = "bofa-jetblue-plus"
+name = "JetBlue Plus Card"
+nickname = "JetBlue Plus"
+issuer = "Bank of America"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.jetblue-plus.rewards]
+jetblue = 6
+dining = 2
+groceries = 2
+everything_else = 1
+
+[cards.jetblue-plus.bonus]
+amount = 60000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.jetblue-plus.benefits]
+first_checked_bag_free = true
+inflight_discount = 50
+
+# ============================================================
+# WELLS FARGO
+# ============================================================
+
+[meta_wells]
+issuer = "Wells Fargo"
+issuer_code = "wells_fargo"
+currency = "Go Far Rewards"
+point_value_cents = 1.0
+
+[cards.wells-active-cash]
+id = "wells-fargo-active-cash"
+name = "Wells Fargo Active Cash Card"
+nickname = "Active Cash"
+issuer = "Wells Fargo"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.wells-active-cash.rewards]
+everything_else = 2
+
+[cards.wells-active-cash.bonus]
+amount = 200
+type = "cash"
+spend_required = 500
+time_months = 3
+expires = "2025-12-31"
+
+[cards.wells-active-cash.benefits]
+cell_phone_protection = 600
+
+# ---
+
+[cards.wells-autograph]
+id = "wells-fargo-autograph"
+name = "Wells Fargo Autograph Card"
+nickname = "Autograph"
+issuer = "Wells Fargo"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.wells-autograph.rewards]
+dining = 3
+travel = 3
+gas = 3
+transit = 3
+streaming = 3
+phone = 3
+everything_else = 1
+
+[cards.wells-autograph.bonus]
+amount = 20000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.wells-autograph.benefits]
+cell_phone_protection = 600
+
+# ---
+
+[cards.wells-autograph-journey]
+id = "wells-fargo-autograph-journey"
+name = "Wells Fargo Autograph Journey Card"
+nickname = "Autograph Journey"
+issuer = "Wells Fargo"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.wells-autograph-journey.rewards]
+hotels = 5
+flights = 4
+dining = 3
+everything_else = 1
+
+[cards.wells-autograph-journey.bonus]
+amount = 60000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.wells-autograph-journey.benefits]
+travel_credit = 50
+anniversary_bonus = 10000
+cell_phone_protection = 600
+
+# ============================================================
+# US BANK
+# ============================================================
+
+[meta_usbank]
+issuer = "US Bank"
+issuer_code = "usbank"
+currency = "Rewards Points"
+point_value_cents = 1.0
+
+[cards.usbank-altitude-go]
+id = "usbank-altitude-go"
+name = "US Bank Altitude Go Visa Signature"
+nickname = "Altitude Go"
+issuer = "US Bank"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.usbank-altitude-go.rewards]
+dining = 4
+groceries = 2
+streaming = 2
+gas = 2
+everything_else = 1
+
+[cards.usbank-altitude-go.bonus]
+amount = 25000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.usbank-altitude-go.benefits]
+streaming_credit_annual = 15
+
+# ---
+
+[cards.usbank-altitude-connect]
+id = "usbank-altitude-connect"
+name = "US Bank Altitude Connect Visa Signature"
+nickname = "Altitude Connect"
+issuer = "US Bank"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.usbank-altitude-connect.rewards]
+travel = 4
+mobile_wallets = 4
+streaming = 4
+ev_charging = 4
+groceries = 2
+gas = 2
+everything_else = 1
+
+[cards.usbank-altitude-connect.bonus]
+amount = 50000
+type = "points"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.usbank-altitude-connect.benefits]
+global_entry_credit = 100
+annual_travel_credit = 30
+
+# ---
+
+[cards.usbank-altitude-reserve]
+id = "usbank-altitude-reserve"
+name = "US Bank Altitude Reserve Visa Infinite"
+nickname = "Altitude Reserve"
+issuer = "US Bank"
+network = "Visa"
+annual_fee = 400
+credit_required = "excellent"
+foreign_transaction_fee = false
+
+[cards.usbank-altitude-reserve.rewards]
+travel = 3
+mobile_wallets = 3
+everything_else = 1
+
+[cards.usbank-altitude-reserve.bonus]
+amount = 50000
+type = "points"
+spend_required = 4500
+time_months = 3
+expires = "2025-12-31"
+
+[cards.usbank-altitude-reserve.benefits]
+travel_credit_annual = 325
+global_entry_credit = 100
+priority_pass = true
+
+# ============================================================
+# BILT
+# ============================================================
+
+[meta_bilt]
+issuer = "Bilt"
+issuer_code = "bilt"
+currency = "Bilt Points"
+point_value_cents = 1.8  # Great transfer partners
+
+[cards.bilt-mastercard]
+id = "bilt-mastercard"
+name = "Bilt Mastercard"
+nickname = "Bilt Card"
+issuer = "Bilt"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.bilt-mastercard.rewards]
+rent = 1               # Up to 100,000 points/year, no fees
+dining = 3
+travel = 2
+everything_else = 1
+
+[cards.bilt-mastercard.rewards_special]
+rent_day_bonus = 2     # Double points on 1st of month
+
+[cards.bilt-mastercard.minimum_transactions]
+monthly_minimum = 5    # Must make 5 transactions to earn points
+
+[cards.bilt-mastercard.bonus]
+amount = 0
+type = "points"
+description = "No signup bonus; ongoing rent rewards value"
+
+[cards.bilt-mastercard.transfer_partners]
+airlines = ["american", "united", "alaska", "turkish", "avianca", "aeroplan", "flying_blue", "iberia", "virgin_atlantic"]
+hotels = ["hyatt", "ihg", "marriott"]
+
+# ============================================================
+# APPLE
+# ============================================================
+
+[meta_apple]
+issuer = "Apple"
+issuer_code = "apple"
+currency = "Daily Cash"
+point_value_cents = 1.0
+
+[cards.apple-card]
+id = "apple-card"
+name = "Apple Card"
+nickname = "Apple Card"
+issuer = "Apple"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.apple-card.rewards]
+apple = 3
+apple_pay = 2
+physical_card = 1
+everything_else = 1    # Physical card purchases
+
+[cards.apple-card.bonus]
+amount = 0
+type = "cash"
+description = "No signup bonus"
+
+[cards.apple-card.benefits]
+no_fees = true         # No late fees, no over-limit fees
+daily_cash = true      # Rewards paid daily
+
+# ============================================================
+# SYNCHRONY / PAYPAL
+# ============================================================
+
+[cards.paypal-cashback]
+id = "synchrony-paypal-cashback"
+name = "PayPal Cashback Mastercard"
+nickname = "PayPal Card"
+issuer = "Synchrony"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.paypal-cashback.rewards]
+paypal = 3
+everything_else = 2
+
+[cards.paypal-cashback.bonus]
+amount = 0
+type = "cash"
+
+# ============================================================
+# AMAZON (non-Chase)
+# ============================================================
+
+[cards.amazon-store-card]
+id = "synchrony-amazon-store"
+name = "Amazon Store Card"
+nickname = "Amazon Store"
+issuer = "Synchrony"
+network = "Private Label"
+annual_fee = 0
+credit_required = "fair"
+
+[cards.amazon-store-card.rewards]
+amazon = 5             # With Prime membership
+
+[cards.amazon-store-card.financing]
+no_interest_months = 6
+minimum_purchase = 150
+
+# ============================================================
+# PNC
+# ============================================================
+
+[cards.pnc-cash-rewards]
+id = "pnc-cash-rewards"
+name = "PNC Cash Rewards Visa"
+nickname = "PNC Cash"
+issuer = "PNC"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.pnc-cash-rewards.rewards]
+gas = 4
+dining = 3
+groceries = 2
+everything_else = 1
+
+[cards.pnc-cash-rewards.bonus]
+amount = 200
+type = "cash"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"

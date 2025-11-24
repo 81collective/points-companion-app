@@ -1,0 +1,366 @@
+# Current Bonus Offers & Limited-Time Promotions
+# This file is designed to be updated frequently (weekly/daily)
+# Last updated: 2025-11-24
+# 
+# USAGE: Feed new offers by updating this file or via API endpoint
+# The system will merge these with base card data, overriding bonus fields
+
+[meta]
+last_updated = "2025-11-24T12:00:00Z"
+next_update = "2025-12-01T12:00:00Z"
+source = "manual_entry"  # Options: manual_entry, api_feed, scraper
+
+# ============================================================
+# ELEVATED SIGNUP BONUSES (Time-Limited)
+# ============================================================
+
+[elevated_bonuses.chase-sapphire-preferred]
+card_id = "chase-sapphire-preferred"
+bonus_amount = 75000
+bonus_type = "points"
+spend_required = 4000
+time_months = 3
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+offer_url = "https://www.chase.com/personal/credit-cards/sapphire-preferred"
+notes = "Elevated holiday offer; typically 60k"
+
+[elevated_bonuses.amex-gold]
+card_id = "amex-gold"
+bonus_amount = 90000
+bonus_type = "points"
+spend_required = 6000
+time_months = 6
+start_date = "2025-11-15"
+end_date = "2025-12-31"
+offer_url = "https://www.americanexpress.com/us/credit-cards/card/gold-card/"
+notes = "Referral offer; public offer is 60k"
+via_referral = true
+
+[elevated_bonuses.capital-one-venture-x]
+card_id = "capital-one-venture-x"
+bonus_amount = 90000
+bonus_type = "miles"
+spend_required = 4000
+time_months = 3
+start_date = "2025-11-01"
+end_date = "2025-01-31"
+offer_url = "https://www.capitalone.com/credit-cards/venture-x/"
+notes = "Limited time elevated offer"
+
+[elevated_bonuses.chase-ink-preferred]
+card_id = "chase-ink-preferred"
+bonus_amount = 120000
+bonus_type = "points"
+spend_required = 8000
+time_months = 3
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+offer_url = "https://creditcards.chase.com/business-credit-cards/ink/business-preferred"
+notes = "Business card holiday promotion"
+
+[elevated_bonuses.citi-strata-premier]
+card_id = "citi-strata-premier"
+bonus_amount = 80000
+bonus_type = "points"
+spend_required = 4000
+time_months = 3
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+notes = "Elevated from standard 75k"
+
+[elevated_bonuses.amex-platinum]
+card_id = "amex-platinum"
+bonus_amount = 150000
+bonus_type = "points"
+spend_required = 8000
+time_months = 6
+start_date = "2025-10-15"
+end_date = "2025-12-31"
+via_referral = true
+notes = "Best-ever referral offer; CardMatch may show 125k-150k"
+
+[elevated_bonuses.chase-freedom-flex]
+card_id = "chase-freedom-flex"
+bonus_amount = 250
+bonus_type = "cash"
+spend_required = 500
+time_months = 3
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+notes = "Elevated from $200"
+
+[elevated_bonuses.wells-autograph]
+card_id = "wells-fargo-autograph"
+bonus_amount = 30000
+bonus_type = "points"
+spend_required = 1500
+time_months = 3
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+notes = "Elevated from 20k"
+
+# ============================================================
+# LIMITED-TIME SPENDING MULTIPLIERS
+# ============================================================
+
+[spending_promos.chase-sapphire-preferred-groceries]
+card_id = "chase-sapphire-preferred"
+category = "groceries"
+multiplier = 5
+start_date = "2025-11-20"
+end_date = "2025-12-31"
+max_spend = 1500
+notes = "Holiday grocery bonus"
+
+[spending_promos.amex-gold-restaurants]
+card_id = "amex-gold"
+category = "dining"
+multiplier = 6
+start_date = "2025-11-15"
+end_date = "2025-12-31"
+notes = "Selected restaurants via Amex Offers"
+requires_enrollment = true
+
+[spending_promos.discover-it-amazon]
+card_id = "discover-it-cash-back"
+category = "amazon"
+multiplier = 10
+start_date = "2025-11-24"
+end_date = "2025-11-30"
+max_spend = 200
+notes = "Black Friday/Cyber Monday bonus; must activate"
+requires_enrollment = true
+
+[spending_promos.chase-freedom-flex-paypal]
+card_id = "chase-freedom-flex"
+category = "paypal"
+multiplier = 5
+start_date = "2025-10-01"
+end_date = "2025-12-31"
+max_spend = 1500
+notes = "Q4 2025 rotating category - PayPal"
+requires_enrollment = true
+
+[spending_promos.chase-freedom-flex-walmart]
+card_id = "chase-freedom-flex"
+category = "walmart"
+multiplier = 5
+start_date = "2025-10-01"
+end_date = "2025-12-31"
+max_spend = 1500
+notes = "Q4 2025 rotating category - Walmart"
+requires_enrollment = true
+
+# ============================================================
+# AMEX OFFERS (Selected High-Value)
+# ============================================================
+
+[amex_offers.home-depot]
+merchant = "Home Depot"
+merchant_mcc = [5200]
+discount_type = "percentage"
+discount_value = 10
+max_discount = 50
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+eligible_cards = ["amex-platinum", "amex-gold", "amex-green", "amex-blue-cash-preferred"]
+notes = "Add to card in Amex app"
+
+[amex_offers.best-buy]
+merchant = "Best Buy"
+merchant_mcc = [5732]
+discount_type = "flat"
+discount_value = 30
+min_spend = 150
+start_date = "2025-11-24"
+end_date = "2025-12-02"
+eligible_cards = ["all_amex"]
+notes = "Black Friday week offer"
+
+[amex_offers.whole-foods]
+merchant = "Whole Foods"
+merchant_mcc = [5411]
+discount_type = "percentage"
+discount_value = 10
+max_discount = 25
+start_date = "2025-11-01"
+end_date = "2025-11-30"
+eligible_cards = ["amex-gold", "amex-platinum"]
+notes = "Prime members get additional 10%"
+
+[amex_offers.uber]
+merchant = "Uber"
+merchant_mcc = [4121]
+discount_type = "flat"
+discount_value = 15
+min_spend = 50
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+eligible_cards = ["amex-platinum", "amex-gold"]
+notes = "Additional to monthly Uber credit"
+
+# ============================================================
+# CHASE OFFERS (Selected High-Value)
+# ============================================================
+
+[chase_offers.target]
+merchant = "Target"
+merchant_mcc = [5311]
+discount_type = "percentage"
+discount_value = 10
+max_discount = 40
+start_date = "2025-11-15"
+end_date = "2025-12-25"
+eligible_cards = ["all_chase"]
+notes = "Add to card in Chase app"
+
+[chase_offers.doordash]
+merchant = "DoorDash"
+merchant_mcc = [5812]
+discount_type = "flat"
+discount_value = 10
+min_spend = 30
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+eligible_cards = ["chase-sapphire-preferred", "chase-sapphire-reserve"]
+notes = "Plus existing DoorDash benefits"
+
+[chase_offers.instacart]
+merchant = "Instacart"
+merchant_mcc = [5411]
+discount_type = "percentage"
+discount_value = 15
+max_discount = 15
+start_date = "2025-11-20"
+end_date = "2025-11-30"
+eligible_cards = ["chase-sapphire-preferred", "chase-sapphire-reserve"]
+notes = "Thanksgiving week promotion"
+
+# ============================================================
+# REFERRAL BONUSES (for existing cardholders)
+# ============================================================
+
+[referral_bonuses.amex-platinum]
+card_id = "amex-platinum"
+referrer_bonus = 30000
+referee_bonus = 150000
+referee_spend = 8000
+referee_months = 6
+notes = "Best publicly available offer is 80k"
+
+[referral_bonuses.amex-gold]
+card_id = "amex-gold"
+referrer_bonus = 20000
+referee_bonus = 90000
+referee_spend = 6000
+referee_months = 6
+
+[referral_bonuses.chase-sapphire-preferred]
+card_id = "chase-sapphire-preferred"
+referrer_bonus = 15000
+referee_bonus = 60000
+referee_spend = 4000
+referee_months = 3
+
+[referral_bonuses.capital-one-venture-x]
+card_id = "capital-one-venture-x"
+referrer_bonus = 25000
+referee_bonus = 75000
+referee_spend = 4000
+referee_months = 3
+
+# ============================================================
+# RETENTION OFFERS (Common)
+# ============================================================
+
+[retention_offers.amex-platinum]
+card_id = "amex-platinum"
+typical_offer_points = 55000
+typical_spend_required = 4000
+typical_months = 3
+success_rate = "high"
+notes = "Call after statement posts; typical range 40k-70k points"
+
+[retention_offers.amex-gold]
+card_id = "amex-gold"
+typical_offer_points = 30000
+typical_spend_required = 2000
+typical_months = 3
+success_rate = "high"
+notes = "Often offered proactively; range 20k-40k"
+
+[retention_offers.chase-sapphire-reserve]
+card_id = "chase-sapphire-reserve"
+typical_offer_points = 10000
+typical_spend_required = 0
+success_rate = "medium"
+notes = "Chase less generous; may offer statement credit instead"
+
+# ============================================================
+# PARTNER / TRANSFER BONUSES
+# ============================================================
+
+[transfer_bonuses.chase-to-hyatt]
+program_from = "chase_ultimate_rewards"
+program_to = "world_of_hyatt"
+bonus_percentage = 0
+ratio = "1:1"
+start_date = "2025-01-01"
+end_date = "2099-12-31"
+notes = "Standard transfer; no current bonus"
+
+[transfer_bonuses.amex-to-virgin]
+program_from = "amex_membership_rewards"
+program_to = "virgin_atlantic"
+bonus_percentage = 30
+ratio = "1:1.3"
+start_date = "2025-11-01"
+end_date = "2025-12-31"
+notes = "30% transfer bonus through year end"
+
+[transfer_bonuses.citi-to-avianca]
+program_from = "citi_thankyou"
+program_to = "avianca_lifemiles"
+bonus_percentage = 25
+ratio = "1:1.25"
+start_date = "2025-11-15"
+end_date = "2025-12-15"
+notes = "Limited time transfer bonus"
+
+[transfer_bonuses.capital-one-to-turkish]
+program_from = "capital_one_miles"
+program_to = "turkish_miles_and_smiles"
+bonus_percentage = 0
+ratio = "1:1"
+start_date = "2025-01-01"
+end_date = "2099-12-31"
+notes = "Standard transfer rate"
+
+# ============================================================
+# CATEGORY PROMOTIONS BY DATE
+# ============================================================
+
+[seasonal.black_friday_2025]
+start_date = "2025-11-29"
+end_date = "2025-11-29"
+featured_categories = ["online_shopping", "department_stores", "electronics"]
+notes = "Black Friday - prioritize cards with online shopping bonuses"
+
+[seasonal.cyber_monday_2025]
+start_date = "2025-12-02"
+end_date = "2025-12-02"
+featured_categories = ["online_shopping", "electronics"]
+notes = "Cyber Monday - PayPal and online portals maximize"
+
+[seasonal.holiday_shopping_2025]
+start_date = "2025-11-15"
+end_date = "2025-12-25"
+featured_categories = ["department_stores", "online_shopping", "groceries"]
+notes = "General holiday shopping period"
+
+[seasonal.travel_2025]
+start_date = "2025-12-20"
+end_date = "2026-01-05"
+featured_categories = ["travel", "flights", "hotels", "rental_cars", "gas"]
+notes = "Holiday travel period - maximize travel cards"

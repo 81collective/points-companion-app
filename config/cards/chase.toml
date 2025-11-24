@@ -1,0 +1,496 @@
+# Chase Credit Cards - US Market
+# Last updated: 2025-11-24
+# Source: Chase.com, CardRatings, NerdWallet
+
+[meta]
+issuer = "Chase"
+issuer_code = "chase"
+last_updated = "2025-11-24"
+currency = "Ultimate Rewards"
+point_value_cents = 1.25  # When redeemed through portal; 1.5 for CSR
+
+# ============================================================
+# PREMIUM TRAVEL CARDS
+# ============================================================
+
+[cards.sapphire-reserve]
+id = "chase-sapphire-reserve"
+name = "Chase Sapphire Reserve"
+nickname = "CSR"
+network = "Visa"
+annual_fee = 550
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = true
+
+[cards.sapphire-reserve.rewards]
+travel = 3
+dining = 3
+flights = 5           # Through Chase Travel portal
+hotels = 10           # Through Chase Travel portal  
+everything_else = 1
+
+[cards.sapphire-reserve.bonus]
+amount = 60000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.sapphire-reserve.benefits]
+priority_pass = true
+global_entry_credit = 100
+travel_credit_annual = 300
+doordash_credit_annual = 60
+lyft_pink = true
+instacart_plus = true
+
+# ---
+
+[cards.sapphire-preferred]
+id = "chase-sapphire-preferred"
+name = "Chase Sapphire Preferred"
+nickname = "CSP"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.sapphire-preferred.rewards]
+travel = 2
+dining = 2
+streaming = 2
+online_groceries = 2  # Excludes Target, Walmart
+flights = 5           # Through Chase Travel portal
+hotels = 5            # Through Chase Travel portal
+everything_else = 1
+
+[cards.sapphire-preferred.bonus]
+amount = 60000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.sapphire-preferred.benefits]
+global_entry_credit = 50
+doordash_credit = 60   # Total over 12 months
+instacart_membership = true
+
+# ============================================================
+# FREEDOM FAMILY
+# ============================================================
+
+[cards.freedom-unlimited]
+id = "chase-freedom-unlimited"
+name = "Chase Freedom Unlimited"
+nickname = "CFU"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.freedom-unlimited.rewards]
+everything_else = 1.5
+dining = 3
+drugstores = 3
+travel = 5            # Through Chase Travel portal
+
+[cards.freedom-unlimited.bonus]
+amount = 200
+type = "cash"
+spend_required = 500
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.freedom-flex]
+id = "chase-freedom-flex"
+name = "Chase Freedom Flex"
+nickname = "CFF"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.freedom-flex.rewards]
+rotating = 5          # Up to $1,500/quarter
+dining = 3
+drugstores = 3
+travel = 5            # Through Chase Travel portal
+everything_else = 1
+
+[cards.freedom-flex.rewards_caps]
+rotating = { quarterly_limit = 1500 }
+
+[cards.freedom-flex.bonus]
+amount = 200
+type = "cash"
+spend_required = 500
+time_months = 3
+expires = "2025-12-31"
+
+[cards.freedom-flex.rotating_categories]
+# Q4 2025
+current_quarter = "2025-Q4"
+categories = ["walmart", "paypal"]
+next_quarter = "2026-Q1"
+next_categories = ["grocery_stores", "fitness_clubs"]
+
+# ============================================================
+# HOTEL CO-BRANDS
+# ============================================================
+
+[cards.marriott-boundless]
+id = "chase-marriott-boundless"
+name = "Marriott Bonvoy Boundless"
+nickname = "Marriott Boundless"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.marriott-boundless.rewards]
+marriott = 6
+hotels = 2
+everything_else = 2
+
+[cards.marriott-boundless.bonus]
+amount = 85000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.marriott-boundless.benefits]
+free_night_award = { value = 35000, annual = true }
+silver_elite = true
+
+# ---
+
+[cards.marriott-bold]
+id = "chase-marriott-bold"
+name = "Marriott Bonvoy Bold"
+nickname = "Marriott Bold"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.marriott-bold.rewards]
+marriott = 3
+hotels = 2
+everything_else = 1
+
+[cards.marriott-bold.bonus]
+amount = 60000
+type = "points"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.world-of-hyatt]
+id = "chase-world-of-hyatt"
+name = "World of Hyatt Credit Card"
+nickname = "Hyatt Card"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.world-of-hyatt.rewards]
+hyatt = 4
+dining = 2
+flights = 2
+fitness = 2
+public_transportation = 2
+everything_else = 1
+
+[cards.world-of-hyatt.bonus]
+amount = 60000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.world-of-hyatt.benefits]
+discoverist_status = true
+free_night_award = { value = "category_1-4", annual = true }
+anniversary_free_night = true
+
+# ---
+
+[cards.ihg-premier]
+id = "chase-ihg-premier"
+name = "IHG One Rewards Premier"
+nickname = "IHG Premier"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.ihg-premier.rewards]
+ihg = 26              # At IHG properties
+travel = 5
+dining = 5
+gas = 3
+groceries = 3
+everything_else = 1
+
+[cards.ihg-premier.bonus]
+amount = 175000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.ihg-premier.benefits]
+platinum_elite = true
+fourth_night_free = true
+global_entry_credit = 100
+anniversary_free_night = { value = 40000 }
+
+# ============================================================
+# AIRLINE CO-BRANDS
+# ============================================================
+
+[cards.united-explorer]
+id = "chase-united-explorer"
+name = "United Explorer Card"
+nickname = "United Explorer"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.united-explorer.rewards]
+united = 2
+travel = 2
+dining = 2
+streaming = 1
+everything_else = 1
+
+[cards.united-explorer.bonus]
+amount = 60000
+type = "miles"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.united-explorer.benefits]
+free_checked_bag = true
+priority_boarding = true
+tsa_precheck_credit = 100
+united_club_passes = 2
+
+# ---
+
+[cards.united-quest]
+id = "chase-united-quest"
+name = "United Quest Card"
+nickname = "United Quest"
+network = "Visa"
+annual_fee = 250
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.united-quest.rewards]
+united = 3
+travel = 2
+dining = 2
+streaming = 2
+everything_else = 1.5
+
+[cards.united-quest.bonus]
+amount = 70000
+type = "miles"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.united-quest.benefits]
+free_checked_bag = true
+priority_boarding = true
+tsa_precheck_credit = 125
+united_travel_credit = 125
+award_flight_credit = { amount = 50, up_to = 4 }
+
+# ---
+
+[cards.southwest-priority]
+id = "chase-southwest-priority"
+name = "Southwest Rapid Rewards Priority"
+nickname = "Southwest Priority"
+network = "Visa"
+annual_fee = 149
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.southwest-priority.rewards]
+southwest = 3
+dining = 2
+streaming = 2
+internet = 2
+phone = 2
+everything_else = 1
+
+[cards.southwest-priority.bonus]
+amount = 50000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.southwest-priority.benefits]
+southwest_travel_credit = 75
+companion_pass_qualifying = true
+upgraded_boarding_credits = 4
+
+# ---
+
+[cards.southwest-plus]
+id = "chase-southwest-plus"
+name = "Southwest Rapid Rewards Plus"
+nickname = "Southwest Plus"
+network = "Visa"
+annual_fee = 69
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.southwest-plus.rewards]
+southwest = 2
+dining = 2
+everything_else = 1
+
+[cards.southwest-plus.bonus]
+amount = 50000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# BUSINESS CARDS
+# ============================================================
+
+[cards.ink-preferred]
+id = "chase-ink-preferred"
+name = "Chase Ink Business Preferred"
+nickname = "CIP"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+business = true
+popular = true
+
+[cards.ink-preferred.rewards]
+travel = 3
+shipping = 3
+internet = 3
+phone = 3
+advertising = 3       # Social media, search engines
+everything_else = 1
+
+[cards.ink-preferred.rewards_caps]
+combined = { annual_limit = 150000, categories = ["travel", "shipping", "internet", "phone", "advertising"] }
+
+[cards.ink-preferred.bonus]
+amount = 100000
+type = "points"
+spend_required = 8000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.ink-unlimited]
+id = "chase-ink-unlimited"
+name = "Chase Ink Business Unlimited"
+nickname = "CIU"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+business = true
+
+[cards.ink-unlimited.rewards]
+everything_else = 1.5
+
+[cards.ink-unlimited.bonus]
+amount = 900
+type = "cash"
+spend_required = 6000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.ink-cash]
+id = "chase-ink-cash"
+name = "Chase Ink Business Cash"
+nickname = "CIC"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+business = true
+
+[cards.ink-cash.rewards]
+office_supplies = 5
+internet = 5
+phone = 5
+gas = 2
+dining = 2
+everything_else = 1
+
+[cards.ink-cash.rewards_caps]
+combined = { annual_limit = 25000, categories = ["office_supplies", "internet", "phone"] }
+
+[cards.ink-cash.bonus]
+amount = 900
+type = "cash"
+spend_required = 6000
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# AMAZON CO-BRAND
+# ============================================================
+
+[cards.amazon-prime]
+id = "chase-amazon-prime"
+name = "Amazon Prime Rewards Visa"
+nickname = "Amazon Prime Card"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+requires_prime = true
+popular = true
+
+[cards.amazon-prime.rewards]
+amazon = 5
+whole_foods = 5
+dining = 2
+gas = 2
+drugstores = 2
+everything_else = 1
+
+[cards.amazon-prime.bonus]
+amount = 200
+type = "gift_card"
+spend_required = 0
+time_months = 0
+description = "Instant $200 Amazon Gift Card upon approval"
+expires = "2025-12-31"

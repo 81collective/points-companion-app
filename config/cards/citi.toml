@@ -1,0 +1,261 @@
+# Citi Credit Cards - US Market
+# Last updated: 2025-11-24
+# Source: Citi.com, CardRatings, NerdWallet
+
+[meta]
+issuer = "Citi"
+issuer_code = "citi"
+last_updated = "2025-11-24"
+currency = "ThankYou Points"
+point_value_cents = 1.0  # Base; 1.25 with Premier transfer
+
+# ============================================================
+# PREMIUM TRAVEL CARDS
+# ============================================================
+
+[cards.strata-premier]
+id = "citi-strata-premier"
+name = "Citi Strata Premier Card"
+nickname = "Strata Premier"
+network = "Mastercard"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.strata-premier.rewards]
+flights = 3
+hotels = 3
+dining = 3
+supermarkets = 3
+gas = 3
+ev_charging = 3
+everything_else = 1
+
+[cards.strata-premier.bonus]
+amount = 75000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.strata-premier.benefits]
+hotel_savings = 10     # % off at eligible hotels
+trip_cancellation = true
+no_blackout_dates = true
+
+# ---
+
+[cards.prestige]
+id = "citi-prestige"
+name = "Citi Prestige Card"
+nickname = "Prestige"
+network = "Mastercard"
+annual_fee = 495
+credit_required = "excellent"
+foreign_transaction_fee = false
+status = "discontinued_new_apps"
+
+[cards.prestige.rewards]
+flights = 5
+dining = 5
+hotels = 3
+entertainment = 3
+everything_else = 1
+
+[cards.prestige.benefits]
+fourth_night_free = true
+global_entry_credit = 100
+priority_pass = true
+
+# ============================================================
+# CASH BACK CARDS
+# ============================================================
+
+[cards.double-cash]
+id = "citi-double-cash"
+name = "Citi Double Cash Card"
+nickname = "Double Cash"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.double-cash.rewards]
+everything_else = 2    # 1% purchase + 1% payment
+
+[cards.double-cash.bonus]
+amount = 200
+type = "cash"
+spend_required = 1500
+time_months = 6
+expires = "2025-12-31"
+
+# ---
+
+[cards.custom-cash]
+id = "citi-custom-cash"
+name = "Citi Custom Cash Card"
+nickname = "Custom Cash"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.custom-cash.rewards]
+# Top spend category each billing cycle automatically gets 5%
+top_category = 5
+everything_else = 1
+
+[cards.custom-cash.rewards_caps]
+top_category = { monthly_limit = 500, then_rate = 1 }
+
+[cards.custom-cash.eligible_categories]
+categories = [
+  "dining",
+  "gas",
+  "groceries",
+  "home_improvement",
+  "fitness",
+  "travel",
+  "streaming",
+  "drugstores",
+  "transit"
+]
+
+[cards.custom-cash.bonus]
+amount = 200
+type = "cash"
+spend_required = 1500
+time_months = 6
+expires = "2025-12-31"
+
+# ============================================================
+# AIRLINE CO-BRANDS
+# ============================================================
+
+[cards.aadvantage-platinum]
+id = "citi-aadvantage-platinum"
+name = "Citi / AAdvantage Platinum Select World Elite Mastercard"
+nickname = "AA Platinum"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.aadvantage-platinum.rewards]
+american = 2
+gas = 2
+dining = 2
+everything_else = 1
+
+[cards.aadvantage-platinum.bonus]
+amount = 50000
+type = "miles"
+spend_required = 2500
+time_months = 3
+expires = "2025-12-31"
+
+[cards.aadvantage-platinum.benefits]
+first_checked_bag_free = true
+preferred_boarding = true
+inflight_discount = 25
+companion_certificate = true
+
+# ---
+
+[cards.aadvantage-executive]
+id = "citi-aadvantage-executive"
+name = "Citi / AAdvantage Executive World Elite Mastercard"
+nickname = "AA Executive"
+network = "Mastercard"
+annual_fee = 595
+credit_required = "excellent"
+foreign_transaction_fee = false
+
+[cards.aadvantage-executive.rewards]
+american = 4
+hotels = 2
+rental_cars = 2
+everything_else = 1
+
+[cards.aadvantage-executive.bonus]
+amount = 70000
+type = "miles"
+spend_required = 7000
+time_months = 4
+expires = "2025-12-31"
+
+[cards.aadvantage-executive.benefits]
+admirals_club = true
+first_checked_bag_free = true
+preferred_boarding = true
+global_entry_credit = 100
+
+# ============================================================
+# COSTCO CO-BRAND
+# ============================================================
+
+[cards.costco-anywhere]
+id = "citi-costco-anywhere"
+name = "Costco Anywhere Visa Card by Citi"
+nickname = "Costco Card"
+network = "Visa"
+annual_fee = 0          # Requires Costco membership
+credit_required = "good"
+foreign_transaction_fee = false
+requires_membership = "costco"
+popular = true
+
+[cards.costco-anywhere.rewards]
+gas = 4
+travel = 3
+dining = 3
+costco = 2
+everything_else = 1
+
+[cards.costco-anywhere.rewards_caps]
+gas = { annual_limit = 7000, then_rate = 1 }
+
+[cards.costco-anywhere.bonus]
+amount = 0
+type = "cash"
+
+# ============================================================
+# RETAIL CO-BRANDS
+# ============================================================
+
+[cards.home-depot]
+id = "citi-home-depot"
+name = "The Home Depot Consumer Credit Card"
+nickname = "Home Depot Card"
+network = "Private Label"
+annual_fee = 0
+credit_required = "fair"
+
+[cards.home-depot.rewards]
+home_depot = 0         # No rewards; financing offers
+
+[cards.home-depot.financing]
+no_interest_months = 6
+minimum_purchase = 299
+
+# ---
+
+[cards.best-buy]
+id = "citi-best-buy"
+name = "Best Buy Credit Card"
+nickname = "Best Buy Card"
+network = "Private Label"
+annual_fee = 0
+credit_required = "fair"
+
+[cards.best-buy.rewards]
+best_buy = 5           # In My Best Buy points
+
+[cards.best-buy.financing]
+no_interest_months = 6
+minimum_purchase = 299

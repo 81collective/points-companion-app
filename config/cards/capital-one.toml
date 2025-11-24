@@ -1,0 +1,269 @@
+# Capital One Credit Cards - US Market
+# Last updated: 2025-11-24
+# Source: CapitalOne.com, CardRatings, NerdWallet
+
+[meta]
+issuer = "Capital One"
+issuer_code = "capital_one"
+last_updated = "2025-11-24"
+currency = "Capital One Miles"
+point_value_cents = 1.0  # Fixed 1 cent when redeemed; transfers can exceed
+
+# ============================================================
+# PREMIUM TRAVEL CARDS
+# ============================================================
+
+[cards.venture-x]
+id = "capital-one-venture-x"
+name = "Capital One Venture X Rewards Credit Card"
+nickname = "Venture X"
+network = "Visa"
+annual_fee = 395
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = true
+
+[cards.venture-x.rewards]
+hotels = 10            # Through Capital One Travel
+rental_cars = 10       # Through Capital One Travel
+flights = 5            # Through Capital One Travel
+everything_else = 2
+
+[cards.venture-x.bonus]
+amount = 75000
+type = "miles"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.venture-x.benefits]
+travel_credit_annual = 300
+anniversary_bonus = 10000
+priority_pass = true
+capital_one_lounge = true
+hertz_presidents_circle = true
+global_entry_credit = 100
+primary_rental_insurance = true
+
+# ---
+
+[cards.venture]
+id = "capital-one-venture"
+name = "Capital One Venture Rewards Credit Card"
+nickname = "Venture"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.venture.rewards]
+hotels = 5             # Through Capital One Travel
+rental_cars = 5        # Through Capital One Travel
+everything_else = 2
+
+[cards.venture.bonus]
+amount = 75000
+type = "miles"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.venture.benefits]
+global_entry_credit = 100
+tsa_precheck_credit = 100
+
+# ---
+
+[cards.ventureone]
+id = "capital-one-ventureone"
+name = "Capital One VentureOne Rewards Credit Card"
+nickname = "VentureOne"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.ventureone.rewards]
+hotels = 5             # Through Capital One Travel
+rental_cars = 5        # Through Capital One Travel
+everything_else = 1.25
+
+[cards.ventureone.bonus]
+amount = 20000
+type = "miles"
+spend_required = 500
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# CASH BACK / DINING CARDS
+# ============================================================
+
+[cards.savor]
+id = "capital-one-savor"
+name = "Capital One Savor Cash Rewards Credit Card"
+nickname = "Savor"
+network = "Mastercard"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.savor.rewards]
+dining = 4
+entertainment = 4
+streaming = 4
+groceries = 3
+everything_else = 1
+
+[cards.savor.bonus]
+amount = 300
+type = "cash"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.savor.benefits]
+vivid_seats_credit = 50
+
+# ---
+
+[cards.savorone]
+id = "capital-one-savorone"
+name = "Capital One SavorOne Cash Rewards Credit Card"
+nickname = "SavorOne"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.savorone.rewards]
+dining = 3
+entertainment = 3
+streaming = 3
+groceries = 3
+everything_else = 1
+
+[cards.savorone.bonus]
+amount = 200
+type = "cash"
+spend_required = 500
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.quicksilver]
+id = "capital-one-quicksilver"
+name = "Capital One Quicksilver Cash Rewards Credit Card"
+nickname = "Quicksilver"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.quicksilver.rewards]
+everything_else = 1.5
+
+[cards.quicksilver.bonus]
+amount = 200
+type = "cash"
+spend_required = 500
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.quicksilverone]
+id = "capital-one-quicksilverone"
+name = "Capital One QuicksilverOne Cash Rewards Credit Card"
+nickname = "QuicksilverOne"
+network = "Mastercard"
+annual_fee = 39
+credit_required = "fair"
+foreign_transaction_fee = false
+
+[cards.quicksilverone.rewards]
+everything_else = 1.5
+
+[cards.quicksilverone.bonus]
+amount = 0
+type = "cash"
+
+# ============================================================
+# BUSINESS CARDS
+# ============================================================
+
+[cards.spark-cash-plus]
+id = "capital-one-spark-cash-plus"
+name = "Capital One Spark Cash Plus"
+nickname = "Spark Cash Plus"
+network = "Visa"
+annual_fee = 150
+credit_required = "excellent"
+foreign_transaction_fee = false
+business = true
+card_type = "charge"
+
+[cards.spark-cash-plus.rewards]
+everything_else = 2
+
+[cards.spark-cash-plus.bonus]
+amount = 1000
+type = "cash"
+spend_required = 5000
+time_months = 3
+additional_bonus = { amount = 1000, spend_required = 50000, time_months = 6 }
+expires = "2025-12-31"
+
+# ---
+
+[cards.spark-miles]
+id = "capital-one-spark-miles"
+name = "Capital One Spark Miles for Business"
+nickname = "Spark Miles"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+business = true
+
+[cards.spark-miles.rewards]
+hotels = 5             # Through Capital One Travel
+rental_cars = 5        # Through Capital One Travel
+everything_else = 2
+
+[cards.spark-miles.bonus]
+amount = 50000
+type = "miles"
+spend_required = 4500
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# WALMART CO-BRAND
+# ============================================================
+
+[cards.walmart-rewards]
+id = "capital-one-walmart"
+name = "Capital One Walmart Rewards Card"
+nickname = "Walmart Card"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "fair"
+foreign_transaction_fee = true
+
+[cards.walmart-rewards.rewards]
+walmart_online = 5
+walmart_store = 2
+dining = 2
+travel = 2
+everything_else = 1
+
+[cards.walmart-rewards.bonus]
+amount = 0
+type = "cash"
+description = "5% back on first Walmart.com purchase"

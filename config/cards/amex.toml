@@ -1,0 +1,560 @@
+# American Express Credit Cards - US Market
+# Last updated: 2025-11-24
+# Source: AmericanExpress.com, CardRatings, NerdWallet
+
+[meta]
+issuer = "American Express"
+issuer_code = "amex"
+last_updated = "2025-11-24"
+currency = "Membership Rewards"
+point_value_cents = 1.8  # Average transfer value
+
+# ============================================================
+# PREMIUM CHARGE CARDS
+# ============================================================
+
+[cards.platinum]
+id = "amex-platinum"
+name = "The Platinum Card from American Express"
+nickname = "Amex Platinum"
+network = "Amex"
+annual_fee = 695
+credit_required = "excellent"
+foreign_transaction_fee = false
+card_type = "charge"
+popular = true
+
+[cards.platinum.rewards]
+flights = 5            # Booked directly with airlines or Amex Travel
+hotels = 5             # Booked through Amex Travel
+everything_else = 1
+
+[cards.platinum.bonus]
+amount = 80000
+type = "points"
+spend_required = 8000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.platinum.benefits]
+airline_fee_credit = 200
+hotel_credit = 200
+uber_credit_monthly = 15
+saks_credit = 100      # $50 twice per year
+equinox_credit_monthly = 25
+clear_plus = true
+global_entry_credit = 100
+centurion_lounge = true
+priority_pass = true
+fine_hotels_status = true
+hilton_gold = true
+marriott_gold = true
+
+# ---
+
+[cards.gold]
+id = "amex-gold"
+name = "American Express Gold Card"
+nickname = "Amex Gold"
+network = "Amex"
+annual_fee = 250
+credit_required = "good"
+foreign_transaction_fee = false
+card_type = "charge"
+popular = true
+
+[cards.gold.rewards]
+dining = 4
+supermarkets = 4
+flights = 3            # Booked directly with airlines or Amex Travel
+everything_else = 1
+
+[cards.gold.rewards_caps]
+supermarkets = { annual_limit = 25000 }
+
+[cards.gold.bonus]
+amount = 60000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.gold.benefits]
+uber_credit_monthly = 10
+dining_credit_monthly = 10
+resy_credit_monthly = 7  # Through Resy
+dunkin_credit = 7        # Monthly at Dunkin'
+
+# ---
+
+[cards.green]
+id = "amex-green"
+name = "American Express Green Card"
+nickname = "Amex Green"
+network = "Amex"
+annual_fee = 150
+credit_required = "good"
+foreign_transaction_fee = false
+card_type = "charge"
+
+[cards.green.rewards]
+travel = 3
+dining = 3
+transit = 3
+everything_else = 1
+
+[cards.green.bonus]
+amount = 40000
+type = "points"
+spend_required = 3000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.green.benefits]
+clear_credit = 189
+lounge_buddy_credit = 100
+
+# ============================================================
+# EVERYDAY / CASH BACK CARDS
+# ============================================================
+
+[cards.blue-cash-preferred]
+id = "amex-blue-cash-preferred"
+name = "Blue Cash Preferred Card from American Express"
+nickname = "BCP"
+network = "Amex"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.blue-cash-preferred.rewards]
+supermarkets = 6
+streaming = 6
+gas = 3
+transit = 3
+everything_else = 1
+
+[cards.blue-cash-preferred.rewards_caps]
+supermarkets = { annual_limit = 6000, then_rate = 1 }
+
+[cards.blue-cash-preferred.bonus]
+amount = 250
+type = "cash"
+spend_required = 3000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.blue-cash-preferred.benefits]
+disney_bundle_credit_monthly = 7
+
+# ---
+
+[cards.blue-cash-everyday]
+id = "amex-blue-cash-everyday"
+name = "Blue Cash Everyday Card from American Express"
+nickname = "BCE"
+network = "Amex"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.blue-cash-everyday.rewards]
+supermarkets = 3
+online_retail = 3
+gas = 3
+everything_else = 1
+
+[cards.blue-cash-everyday.rewards_caps]
+supermarkets = { annual_limit = 6000, then_rate = 1 }
+online_retail = { annual_limit = 6000, then_rate = 1 }
+gas = { annual_limit = 6000, then_rate = 1 }
+
+[cards.blue-cash-everyday.bonus]
+amount = 200
+type = "cash"
+spend_required = 2000
+time_months = 6
+expires = "2025-12-31"
+
+# ---
+
+[cards.everyday-preferred]
+id = "amex-everyday-preferred"
+name = "American Express EveryDay Preferred Credit Card"
+nickname = "EDP"
+network = "Amex"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.everyday-preferred.rewards]
+supermarkets = 3
+gas = 2
+everything_else = 1
+
+[cards.everyday-preferred.rewards_caps]
+supermarkets = { annual_limit = 6000, then_rate = 1 }
+
+[cards.everyday-preferred.multiplier_bonus]
+threshold_transactions = 30
+multiplier = 1.5  # 50% bonus on all points when 30+ transactions/month
+
+[cards.everyday-preferred.bonus]
+amount = 15000
+type = "points"
+spend_required = 2000
+time_months = 6
+expires = "2025-12-31"
+
+# ============================================================
+# HOTEL CO-BRANDS
+# ============================================================
+
+[cards.hilton-honors]
+id = "amex-hilton-honors"
+name = "Hilton Honors American Express Card"
+nickname = "Hilton Base"
+network = "Amex"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.hilton-honors.rewards]
+hilton = 7
+dining = 5
+supermarkets = 5
+gas = 5
+everything_else = 3
+
+[cards.hilton-honors.bonus]
+amount = 80000
+type = "points"
+spend_required = 2000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hilton-honors.benefits]
+hilton_silver = true
+
+# ---
+
+[cards.hilton-surpass]
+id = "amex-hilton-surpass"
+name = "Hilton Honors American Express Surpass Card"
+nickname = "Hilton Surpass"
+network = "Amex"
+annual_fee = 150
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.hilton-surpass.rewards]
+hilton = 12
+dining = 6
+supermarkets = 6
+gas = 6
+flights = 6
+everything_else = 3
+
+[cards.hilton-surpass.bonus]
+amount = 130000
+type = "points"
+spend_required = 3000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hilton-surpass.benefits]
+hilton_gold = true
+priority_pass = 10  # visits per year
+free_night_reward = { spend_threshold = 15000 }
+
+# ---
+
+[cards.hilton-aspire]
+id = "amex-hilton-aspire"
+name = "Hilton Honors American Express Aspire Card"
+nickname = "Hilton Aspire"
+network = "Amex"
+annual_fee = 550
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = true
+
+[cards.hilton-aspire.rewards]
+hilton = 14
+flights = 7
+dining = 7
+everything_else = 3
+
+[cards.hilton-aspire.bonus]
+amount = 175000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hilton-aspire.benefits]
+hilton_diamond = true
+hilton_resort_credit = 400
+airline_credit = 250
+free_night_award = true
+priority_pass = true
+
+# ---
+
+[cards.marriott-brilliant]
+id = "amex-marriott-brilliant"
+name = "Marriott Bonvoy Brilliant American Express Card"
+nickname = "Marriott Brilliant"
+network = "Amex"
+annual_fee = 650
+credit_required = "excellent"
+foreign_transaction_fee = false
+
+[cards.marriott-brilliant.rewards]
+marriott = 6
+flights = 3
+dining = 3
+everything_else = 2
+
+[cards.marriott-brilliant.bonus]
+amount = 95000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.marriott-brilliant.benefits]
+marriott_platinum_elite = true
+marriott_dining_credit = 25  # Monthly
+marriott_property_credit = 300
+free_night_award = { value = 85000, annual = true }
+priority_pass = true
+global_entry_credit = 100
+
+# ---
+
+[cards.marriott-bevy]
+id = "amex-marriott-bevy"
+name = "Marriott Bonvoy Bevy American Express Card"
+nickname = "Marriott Bevy"
+network = "Amex"
+annual_fee = 250
+credit_required = "good"
+foreign_transaction_fee = false
+
+[cards.marriott-bevy.rewards]
+marriott = 6
+dining = 4
+groceries = 4
+everything_else = 2
+
+[cards.marriott-bevy.bonus]
+amount = 85000
+type = "points"
+spend_required = 5000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.marriott-bevy.benefits]
+marriott_gold_elite = true
+free_night_award = { value = 50000, annual = true }
+
+# ============================================================
+# AIRLINE CO-BRANDS
+# ============================================================
+
+[cards.delta-gold]
+id = "amex-delta-gold"
+name = "Delta SkyMiles Gold American Express Card"
+nickname = "Delta Gold"
+network = "Amex"
+annual_fee = 150
+credit_required = "good"
+foreign_transaction_fee = true
+
+[cards.delta-gold.rewards]
+delta = 2
+dining = 2
+supermarkets = 2
+everything_else = 1
+
+[cards.delta-gold.bonus]
+amount = 70000
+type = "miles"
+spend_required = 3000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.delta-gold.benefits]
+first_checked_bag_free = true
+priority_boarding = true
+main_cabin_1 = true
+
+# ---
+
+[cards.delta-platinum]
+id = "amex-delta-platinum"
+name = "Delta SkyMiles Platinum American Express Card"
+nickname = "Delta Platinum"
+network = "Amex"
+annual_fee = 350
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+
+[cards.delta-platinum.rewards]
+delta = 3
+dining = 2
+supermarkets = 2
+everything_else = 1
+
+[cards.delta-platinum.bonus]
+amount = 90000
+type = "miles"
+spend_required = 4000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.delta-platinum.benefits]
+first_checked_bag_free = true
+companion_certificate = true
+delta_sky_club_access = { per_visit_fee = 50 }
+global_entry_credit = 100
+medallion_qualifying_bonus = true
+
+# ---
+
+[cards.delta-reserve]
+id = "amex-delta-reserve"
+name = "Delta SkyMiles Reserve American Express Card"
+nickname = "Delta Reserve"
+network = "Amex"
+annual_fee = 650
+credit_required = "excellent"
+foreign_transaction_fee = false
+
+[cards.delta-reserve.rewards]
+delta = 3
+everything_else = 1
+
+[cards.delta-reserve.bonus]
+amount = 80000
+type = "miles"
+spend_required = 5000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.delta-reserve.benefits]
+delta_sky_club = true
+companion_certificate = true
+first_checked_bag_free = true
+global_entry_credit = 100
+clear_credit = 189
+centurion_lounge = { with_delta_boarding_pass = true }
+
+# ============================================================
+# BUSINESS CARDS
+# ============================================================
+
+[cards.business-platinum]
+id = "amex-business-platinum"
+name = "The Business Platinum Card from American Express"
+nickname = "Biz Plat"
+network = "Amex"
+annual_fee = 695
+credit_required = "excellent"
+foreign_transaction_fee = false
+business = true
+card_type = "charge"
+popular = true
+
+[cards.business-platinum.rewards]
+flights = 5            # On first airline or Amex Travel
+hotels = 5             # Amex Travel
+shipping = 1.5
+advertising = 1.5
+technology = 1.5
+everything_else = 1
+
+[cards.business-platinum.bonus]
+amount = 150000
+type = "points"
+spend_required = 20000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.business-platinum.benefits]
+dell_credit = 400       # Semi-annual
+airline_credit = 200
+indeed_credit = 360
+adobe_credit = 150
+wireless_credit = 120
+clear_credit = 189
+centurion_lounge = true
+priority_pass = true
+marriott_gold = true
+hilton_gold = true
+
+# ---
+
+[cards.business-gold]
+id = "amex-business-gold"
+name = "American Express Business Gold Card"
+nickname = "Biz Gold"
+network = "Amex"
+annual_fee = 375
+credit_required = "good"
+foreign_transaction_fee = false
+business = true
+card_type = "charge"
+
+[cards.business-gold.rewards]
+# Top 2 categories each month automatically selected
+flights = 4
+advertising = 4
+shipping = 4
+gas = 4
+computer_hardware = 4
+restaurants = 4
+everything_else = 1
+
+[cards.business-gold.rewards_caps]
+combined = { annual_limit = 150000, categories = "top_2_monthly" }
+
+[cards.business-gold.bonus]
+amount = 100000
+type = "points"
+spend_required = 10000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.business-gold.benefits]
+flexible_payment = true
+
+# ---
+
+[cards.blue-business-plus]
+id = "amex-blue-business-plus"
+name = "Blue Business Plus Credit Card from American Express"
+nickname = "BBP"
+network = "Amex"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+business = true
+popular = true
+
+[cards.blue-business-plus.rewards]
+everything_else = 2
+
+[cards.blue-business-plus.rewards_caps]
+everything_else = { annual_limit = 50000, then_rate = 1 }
+
+[cards.blue-business-plus.bonus]
+amount = 15000
+type = "points"
+spend_required = 3000
+time_months = 6
+expires = "2025-12-31"
