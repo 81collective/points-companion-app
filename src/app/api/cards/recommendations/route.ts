@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { creditCardDatabase } from '@/data/creditCardDatabase';
 import { RewardCategory } from '@/types/creditCards';
 import { apiCache } from '@/lib/apiCache';
+import { matchMerchant } from '@/lib/matching/merchantMatcher';
 
 export async function GET(request: NextRequest) {
   try {
@@ -98,8 +99,28 @@ async function generateRecommendations({ category, businessId, businessName, lat
       'alaska': RewardCategory.Alaska
     };
 
-    const targetCategory = category ? categoryMap[category] || RewardCategory.EverythingElse : RewardCategory.EverythingElse;
-    console.log('🎯 Target category mapped to:', targetCategory);
+    // Use fuzzy matching if we have a business name
+    let matchResult = null;
+    if (businessName) {
+      matchResult = matchMerchant(businessName);
+      console.log('🔍 Fuzzy match result for', businessName, ':', {
+        category: matchResult.category,
+        confidence: matchResult.confidence,
+        hotelBrand: matchResult.hotelBrand,
+        airlineBrand: matchResult.airlineBrand,
+        notes: matchResult.notes
+      });
+    }
+
+    // Determine target category - prefer fuzzy match if confident
+    let targetCategory = RewardCategory.EverythingElse;
+    if (matchResult && matchResult.confidence >= 0.7) {
+      targetCategory = matchResult.category;
+      console.log('🎯 Using fuzzy-matched category:', targetCategory);
+    } else if (category) {
+      targetCategory = categoryMap[category] || RewardCategory.EverythingElse;
+      console.log('🎯 Using provided category:', targetCategory);
+    }
 
     // Get business details if businessId provided
     let business: Awaited<ReturnType<typeof prisma.business.findUnique>> | null = null;
@@ -136,23 +157,74 @@ async function generateRecommendations({ category, businessId, businessName, lat
       let rewardMultiplier = categoryReward?.multiplier || everythingElseReward?.multiplier || 1;
       let rewardCategory = categoryReward?.category || RewardCategory.EverythingElse;
       
-      // Hotel brand-specific logic
+      // Hotel/Airline brand-specific logic using fuzzy match results
       let hotelBrandBonus = 0;
       let airlineBrandBonus = 0;
-      const reasons: string[] = []; // Move reasons array here
-      if (business) {
-        const businessName = business.name.toLowerCase();
-        console.log('🏨 Checking business for brand detection:', businessName);
+      const reasons: string[] = [];
+      
+      // Use fuzzy matching results if available
+      if (matchResult && matchResult.confidence >= 0.7) {
+        // Check for hotel brand match
+        if (matchResult.hotelBrand) {
+          const hotelBrandCategoryMap: Record<string, RewardCategory> = {
+            'marriott': RewardCategory.Marriott,
+            'hilton': RewardCategory.Hilton,
+            'hyatt': RewardCategory.Hyatt,
+            'ihg': RewardCategory.IHG,
+            'wyndham': RewardCategory.Wyndham,
+            'choice': RewardCategory.Choice,
+          };
+          const brandCategory = hotelBrandCategoryMap[matchResult.hotelBrand];
+          if (brandCategory) {
+            const brandReward = card.rewards.find(r => r.category === brandCategory);
+            if (brandReward) {
+              console.log(`✅ Fuzzy match: ${matchResult.hotelBrand} card found - ${card.name}`);
+              rewardMultiplier = brandReward.multiplier;
+              rewardCategory = brandCategory;
+              hotelBrandBonus = 50;
+              reasons.push(`Perfect for ${business?.name || businessName} - ${matchResult.hotelBrand} brand card`);
+            }
+          }
+        }
+        
+        // Check for airline brand match
+        if (matchResult.airlineBrand) {
+          const airlineBrandCategoryMap: Record<string, RewardCategory> = {
+            'united': RewardCategory.United,
+            'delta': RewardCategory.Delta,
+            'american': RewardCategory.American,
+            'southwest': RewardCategory.Southwest,
+            'jetblue': RewardCategory.JetBlue,
+            'alaska': RewardCategory.Alaska,
+          };
+          const brandCategory = airlineBrandCategoryMap[matchResult.airlineBrand];
+          if (brandCategory) {
+            const brandReward = card.rewards.find(r => r.category === brandCategory);
+            if (brandReward) {
+              console.log(`✅ Fuzzy match: ${matchResult.airlineBrand} card found - ${card.name}`);
+              rewardMultiplier = brandReward.multiplier;
+              rewardCategory = brandCategory;
+              airlineBrandBonus = 30;
+              reasons.push(`Perfect for ${business?.name || businessName} - ${matchResult.airlineBrand} brand card`);
+            }
+          }
+        }
+      }
+      
+      // Fallback to legacy string matching if no fuzzy match
+      if (business && !hotelBrandBonus && !airlineBrandBonus) {
+        const legacyBusinessName = business.name.toLowerCase();
+        console.log('🏨 Checking business for brand detection (legacy):', legacyBusinessName);
         
         // Detect hotel brands and check for matching cards
-        if (businessName.includes('marriott') || businessName.includes('bonvoy') || 
-            businessName.includes('courtyard') || businessName.includes('residence inn') || 
-            businessName.includes('fairfield inn') || businessName.includes('springhill suites') ||
-            businessName.includes('towneplace suites') || businessName.includes('aloft') ||
-            businessName.includes('w hotel') || businessName.includes('edition') ||
-            businessName.includes('st. regis') || businessName.includes('luxury collection') ||
-            businessName.includes('ritz-carlton') || businessName.includes('ritz carlton')) {
-          console.log('🎯 MARRIOTT BRAND DETECTED! Business:', businessName);
+        if (legacyBusinessName.includes('marriott') || legacyBusinessName.includes('bonvoy') || 
+            legacyBusinessName.includes('courtyard') || legacyBusinessName.includes('residence inn') || 
+            legacyBusinessName.includes('fairfield inn') || legacyBusinessName.includes('springhill suites') ||
+            legacyBusinessName.includes('towneplace suites') || legacyBusinessName.includes('aloft') ||
+            legacyBusinessName.includes('w hotel') || legacyBusinessName.includes('edition') ||
+            legacyBusinessName.includes('st. regis') || legacyBusinessName.includes('luxury collection') ||
+            legacyBusinessName.includes('ritz-carlton') || legacyBusinessName.includes('ritz carlton')) {
+          console.log('🎯 MARRIOTT BRAND DETECTED! Business:', legacyBusinessName);
           const marriottReward = card.rewards.find(r => r.category === RewardCategory.Marriott);
           if (marriottReward) {
             console.log('✅ Found Marriott reward on', card.name, '- multiplier:', marriottReward.multiplier);
