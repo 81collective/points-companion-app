@@ -1,0 +1,485 @@
+# Airline Co-Branded Credit Cards
+# Brand-specific cards for maximum value with specific airlines
+# Last updated: 2025-11-24
+
+[meta]
+issuer = "Various"
+issuer_code = "airlines"
+last_updated = "2025-11-24"
+currency = "Various Miles"
+point_value_cents = 1.3
+
+# ============================================================
+# UNITED AIRLINES CARDS (Chase)
+# ============================================================
+
+[cards.united-quest]
+id = "united-quest"
+name = "United Quest Card"
+network = "Visa"
+annual_fee = 250
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.united-quest.rewards]
+united = 3
+travel = 2
+dining = 2
+streaming = 1
+everything_else = 1
+
+[cards.united-quest.bonus]
+amount = 60000
+type = "miles"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.united-quest.benefits]
+premier_access = true
+free_checked_bag = 2
+united_credit_annual = 125
+tsa_precheck_credit = 100
+
+# ---
+
+[cards.united-explorer]
+id = "united-explorer"
+name = "United Explorer Card"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.united-explorer.rewards]
+united = 2
+travel = 2
+dining = 2
+streaming = 1
+everything_else = 1
+
+[cards.united-explorer.bonus]
+amount = 60000
+type = "miles"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.united-explorer.benefits]
+free_checked_bag = 1
+priority_boarding = true
+
+# ---
+
+[cards.united-club-infinite]
+id = "united-club-infinite"
+name = "United Club Infinite Card"
+network = "Visa"
+annual_fee = 525
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = false
+
+[cards.united-club-infinite.rewards]
+united = 4
+travel = 2
+dining = 2
+everything_else = 1
+
+[cards.united-club-infinite.bonus]
+amount = 80000
+type = "miles"
+spend_required = 5000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.united-club-infinite.benefits]
+united_club_membership = true
+free_checked_bag = 2
+premier_access = true
+tsa_precheck_credit = 100
+
+# ============================================================
+# DELTA AIRLINES CARDS (American Express)
+# ============================================================
+
+[cards.delta-reserve]
+id = "delta-reserve"
+name = "Delta SkyMiles Reserve American Express Card"
+network = "Amex"
+annual_fee = 650
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = true
+
+[cards.delta-reserve.rewards]
+delta = 3
+hotels = 3
+dining = 1
+everything_else = 1
+
+[cards.delta-reserve.bonus]
+amount = 80000
+type = "miles"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.delta-reserve.benefits]
+delta_sky_club = true
+companion_certificate = true
+global_entry_credit = 100
+free_checked_bag = 1
+priority_boarding = true
+
+# ---
+
+[cards.delta-platinum]
+id = "delta-platinum"
+name = "Delta SkyMiles Platinum American Express Card"
+network = "Amex"
+annual_fee = 350
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.delta-platinum.rewards]
+delta = 3
+hotels = 2
+dining = 2
+supermarkets = 2
+everything_else = 1
+
+[cards.delta-platinum.bonus]
+amount = 70000
+type = "miles"
+spend_required = 4000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.delta-platinum.benefits]
+companion_certificate = true
+free_checked_bag = 1
+priority_boarding = true
+
+# ---
+
+[cards.delta-gold]
+id = "delta-gold"
+name = "Delta SkyMiles Gold American Express Card"
+network = "Amex"
+annual_fee = 150
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.delta-gold.rewards]
+delta = 2
+dining = 2
+supermarkets = 2
+everything_else = 1
+
+[cards.delta-gold.bonus]
+amount = 50000
+type = "miles"
+spend_required = 3000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.delta-gold.benefits]
+free_checked_bag = 1
+priority_boarding = true
+
+# ============================================================
+# AMERICAN AIRLINES CARDS (Citi & Barclays)
+# ============================================================
+
+[cards.citi-aadvantage-executive]
+id = "citi-aadvantage-executive"
+name = "Citi / AAdvantage Executive World Elite Mastercard"
+network = "Mastercard"
+annual_fee = 595
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = false
+
+[cards.citi-aadvantage-executive.rewards]
+american = 4
+dining = 2
+gas = 2
+everything_else = 1
+
+[cards.citi-aadvantage-executive.bonus]
+amount = 75000
+type = "miles"
+spend_required = 7500
+time_months = 4
+expires = "2025-12-31"
+
+[cards.citi-aadvantage-executive.benefits]
+admirals_club = true
+global_entry_credit = 100
+free_checked_bag = 1
+priority_boarding = true
+
+# ---
+
+[cards.citi-aadvantage-platinum]
+id = "citi-aadvantage-platinum"
+name = "Citi / AAdvantage Platinum Select World Elite Mastercard"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.citi-aadvantage-platinum.rewards]
+american = 2
+dining = 2
+gas = 2
+everything_else = 1
+
+[cards.citi-aadvantage-platinum.bonus]
+amount = 60000
+type = "miles"
+spend_required = 2500
+time_months = 3
+expires = "2025-12-31"
+
+[cards.citi-aadvantage-platinum.benefits]
+free_checked_bag = 1
+priority_boarding = true
+
+# ---
+
+[cards.barclays-aviator-red]
+id = "barclays-aviator-red"
+name = "AAdvantage Aviator Red World Elite Mastercard"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.barclays-aviator-red.rewards]
+american = 2
+dining = 1
+everything_else = 1
+
+[cards.barclays-aviator-red.bonus]
+amount = 60000
+type = "miles"
+spend_required = 1  # Just one purchase!
+time_months = 3
+expires = "2025-12-31"
+description = "60,000 miles after first purchase"
+
+[cards.barclays-aviator-red.benefits]
+free_checked_bag = 1
+priority_boarding = true
+
+# ============================================================
+# SOUTHWEST AIRLINES CARDS (Chase)
+# ============================================================
+
+[cards.southwest-priority]
+id = "southwest-priority"
+name = "Southwest Rapid Rewards Priority Credit Card"
+network = "Visa"
+annual_fee = 149
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.southwest-priority.rewards]
+southwest = 3
+hotels = 2
+transit = 2
+internet = 2
+phone = 2
+streaming = 2
+everything_else = 1
+
+[cards.southwest-priority.bonus]
+amount = 65000
+type = "points"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.southwest-priority.benefits]
+southwest_credit_annual = 75
+upgraded_boarding = 4  # per year
+anniversary_points = 7500
+
+# ---
+
+[cards.southwest-premier]
+id = "southwest-premier"
+name = "Southwest Rapid Rewards Premier Credit Card"
+network = "Visa"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.southwest-premier.rewards]
+southwest = 3
+hotels = 2
+transit = 2
+everything_else = 1
+
+[cards.southwest-premier.bonus]
+amount = 65000
+type = "points"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.southwest-premier.benefits]
+anniversary_points = 6000
+
+# ---
+
+[cards.southwest-plus]
+id = "southwest-plus"
+name = "Southwest Rapid Rewards Plus Credit Card"
+network = "Visa"
+annual_fee = 69
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.southwest-plus.rewards]
+southwest = 2
+hotels = 2
+transit = 2
+everything_else = 1
+
+[cards.southwest-plus.bonus]
+amount = 50000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.southwest-plus.benefits]
+anniversary_points = 3000
+
+# ============================================================
+# JETBLUE CARDS (Barclays)
+# ============================================================
+
+[cards.jetblue-plus]
+id = "jetblue-plus"
+name = "JetBlue Plus Card"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.jetblue-plus.rewards]
+jetblue = 6
+dining = 2
+groceries = 2
+everything_else = 1
+
+[cards.jetblue-plus.bonus]
+amount = 80000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.jetblue-plus.benefits]
+free_checked_bag = 1
+anniversary_points = 5000
+point_discount = 10  # percent off award flights
+
+# ---
+
+[cards.jetblue-card]
+id = "jetblue-card"
+name = "JetBlue Card"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.jetblue-card.rewards]
+jetblue = 3
+dining = 2
+groceries = 2
+everything_else = 1
+
+[cards.jetblue-card.bonus]
+amount = 50000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.jetblue-card.benefits]
+point_discount = 5  # percent off award flights
+
+# ============================================================
+# ALASKA AIRLINES CARDS (Bank of America)
+# ============================================================
+
+[cards.alaska-visa-signature]
+id = "alaska-visa-signature"
+name = "Alaska Airlines Visa Signature Card"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.alaska-visa-signature.rewards]
+alaska = 3
+gas = 2
+streaming = 2
+transit = 2
+everything_else = 1
+
+[cards.alaska-visa-signature.bonus]
+amount = 75000
+type = "miles"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.alaska-visa-signature.benefits]
+companion_fare = true  # Starting at $122
+free_checked_bag = 1
+
+# ---
+
+[cards.alaska-business]
+id = "alaska-business"
+name = "Alaska Airlines Visa Business Card"
+network = "Visa"
+annual_fee = 75
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+business = true
+
+[cards.alaska-business.rewards]
+alaska = 3
+everything_else = 1
+
+[cards.alaska-business.bonus]
+amount = 50000
+type = "miles"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.alaska-business.benefits]
+companion_fare = true
+free_checked_bag = 1

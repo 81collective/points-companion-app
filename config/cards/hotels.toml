@@ -1,0 +1,406 @@
+# Hotel Co-Branded Credit Cards
+# Brand-specific cards for maximum value with specific hotel programs
+# Last updated: 2025-11-24
+
+[meta]
+issuer = "Various"
+issuer_code = "hotels"
+last_updated = "2025-11-24"
+currency = "Various Points"
+point_value_cents = 0.7
+
+# ============================================================
+# IHG CARDS (Chase)
+# ============================================================
+
+[cards.ihg-premier]
+id = "ihg-premier"
+name = "IHG One Rewards Premier Credit Card"
+network = "Mastercard"
+annual_fee = 99
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.ihg-premier.rewards]
+ihg = 26
+travel = 5
+dining = 5
+gas = 3
+everything_else = 3
+
+[cards.ihg-premier.bonus]
+amount = 175000
+type = "points"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.ihg-premier.benefits]
+platinum_elite = true
+fourth_night_free = true
+anniversary_night = true
+global_entry_credit = 100
+
+# ---
+
+[cards.ihg-traveler]
+id = "ihg-traveler"
+name = "IHG One Rewards Traveler Credit Card"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.ihg-traveler.rewards]
+ihg = 17
+travel = 3
+dining = 2
+gas = 2
+everything_else = 1
+
+[cards.ihg-traveler.bonus]
+amount = 100000
+type = "points"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.ihg-traveler.benefits]
+silver_elite = true
+
+# ============================================================
+# WORLD OF HYATT CARDS (Chase)
+# ============================================================
+
+[cards.hyatt-card]
+id = "hyatt-card"
+name = "World of Hyatt Credit Card"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.hyatt-card.rewards]
+hyatt = 4
+dining = 2
+flights = 2
+transit = 2
+fitness = 2
+everything_else = 1
+
+[cards.hyatt-card.bonus]
+amount = 60000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hyatt-card.benefits]
+discoverist_status = true
+anniversary_night = true
+milestone_nights = 5  # per year toward status
+
+# ---
+
+[cards.hyatt-business]
+id = "hyatt-business"
+name = "World of Hyatt Business Credit Card"
+network = "Visa"
+annual_fee = 199
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+business = true
+
+[cards.hyatt-business.rewards]
+hyatt = 4
+shipping = 2
+phone = 2
+internet = 2
+advertising = 2
+everything_else = 1
+
+[cards.hyatt-business.bonus]
+amount = 60000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hyatt-business.benefits]
+discoverist_status = true
+anniversary_night = true
+milestone_nights = 5
+
+# ============================================================
+# WYNDHAM CARDS (Barclays)
+# ============================================================
+
+[cards.wyndham-rewards-earner-plus]
+id = "wyndham-rewards-earner-plus"
+name = "Wyndham Rewards Earner Plus Card"
+network = "Visa"
+annual_fee = 75
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.wyndham-rewards-earner-plus.rewards]
+wyndham = 6
+gas = 5
+groceries = 5
+dining = 2
+everything_else = 1
+
+[cards.wyndham-rewards-earner-plus.bonus]
+amount = 75000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.wyndham-rewards-earner-plus.benefits]
+gold_status = true
+
+# ---
+
+[cards.wyndham-rewards-earner]
+id = "wyndham-rewards-earner"
+name = "Wyndham Rewards Earner Card"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.wyndham-rewards-earner.rewards]
+wyndham = 4
+gas = 4
+groceries = 4
+everything_else = 1
+
+[cards.wyndham-rewards-earner.bonus]
+amount = 45000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.wyndham-rewards-earner.benefits]
+blue_status = true
+
+# ============================================================
+# CHOICE PRIVILEGES CARDS
+# ============================================================
+
+[cards.choice-privileges-visa-signature]
+id = "choice-privileges-visa-signature"
+name = "Choice Privileges Visa Signature Card"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.choice-privileges-visa-signature.rewards]
+choice = 15
+gas = 5
+groceries = 5
+everything_else = 1
+
+[cards.choice-privileges-visa-signature.bonus]
+amount = 50000
+type = "points"
+spend_required = 1000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.choice-privileges-visa-signature.benefits]
+gold_status = true
+elite_nights = 10  # anniversary bonus nights
+
+# ============================================================
+# ADDITIONAL MARRIOTT CARDS
+# ============================================================
+
+[cards.marriott-bonvoy-bevy]
+id = "marriott-bonvoy-bevy"
+name = "Marriott Bonvoy Bevy American Express Card"
+network = "Amex"
+annual_fee = 250
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.marriott-bonvoy-bevy.rewards]
+marriott = 6
+dining = 4
+flights = 2
+everything_else = 2
+
+[cards.marriott-bonvoy-bevy.bonus]
+amount = 85000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.marriott-bonvoy-bevy.benefits]
+gold_elite = true
+anniversary_night = true  # up to 50k points value
+elite_nights = 15
+
+# ---
+
+[cards.marriott-bonvoy-bountiful]
+id = "marriott-bonvoy-bountiful"
+name = "Marriott Bonvoy Bountiful Card"
+network = "Visa"
+annual_fee = 250
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+
+[cards.marriott-bonvoy-bountiful.rewards]
+marriott = 6
+dining = 3
+groceries = 3
+gas = 3
+everything_else = 2
+
+[cards.marriott-bonvoy-bountiful.bonus]
+amount = 85000
+type = "points"
+spend_required = 4000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.marriott-bonvoy-bountiful.benefits]
+gold_elite = true
+anniversary_night = true
+elite_nights = 15
+
+# ---
+
+[cards.marriott-bonvoy-bold]
+id = "marriott-bonvoy-bold"
+name = "Marriott Bonvoy Bold Credit Card"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.marriott-bonvoy-bold.rewards]
+marriott = 3
+travel = 2
+dining = 2
+everything_else = 1
+
+[cards.marriott-bonvoy-bold.bonus]
+amount = 60000
+type = "points"
+spend_required = 2000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.marriott-bonvoy-bold.benefits]
+silver_elite = true
+
+# ============================================================
+# ADDITIONAL HILTON CARDS
+# ============================================================
+
+[cards.hilton-honors-no-fee]
+id = "hilton-honors-no-fee"
+name = "Hilton Honors American Express Card"
+network = "Amex"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+
+[cards.hilton-honors-no-fee.rewards]
+hilton = 7
+dining = 5
+supermarkets = 5
+gas = 5
+everything_else = 3
+
+[cards.hilton-honors-no-fee.bonus]
+amount = 70000
+type = "points"
+spend_required = 2000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hilton-honors-no-fee.benefits]
+silver_status = true
+
+# ---
+
+[cards.hilton-honors-business]
+id = "hilton-honors-business"
+name = "Hilton Honors American Express Business Card"
+network = "Amex"
+annual_fee = 195
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+business = true
+
+[cards.hilton-honors-business.rewards]
+hilton = 12
+flights = 6
+rental_cars = 6
+dining = 6
+gas = 6
+shipping = 6
+advertising = 6
+phone = 6
+everything_else = 3
+
+[cards.hilton-honors-business.bonus]
+amount = 130000
+type = "points"
+spend_required = 6000
+time_months = 6
+expires = "2025-12-31"
+
+[cards.hilton-honors-business.benefits]
+gold_status = true
+free_night_certificate = true
+diamond_path = true
+
+# ============================================================
+# BEST WESTERN CARDS
+# ============================================================
+
+[cards.best-western-rewards]
+id = "best-western-rewards"
+name = "Best Western Rewards Mastercard"
+network = "Mastercard"
+annual_fee = 89
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+
+[cards.best-western-rewards.rewards]
+best_western = 5
+gas = 3
+groceries = 3
+dining = 2
+everything_else = 1
+
+[cards.best-western-rewards.bonus]
+amount = 60000
+type = "points"
+spend_required = 2500
+time_months = 3
+expires = "2025-12-31"
+
+[cards.best-western-rewards.benefits]
+platinum_status = true

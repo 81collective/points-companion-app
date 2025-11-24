@@ -1,0 +1,438 @@
+# Business Credit Cards - All Issuers
+# Cards designed for business spending with higher limits and business-specific rewards
+# Last updated: 2025-11-24
+
+[meta]
+issuer = "Various"
+issuer_code = "business"
+last_updated = "2025-11-24"
+currency = "Various"
+point_value_cents = 1.0
+
+# ============================================================
+# CHASE BUSINESS CARDS
+# ============================================================
+
+[cards.chase-ink-preferred]
+id = "chase-ink-preferred"
+name = "Chase Ink Business Preferred Credit Card"
+nickname = "CIP"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+business = true
+
+[cards.chase-ink-preferred.rewards]
+travel = 3
+shipping = 3
+internet = 3
+phone = 3
+advertising = 3
+everything_else = 1
+
+[cards.chase-ink-preferred.bonus]
+amount = 100000
+type = "points"
+spend_required = 8000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.chase-ink-unlimited]
+id = "chase-ink-unlimited"
+name = "Chase Ink Business Unlimited Credit Card"
+nickname = "CIU"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+business = true
+
+[cards.chase-ink-unlimited.rewards]
+everything_else = 1.5
+
+[cards.chase-ink-unlimited.bonus]
+amount = 90000
+type = "points"
+spend_required = 6000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.chase-ink-cash]
+id = "chase-ink-cash"
+name = "Chase Ink Business Cash Credit Card"
+nickname = "CIC"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+business = true
+
+[cards.chase-ink-cash.rewards]
+office_supplies = 5
+internet = 5
+phone = 5
+gas = 2
+dining = 2
+everything_else = 1
+
+[cards.chase-ink-cash.rewards_caps]
+office_supplies = { annual_limit = 25000, then_rate = 1 }
+
+[cards.chase-ink-cash.bonus]
+amount = 90000
+type = "points"
+spend_required = 6000
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# AMERICAN EXPRESS BUSINESS CARDS
+# ============================================================
+
+[cards.amex-business-platinum]
+id = "amex-business-platinum"
+name = "The Business Platinum Card from American Express"
+nickname = "Biz Plat"
+network = "Amex"
+annual_fee = 695
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = true
+business = true
+card_type = "charge"
+
+[cards.amex-business-platinum.rewards]
+flights = 5
+hotels = 5
+shipping = 1.5
+everything_else = 1
+
+[cards.amex-business-platinum.bonus]
+amount = 150000
+type = "points"
+spend_required = 20000
+time_months = 3
+expires = "2025-12-31"
+
+[cards.amex-business-platinum.benefits]
+dell_credit_annual = 400
+indeed_credit_annual = 360
+adobe_credit_annual = 150
+wireless_credit_monthly = 10
+global_entry_credit = 100
+clear_credit = 189
+saks_credit_annual = 100
+
+# ---
+
+[cards.amex-business-gold]
+id = "amex-business-gold"
+name = "American Express Business Gold Card"
+nickname = "Biz Gold"
+network = "Amex"
+annual_fee = 375
+credit_required = "good"
+foreign_transaction_fee = false
+popular = true
+business = true
+
+[cards.amex-business-gold.rewards]
+flights = 4
+advertising = 4
+gas = 4
+shipping = 4
+technology = 4
+transit = 4
+dining = 4
+everything_else = 1
+
+[cards.amex-business-gold.rewards_caps]
+flights = { annual_limit = 150000 }
+advertising = { annual_limit = 150000 }
+
+[cards.amex-business-gold.bonus]
+amount = 100000
+type = "points"
+spend_required = 15000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.amex-blue-business-plus]
+id = "amex-blue-business-plus"
+name = "Blue Business Plus Credit Card from American Express"
+nickname = "BBP"
+network = "Amex"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = true
+business = true
+
+[cards.amex-blue-business-plus.rewards]
+everything_else = 2
+
+[cards.amex-blue-business-plus.rewards_caps]
+everything_else = { annual_limit = 50000, then_rate = 1 }
+
+[cards.amex-blue-business-plus.bonus]
+amount = 15000
+type = "points"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.amex-blue-business-cash]
+id = "amex-blue-business-cash"
+name = "Blue Business Cash Card from American Express"
+nickname = "BBC"
+network = "Amex"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+business = true
+
+[cards.amex-blue-business-cash.rewards]
+everything_else = 2
+
+[cards.amex-blue-business-cash.rewards_caps]
+everything_else = { annual_limit = 50000, then_rate = 1 }
+
+# ============================================================
+# CAPITAL ONE BUSINESS CARDS
+# ============================================================
+
+[cards.capital-one-spark-cash-plus]
+id = "capital-one-spark-cash-plus"
+name = "Capital One Spark Cash Plus"
+nickname = "Spark Cash Plus"
+network = "Visa"
+annual_fee = 150
+credit_required = "excellent"
+foreign_transaction_fee = false
+popular = true
+business = true
+card_type = "charge"
+
+[cards.capital-one-spark-cash-plus.rewards]
+everything_else = 2
+
+[cards.capital-one-spark-cash-plus.bonus]
+amount = 1200
+type = "cash"
+spend_required = 30000
+time_months = 3
+expires = "2025-12-31"
+description = "$1,200 cash bonus"
+
+# ---
+
+[cards.capital-one-spark-miles]
+id = "capital-one-spark-miles"
+name = "Capital One Spark Miles for Business"
+nickname = "Spark Miles"
+network = "Visa"
+annual_fee = 95
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+business = true
+
+[cards.capital-one-spark-miles.rewards]
+everything_else = 2
+
+[cards.capital-one-spark-miles.bonus]
+amount = 50000
+type = "miles"
+spend_required = 4500
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# CITI BUSINESS CARDS
+# ============================================================
+
+[cards.citi-costco-anywhere-business]
+id = "citi-costco-anywhere-business"
+name = "Costco Anywhere Visa Business Card by Citi"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+business = true
+requires_membership = "Costco Executive"
+
+[cards.citi-costco-anywhere-business.rewards]
+gas = 4
+dining = 3
+travel = 3
+costco = 2
+everything_else = 1
+
+[cards.citi-costco-anywhere-business.rewards_caps]
+gas = { annual_limit = 7000, then_rate = 1 }
+
+# ============================================================
+# US BANK BUSINESS CARDS
+# ============================================================
+
+[cards.usbank-business-triple-cash]
+id = "usbank-business-triple-cash"
+name = "U.S. Bank Business Triple Cash Rewards"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+business = true
+
+[cards.usbank-business-triple-cash.rewards]
+gas = 3
+office_supplies = 3
+phone = 3
+dining = 3
+everything_else = 1
+
+[cards.usbank-business-triple-cash.bonus]
+amount = 500
+type = "cash"
+spend_required = 4500
+time_months = 5
+expires = "2025-12-31"
+
+# ---
+
+[cards.usbank-business-leverage]
+id = "usbank-business-leverage"
+name = "U.S. Bank Business Leverage Visa Signature Card"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+business = true
+
+[cards.usbank-business-leverage.rewards]
+airlines = 2
+hotels = 2
+phone = 2
+office_supplies = 2
+gas = 2
+everything_else = 1
+
+[cards.usbank-business-leverage.bonus]
+amount = 750
+type = "cash"
+spend_required = 7500
+time_months = 4
+expires = "2025-12-31"
+
+# ============================================================
+# BANK OF AMERICA BUSINESS CARDS
+# ============================================================
+
+[cards.bofa-business-advantage-customized]
+id = "bofa-business-advantage-customized"
+name = "Bank of America Business Advantage Customized Cash Rewards"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+business = true
+
+[cards.bofa-business-advantage-customized.rewards]
+choice_category = 3  # Choose from gas, office supplies, travel, etc.
+dining = 2
+everything_else = 1
+
+[cards.bofa-business-advantage-customized.bonus]
+amount = 300
+type = "cash"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+# ---
+
+[cards.bofa-business-advantage-unlimited]
+id = "bofa-business-advantage-unlimited"
+name = "Bank of America Business Advantage Unlimited Cash Rewards"
+network = "Mastercard"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+business = true
+
+[cards.bofa-business-advantage-unlimited.rewards]
+everything_else = 1.5
+
+[cards.bofa-business-advantage-unlimited.bonus]
+amount = 300
+type = "cash"
+spend_required = 3000
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# WELLS FARGO BUSINESS CARDS
+# ============================================================
+
+[cards.wells-fargo-signify-business]
+id = "wells-fargo-signify-business"
+name = "Wells Fargo Signify Business Cash Card"
+network = "Visa"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = true
+popular = false
+business = true
+
+[cards.wells-fargo-signify-business.rewards]
+everything_else = 2
+
+[cards.wells-fargo-signify-business.rewards_caps]
+everything_else = { quarterly_limit = 25000, then_rate = 1 }
+
+[cards.wells-fargo-signify-business.bonus]
+amount = 500
+type = "cash"
+spend_required = 5000
+time_months = 3
+expires = "2025-12-31"
+
+# ============================================================
+# DISCOVER BUSINESS CARDS
+# ============================================================
+
+[cards.discover-it-business]
+id = "discover-it-business"
+name = "Discover it Business Card"
+network = "Discover"
+annual_fee = 0
+credit_required = "good"
+foreign_transaction_fee = false
+popular = false
+business = true
+
+[cards.discover-it-business.rewards]
+gas = 2
+dining = 2
+everything_else = 1.5
+
+[cards.discover-it-business.benefits]
+cashback_match = true  # Discover matches all cash back first year
