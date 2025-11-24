@@ -2,6 +2,7 @@
 // Provides 80%+ test coverage with performance monitoring
 
 module.exports = {
+  preset: 'ts-jest',
   // Test environment
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/test/setupTests.ts'],
@@ -29,7 +30,8 @@ module.exports = {
 
   // Transform files
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.jest.config.cjs' }],
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(js|jsx)$': ['babel-jest', { configFile: './babel.jest.config.cjs' }],
     '^.+\\.(css|scss|sass)$': 'jest-transform-stub',
     '\\.(jpg|jpeg|png|gif|svg|ico|webp)$': 'jest-transform-stub',
   },
