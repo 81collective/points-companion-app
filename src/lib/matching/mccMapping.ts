@@ -64,8 +64,8 @@ export const MCC_CATEGORY_MAP: Record<string, RewardCategory> = {
   '5251': RewardCategory.HomeImprovement, // Hardware Stores
   '5261': RewardCategory.HomeImprovement, // Lawn/Garden Supply
   
-  // Wholesale Clubs
-  '5300': RewardCategory.Wholesale,
+  // Wholesale Clubs (5300 is Supermarkets - using 5309 for warehouse clubs)
+  '5309': RewardCategory.Wholesale, // General Wholesale
   '5310': RewardCategory.Wholesale, // Discount Stores
   '5399': RewardCategory.Wholesale, // Misc General Merchandise
   
@@ -127,9 +127,9 @@ export const MCC_CATEGORY_MAP: Record<string, RewardCategory> = {
   '5960': RewardCategory.Insurance, // Direct Marketing Insurance
   '6300': RewardCategory.Insurance, // Insurance
   
-  // Fitness/Health
-  '7941': RewardCategory.Fitness, // Athletic Fields/Sports Clubs
-  '7997': RewardCategory.Fitness, // Membership Clubs
+  // Fitness/Health (7941, 7997 are Entertainment - don't duplicate)
+  '7298': RewardCategory.Fitness, // Health and Beauty Spas
+  '7299': RewardCategory.Fitness, // Miscellaneous Recreation
   '8011': RewardCategory.Healthcare, // Doctors
   '8021': RewardCategory.Healthcare, // Dentists
   '8031': RewardCategory.Healthcare, // Chiropractors
@@ -141,8 +141,7 @@ export const MCC_CATEGORY_MAP: Record<string, RewardCategory> = {
   '8071': RewardCategory.Healthcare, // Medical Labs
   '8099': RewardCategory.Healthcare, // Medical Services
   
-  // Department Stores
-  '5311': RewardCategory.Department_stores,
+  // Department Stores (5311 is defined above)
   '5611': RewardCategory.Department_stores, // Men's Clothing
   '5621': RewardCategory.Department_stores, // Women's Clothing
   '5631': RewardCategory.Department_stores, // Women's Accessories

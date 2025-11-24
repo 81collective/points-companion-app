@@ -235,12 +235,12 @@ async function generateRecommendations({ category, businessId, businessName, lat
           } else {
             console.log('❌ No Marriott reward found on', card.name);
           }
-        } else if (businessName.includes('hilton') || businessName.includes('hampton inn') || 
-                   businessName.includes('doubletree') || businessName.includes('embassy suites') ||
-                   businessName.includes('homewood suites') || businessName.includes('home2 suites') ||
-                   businessName.includes('waldorf astoria') || businessName.includes('conrad') ||
-                   businessName.includes('canopy') || businessName.includes('curio')) {
-          console.log('🎯 HILTON BRAND DETECTED! Business:', businessName);
+        } else if (legacyBusinessName.includes('hilton') || legacyBusinessName.includes('hampton inn') || 
+                   legacyBusinessName.includes('doubletree') || legacyBusinessName.includes('embassy suites') ||
+                   legacyBusinessName.includes('homewood suites') || legacyBusinessName.includes('home2 suites') ||
+                   legacyBusinessName.includes('waldorf astoria') || legacyBusinessName.includes('conrad') ||
+                   legacyBusinessName.includes('canopy') || legacyBusinessName.includes('curio')) {
+          console.log('🎯 HILTON BRAND DETECTED! Business:', legacyBusinessName);
           const hiltonReward = card.rewards.find(r => r.category === RewardCategory.Hilton);
           if (hiltonReward) {
             console.log('✅ Found Hilton reward on', card.name, '- multiplier:', hiltonReward.multiplier);
@@ -251,11 +251,11 @@ async function generateRecommendations({ category, businessId, businessName, lat
           } else {
             console.log('❌ No Hilton reward found on', card.name);
           }
-        } else if (businessName.includes('hyatt') || businessName.includes('grand hyatt') ||
-                   businessName.includes('park hyatt') || businessName.includes('andaz') ||
-                   businessName.includes('hyatt house') || businessName.includes('hyatt place') ||
-                   businessName.includes('alila') || businessName.includes('destination hotels')) {
-          console.log('🎯 HYATT BRAND DETECTED! Business:', businessName);
+        } else if (legacyBusinessName.includes('hyatt') || legacyBusinessName.includes('grand hyatt') ||
+                   legacyBusinessName.includes('park hyatt') || legacyBusinessName.includes('andaz') ||
+                   legacyBusinessName.includes('hyatt house') || legacyBusinessName.includes('hyatt place') ||
+                   legacyBusinessName.includes('alila') || legacyBusinessName.includes('destination hotels')) {
+          console.log('🎯 HYATT BRAND DETECTED! Business:', legacyBusinessName);
           const hyattReward = card.rewards.find(r => r.category === RewardCategory.Hyatt);
           if (hyattReward) {
             rewardMultiplier = hyattReward.multiplier;
@@ -263,12 +263,12 @@ async function generateRecommendations({ category, businessId, businessName, lat
             hotelBrandBonus = 50;
             reasons.push(`Perfect for ${business.name} - Hyatt brand card`);
           }
-        } else if (businessName.includes('ihg') || businessName.includes('holiday inn') || 
-                   businessName.includes('intercontinental') || businessName.includes('crowne plaza') ||
-                   businessName.includes('hotel indigo') || businessName.includes('even hotels') ||
-                   businessName.includes('staybridge suites') || businessName.includes('candlewood suites') ||
-                   businessName.includes('avid hotels') || businessName.includes('atwell suites')) {
-          console.log('🎯 IHG BRAND DETECTED! Business:', businessName);
+        } else if (legacyBusinessName.includes('ihg') || legacyBusinessName.includes('holiday inn') || 
+                   legacyBusinessName.includes('intercontinental') || legacyBusinessName.includes('crowne plaza') ||
+                   legacyBusinessName.includes('hotel indigo') || legacyBusinessName.includes('even hotels') ||
+                   legacyBusinessName.includes('staybridge suites') || legacyBusinessName.includes('candlewood suites') ||
+                   legacyBusinessName.includes('avid hotels') || legacyBusinessName.includes('atwell suites')) {
+          console.log('🎯 IHG BRAND DETECTED! Business:', legacyBusinessName);
           const ihgReward = card.rewards.find(r => r.category === RewardCategory.IHG);
           if (ihgReward) {
             rewardMultiplier = ihgReward.multiplier;
@@ -276,12 +276,12 @@ async function generateRecommendations({ category, businessId, businessName, lat
             hotelBrandBonus = 50;
             reasons.push(`Perfect for ${business.name} - IHG brand card`);
           }
-        } else if (businessName.includes('wyndham') || businessName.includes('ramada') || 
-                   businessName.includes('days inn') || businessName.includes('super 8') ||
-                   businessName.includes('howard johnson') || businessName.includes('travelodge') ||
-                   businessName.includes('wingate') || businessName.includes('baymont') ||
-                   businessName.includes('microtel') || businessName.includes('la quinta')) {
-          console.log('🎯 WYNDHAM BRAND DETECTED! Business:', businessName);
+        } else if (legacyBusinessName.includes('wyndham') || legacyBusinessName.includes('ramada') || 
+                   legacyBusinessName.includes('days inn') || legacyBusinessName.includes('super 8') ||
+                   legacyBusinessName.includes('howard johnson') || legacyBusinessName.includes('travelodge') ||
+                   legacyBusinessName.includes('wingate') || legacyBusinessName.includes('baymont') ||
+                   legacyBusinessName.includes('microtel') || legacyBusinessName.includes('la quinta')) {
+          console.log('🎯 WYNDHAM BRAND DETECTED! Business:', legacyBusinessName);
           const wyndhamReward = card.rewards.find(r => r.category === RewardCategory.Wyndham);
           if (wyndhamReward) {
             rewardMultiplier = wyndhamReward.multiplier;
@@ -289,12 +289,12 @@ async function generateRecommendations({ category, businessId, businessName, lat
             hotelBrandBonus = 50;
             reasons.push(`Perfect for ${business.name} - Wyndham brand card`);
           }
-        } else if (businessName.includes('choice') || businessName.includes('comfort inn') || 
-                   businessName.includes('quality inn') || businessName.includes('clarion') ||
-                   businessName.includes('sleep inn') || businessName.includes('mainstay suites') ||
-                   businessName.includes('suburban') || businessName.includes('econo lodge') ||
-                   businessName.includes('rodeway inn') || businessName.includes('ascend')) {
-          console.log('🎯 CHOICE BRAND DETECTED! Business:', businessName);
+        } else if (legacyBusinessName.includes('choice') || legacyBusinessName.includes('comfort inn') || 
+                   legacyBusinessName.includes('quality inn') || legacyBusinessName.includes('clarion') ||
+                   legacyBusinessName.includes('sleep inn') || legacyBusinessName.includes('mainstay suites') ||
+                   legacyBusinessName.includes('suburban') || legacyBusinessName.includes('econo lodge') ||
+                   legacyBusinessName.includes('rodeway inn') || legacyBusinessName.includes('ascend')) {
+          console.log('🎯 CHOICE BRAND DETECTED! Business:', legacyBusinessName);
           const choiceReward = card.rewards.find(r => r.category === RewardCategory.Choice);
           if (choiceReward) {
             rewardMultiplier = choiceReward.multiplier;
@@ -305,42 +305,42 @@ async function generateRecommendations({ category, businessId, businessName, lat
         }
 
         // Detect airline brands and check for matching cards
-        if (businessName.includes('united airlines') || businessName.includes('united') && businessName.includes('airline')) {
+        if (legacyBusinessName.includes('united airlines') || legacyBusinessName.includes('united') && legacyBusinessName.includes('airline')) {
           const unitedReward = card.rewards.find(r => r.category === RewardCategory.United);
           if (unitedReward) {
             rewardMultiplier = unitedReward.multiplier;
             rewardCategory = RewardCategory.United;
             airlineBrandBonus = 30; // Major bonus for brand match
           }
-        } else if (businessName.includes('delta') || businessName.includes('delta air lines')) {
+        } else if (legacyBusinessName.includes('delta') || legacyBusinessName.includes('delta air lines')) {
           const deltaReward = card.rewards.find(r => r.category === RewardCategory.Delta);
           if (deltaReward) {
             rewardMultiplier = deltaReward.multiplier;
             rewardCategory = RewardCategory.Delta;
             airlineBrandBonus = 30;
           }
-        } else if (businessName.includes('american airlines') || (businessName.includes('american') && businessName.includes('airline'))) {
+        } else if (legacyBusinessName.includes('american airlines') || (legacyBusinessName.includes('american') && legacyBusinessName.includes('airline'))) {
           const americanReward = card.rewards.find(r => r.category === RewardCategory.American);
           if (americanReward) {
             rewardMultiplier = americanReward.multiplier;
             rewardCategory = RewardCategory.American;
             airlineBrandBonus = 30;
           }
-        } else if (businessName.includes('southwest') || businessName.includes('southwest airlines')) {
+        } else if (legacyBusinessName.includes('southwest') || legacyBusinessName.includes('southwest airlines')) {
           const southwestReward = card.rewards.find(r => r.category === RewardCategory.Southwest);
           if (southwestReward) {
             rewardMultiplier = southwestReward.multiplier;
             rewardCategory = RewardCategory.Southwest;
             airlineBrandBonus = 30;
           }
-        } else if (businessName.includes('jetblue') || businessName.includes('jet blue')) {
+        } else if (legacyBusinessName.includes('jetblue') || legacyBusinessName.includes('jet blue')) {
           const jetblueReward = card.rewards.find(r => r.category === RewardCategory.JetBlue);
           if (jetblueReward) {
             rewardMultiplier = jetblueReward.multiplier;
             rewardCategory = RewardCategory.JetBlue;
             airlineBrandBonus = 30;
           }
-        } else if (businessName.includes('alaska airlines') || (businessName.includes('alaska') && businessName.includes('airline'))) {
+        } else if (legacyBusinessName.includes('alaska airlines') || (legacyBusinessName.includes('alaska') && legacyBusinessName.includes('airline'))) {
           const alaskaReward = card.rewards.find(r => r.category === RewardCategory.Alaska);
           if (alaskaReward) {
             rewardMultiplier = alaskaReward.multiplier;
