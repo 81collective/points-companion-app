@@ -89,7 +89,7 @@ jobs:
       - name: Run Playwright tests
         run: npm run test:e2e
       - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: playwright-report
@@ -128,7 +128,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         run: npm run bundle:analyze
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-files
           path: .next/
