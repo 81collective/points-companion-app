@@ -1,5 +1,8 @@
 // Enhanced analytics hook with advanced calculations
 import { useState, useEffect, useCallback } from 'react';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useEnhancedAnalytics' });
 
 export interface Transaction {
   id: string;
@@ -321,7 +324,7 @@ export function useEnhancedAnalytics(timeRange: string = '12m') {
       setAnalytics(enhancedAnalytics);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch analytics');
-      console.error('Error fetching analytics:', err);
+      log.error('Error fetching analytics', { error: err });
     } finally {
       setLoading(false);
     }

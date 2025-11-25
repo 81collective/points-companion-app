@@ -1,4 +1,7 @@
 import { CreditCardTemplate, CardIssuer, RewardCategory } from '@/types/creditCards';
+import logger from '@/lib/logger';
+
+const log = logger.child({ component: 'card-data-updater' });
 
 /**
  * Service to fetch and update credit card data from various sources
@@ -39,7 +42,7 @@ export class CardDataUpdater {
 
       return cards;
     } catch (error) {
-      console.error('Error fetching card data:', error);
+      log.error('Error fetching card data', { error });
       return [];
     }
   }
@@ -321,12 +324,12 @@ export class CardDataUpdater {
       // 4. Mark discontinued cards
       // 5. Update the database file or API
 
-      console.log(`Fetched ${latestCards.length} latest credit cards`);
+      log.info('Fetched latest credit cards', { count: latestCards.length });
       
       // For now, we'll update the static file
       await this.writeToDatabase(latestCards);
     } catch (error) {
-      console.error('Error updating card database:', error);
+      log.error('Error updating card database', { error });
     }
   }
 
@@ -336,7 +339,7 @@ export class CardDataUpdater {
   private static async writeToDatabase(cards: CreditCardTemplate[]): Promise<void> {
     // This would write to your database file or API
     // For demo purposes, we'll just log the structure
-    console.log('Updated card database with latest data:', cards.length, 'cards');
+    log.info('Updated card database', { cardCount: cards.length });
   }
 
   /**

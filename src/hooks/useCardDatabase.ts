@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
+import { clientLogger } from '@/lib/clientLogger'
+
+const log = clientLogger.child({ component: 'useCardDatabase' })
 
 export interface CardReward {
   category: string
@@ -93,7 +96,7 @@ export function useCardDatabase(
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load cards'
       setError(message)
-      console.error('[useCardDatabase] Error:', err)
+      log.error('Error loading cards', { error: err })
     } finally {
       setLoading(false)
     }
@@ -106,7 +109,7 @@ export function useCardDatabase(
       const data = await response.json()
       return data.cards || []
     } catch (err) {
-      console.error('[useCardDatabase] Search error:', err)
+      log.error('Search error', { error: err })
       return []
     }
   }, [])
@@ -118,7 +121,7 @@ export function useCardDatabase(
       const data = await response.json()
       return data.card || null
     } catch (err) {
-      console.error('[useCardDatabase] Get by ID error:', err)
+      log.error('Get by ID error', { error: err })
       return null
     }
   }, [])
@@ -130,7 +133,7 @@ export function useCardDatabase(
       const data = await response.json()
       return data.cards || []
     } catch (err) {
-      console.error('[useCardDatabase] Get with offers error:', err)
+      log.error('Get with offers error', { error: err })
       return []
     }
   }, [])
@@ -142,7 +145,7 @@ export function useCardDatabase(
       const data = await response.json()
       return data.cards || []
     } catch (err) {
-      console.error('[useCardDatabase] Get popular error:', err)
+      log.error('Get popular error', { error: err })
       return []
     }
   }, [])
@@ -154,7 +157,7 @@ export function useCardDatabase(
       const data = await response.json()
       return data.cards || []
     } catch (err) {
-      console.error('[useCardDatabase] Get by issuer error:', err)
+      log.error('Get by issuer error', { error: err })
       return []
     }
   }, [])
@@ -166,7 +169,7 @@ export function useCardDatabase(
       const data = await response.json()
       return data.cards || []
     } catch (err) {
-      console.error('[useCardDatabase] Get by category error:', err)
+      log.error('Get by category error', { error: err })
       return []
     }
   }, [])

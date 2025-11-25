@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchRecommendations as fetchRecommendationsFromApi } from '@/services/cardService';
 import { CardRecommendation } from '@/types/location.types';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useCardRecommendations' });
 
 interface UseCardRecommendationsParams {
   category: string;
@@ -28,7 +31,7 @@ export function useCardRecommendations({
   const query = useQuery<CardRecommendationsResult, Error>({
     queryKey: ['cardRecommendations', category, latitude, longitude, businessId, businessName],
     queryFn: async () => {
-      console.log('🎯 useCardRecommendations API call:', { 
+      log.debug('API call', { 
         category, 
         businessId, 
         businessName, 
@@ -36,7 +39,6 @@ export function useCardRecommendations({
         longitude,
         enabled 
       });
-      console.log('🎯 businessName type:', typeof businessName, 'value:', businessName);
       return await fetchRecommendationsFromApi(category, latitude, longitude, businessId, businessName);
     },
     enabled: enabled,

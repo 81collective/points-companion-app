@@ -3,6 +3,9 @@
 import { useCallback, useEffect } from 'react';
 import { useLocationStore } from '@/stores/useLocationStore';
 import { Location } from '@/types/location.types';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useLocation' });
 
 export function useLocation() {
   const { 
@@ -53,7 +56,7 @@ export function useLocation() {
           }
         } catch (permErr: unknown) {
           // Ignore permission API errors; we'll proceed to geolocation call
-          console.warn('Permissions API not available or failed:', permErr);
+          log.warn('Permissions API not available or failed', { error: permErr });
         }
       }
 
@@ -88,7 +91,7 @@ export function useLocation() {
                 break;
             }
           }
-          console.error('Geolocation error:', { code: anyErr.code, message });
+          log.error('Geolocation error', { code: anyErr.code, message });
           setPermissionState({ granted: false, denied: true });
           setError(message);
           setLoading(false);
@@ -100,7 +103,7 @@ export function useLocation() {
         }
       );
     } catch (err: unknown) {
-      console.error('Error requesting location permission:', err);
+      log.error('Error requesting location permission', { error: err });
       setPermissionState({ granted: false, denied: true });
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
@@ -129,7 +132,7 @@ export function useLocation() {
         permissionStatus.onchange = () => handlePermissionChange(permissionStatus);
       })
       .catch((e: unknown) => {
-        console.warn('Permissions API query failed:', e);
+        log.warn('Permissions API query failed', { error: e });
       });
 
     return () => {

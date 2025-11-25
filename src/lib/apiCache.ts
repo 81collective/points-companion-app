@@ -1,4 +1,8 @@
 // Advanced Redis-like in-memory cache with LRU eviction, persistence, and advanced features
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'api-cache' });
+
 interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
@@ -323,7 +327,7 @@ class AdvancedAPICache {
         timestamp: Date.now()
       }));
     } catch (error) {
-      console.warn('Failed to persist cache:', error);
+      log.warn('Failed to persist cache', { error });
     }
   }
 
@@ -358,7 +362,7 @@ class AdvancedAPICache {
         console.debug(`Loaded ${this.stats.itemCount} persisted cache entries`);
       }
     } catch (error) {
-      console.warn('Failed to load persisted cache:', error);
+      log.warn('Failed to load persisted cache', { error });
       localStorage.removeItem(this.config.persistenceKey);
     }
   }

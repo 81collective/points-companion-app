@@ -11,6 +11,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import TOML from 'toml';
 import type { CreditCardTemplate, RewardStructure, CardIssuer, RewardCategory } from '@/types/creditCards';
+import logger from '@/lib/logger';
+
+const log = logger.child({ component: 'toml-card-loader' });
 
 // ============================================================
 // TYPES
@@ -259,7 +262,7 @@ function loadTOMLFile<T>(filePath: string): T | null {
     const content = fs.readFileSync(filePath, 'utf-8');
     return TOML.parse(content) as T;
   } catch (error) {
-    console.error(`Error loading TOML file ${filePath}:`, error);
+    log.error('Error loading TOML file', { filePath, error });
     return null;
   }
 }
@@ -286,7 +289,7 @@ function convertRewards(
   for (const [category, multiplier] of Object.entries(rewards)) {
     const rewardCategory = TOML_TO_REWARD_CATEGORY[category];
     if (!rewardCategory) {
-      console.warn(`Unknown reward category: ${category}`);
+      log.warn('Unknown reward category', { category });
       continue;
     }
     
@@ -408,7 +411,7 @@ export function loadAllCards(configDir: string = path.join(process.cwd(), 'confi
       }
     }
   } catch (error) {
-    console.error('Error loading card files:', error);
+    log.error('Error loading card files', { error });
   }
   
   return cards;

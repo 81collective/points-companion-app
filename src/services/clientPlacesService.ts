@@ -1,6 +1,10 @@
 // Client-side Google Places service that respects referer restrictions
 // Removed unused Business import
 
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'client-places-service' });
+
 interface PlaceSearchResult {
   id: string;
   name: string;
@@ -76,11 +80,11 @@ class ClientPlacesService {
           };
         });
       } else {
-        console.warn('Place API search failed:', response);
+        log.warn('Place API search failed', { response });
         return [];
       }
     } catch (err) {
-      console.warn('Place API error:', err);
+      log.warn('Place API error', { error: err });
       return [];
     }
   }
@@ -107,7 +111,7 @@ class ClientPlacesService {
     radius: number = 2000, 
     category?: string | null
   ): Promise<PlaceSearchResult[]> {
-    console.log('searchNearbyWithFallback called:', { lat, lng, radius, category });
+    log.debug('searchNearbyWithFallback called', { lat, lng, radius, category });
     
     try {
       // First, try our server API (which may return use_client_places flag)
@@ -116,7 +120,7 @@ class ClientPlacesService {
       
       // If server indicates to use client-side Places API
       if (serverData.use_client_places && serverData.client_api_available) {
-        console.log('Server requested client-side Google Places fetch');
+        log.debug('Server requested client-side Google Places fetch');
         
         // Use client-side Google Places as fallback
         const clientPlaces = await this.searchNearby(lat, lng, category || 'restaurant', radius);
@@ -130,7 +134,7 @@ class ClientPlacesService {
         // Remove duplicates by place_id or coordinates
         const uniqueResults = this.deduplicateResults(combinedResults);
         
-        console.log('Combined results:', {
+        log.debug('Combined results', {
           serverCount: serverData.businesses?.length || 0,
           clientCount: clientPlaces.length,
           finalCount: uniqueResults.length
@@ -143,13 +147,13 @@ class ClientPlacesService {
       return serverData.businesses || [];
       
     } catch (error) {
-      console.error('Error in searchNearbyWithFallback:', error);
+      log.error('Error in searchNearbyWithFallback', { error });
       
       // Last resort: try direct client-side Google Places
       try {
         return await this.searchNearby(lat, lng, category || 'restaurant', radius);
       } catch (clientError) {
-        console.error('Client-side fallback also failed:', clientError);
+        log.error('Client-side fallback also failed', { error: clientError });
         return [];
       }
     }

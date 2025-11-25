@@ -1,6 +1,10 @@
 // Advanced data encryption and protection utilities
 'use client';
 
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'data-protection' });
+
 class DataProtection {
   private static instance: DataProtection;
   private encryptionKey: string | null = null;
@@ -25,7 +29,7 @@ class DataProtection {
         const exported = await window.crypto.subtle.exportKey('jwk', key);
         this.encryptionKey = JSON.stringify(exported);
       } catch (error) {
-        console.warn('Failed to initialize encryption:', error);
+        log.warn('Failed to initialize encryption', { error });
         // Fallback to a basic encoding for demo purposes
         this.encryptionKey = 'fallback_key_' + Date.now();
       }
@@ -65,7 +69,7 @@ class DataProtection {
 
         return btoa(String.fromCharCode(...combined));
       } catch (error) {
-        console.warn('Encryption failed, using fallback:', error);
+        log.warn('Encryption failed, using fallback', { error });
       }
     }
 
@@ -105,7 +109,7 @@ class DataProtection {
 
         return new TextDecoder().decode(decrypted);
       } catch (error) {
-        console.warn('Decryption failed, using fallback:', error);
+        log.warn('Decryption failed, using fallback', { error });
       }
     }
 
@@ -176,7 +180,7 @@ class DataProtection {
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       } catch (error) {
-        console.warn('Hashing failed:', error);
+        log.warn('Hashing failed', { error });
       }
     }
     

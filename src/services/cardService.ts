@@ -1,4 +1,7 @@
 import { CardRecommendation } from '@/types/location.types';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'card-service' });
 
 interface ApiResponse<T> {
   success: boolean;
@@ -27,8 +30,7 @@ export async function fetchRecommendations(
     }
 
     const url = `/api/cards/recommendations?${params}`;
-    console.log('🌐 Calling recommendations API:', url);
-    console.log('🌐 Parameters:', { category, lat, lng, businessId, businessName });
+    log.debug('Calling recommendations API', { url, category, lat, lng, businessId, businessName });
 
     const response = await fetch(url);
     
@@ -44,7 +46,7 @@ export async function fetchRecommendations(
       return { success: false, error: data.error || 'Failed to fetch recommendations' };
     }
   } catch (err) {
-    console.error('Failed to fetch recommendations:', err);
+    log.error('Failed to fetch recommendations', { error: err });
     return { success: false, error: err instanceof Error ? err.message : 'An unknown error occurred' };
   }
 }

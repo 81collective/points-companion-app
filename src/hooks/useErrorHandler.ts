@@ -4,6 +4,9 @@
 import { useCallback } from 'react';
 import { useError } from '@/contexts/ErrorContext';
 import { withRetry, RetryOptions } from '@/lib/errorHandling';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useErrorHandler' });
 
 export interface UseErrorHandlerOptions {
   context?: string;
@@ -43,7 +46,7 @@ export function useErrorHandler(defaultOptions: UseErrorHandlerOptions = {}) {
         showError(`${context} Failed`, errorMessage);
       }
       
-  console.error(`[${context}] Operation failed:`, _error);
+      log.error('Operation failed', { context, error: _error });
       
       if (fallbackValue !== undefined) {
         return fallbackValue;

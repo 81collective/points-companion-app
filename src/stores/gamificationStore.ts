@@ -14,6 +14,9 @@ import {
   ACHIEVEMENT_TEMPLATES,
   POINTS_CONFIG
 } from '@/types/gamification';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'gamification-store' });
 
 interface GamificationStore {
   // User State
@@ -96,7 +99,7 @@ export const useGamificationStore = create<GamificationStore>()(
             await get().updateStreak();
           }
         } catch (error) {
-          console.error('Failed to initialize gamification user:', error);
+          log.error('Failed to initialize gamification user', { error });
         } finally {
           set({ isLoading: false, lastUpdated: new Date().toISOString() });
         }
