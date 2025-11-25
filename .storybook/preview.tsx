@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/react';
+import type { Preview, Decorator } from '@storybook/react';
 import '../src/app/globals.css';
 
 const preview: Preview = {
@@ -60,7 +60,7 @@ const preview: Preview = {
     },
   },
   decorators: [
-    (Story, context) => {
+    ((Story, context) => {
       const theme = context.globals.theme;
       return (
         <div className={theme === 'dark' ? 'dark' : ''}>
@@ -69,7 +69,7 @@ const preview: Preview = {
           </div>
         </div>
       );
-    },
+    }) as Decorator,
   ],
 };
 
