@@ -1,6 +1,10 @@
 // Enhanced error handling utilities for API calls and async operations
 // src/lib/errorHandling.ts
 
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'error-handling' });
+
 export interface RetryOptions {
   maxAttempts?: number;
   baseDelay?: number;
@@ -131,12 +135,12 @@ export async function withErrorHandling<T>(
     const enhancedError = enhanceError(error as Error, context, metadata);
     
     // Log error
-    console.error(`[${context}] Operation failed:`, enhancedError);
+    log.error('Operation failed', { context, error: enhancedError });
 
     // Show toast notification if enabled
     if (showToast && typeof window !== 'undefined') {
       // This would be called from a component with access to useError hook
-      console.error('Error to be displayed:', enhancedError.message);
+      log.error('Error to be displayed', { message: enhancedError.message });
     }
 
     // Return fallback value if provided
@@ -188,7 +192,7 @@ export function createSafeAsync<T extends unknown[], R>(
     try {
       return await fn(...args);
     } catch (error) {
-      console.error(`[${context}] Safe operation failed:`, error);
+      log.error('Safe operation failed', { context, error });
       return fallbackValue;
     }
   };

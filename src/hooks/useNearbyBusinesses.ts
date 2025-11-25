@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchNearbyBusinesses as fetchNearbyBusinessesFromApi } from '@/services/locationService';
 import { getClientPlacesService } from '@/services/clientPlacesService';
 import { Business } from '@/types/location.types';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useNearbyBusinesses' });
 
 interface UseNearbyBusinessesParams {
   latitude?: number;
@@ -34,22 +37,22 @@ export function useNearbyBusinesses({
       try {
         // Use enhanced fallback service for production-safe results
         if (typeof window !== 'undefined' && window.google && window.google.maps) {
-          console.log('Using client-side Google Places with production fallback...');
+          log.debug('Using client-side Google Places with production fallback');
           const placesService = getClientPlacesService();
           const businesses = await placesService.searchNearbyWithFallback(latitude, longitude, radius, category);
           
           if (businesses.length > 0) {
-            console.log(`Found ${businesses.length} businesses via enhanced fallback`);
+            log.debug('Found businesses via enhanced fallback', { count: businesses.length });
             return { success: true, data: businesses };
           }
         }
 
         // Fallback to server-only API if client-side isn't available
-        console.log('Client-side not available, trying server-only API...');
+        log.debug('Client-side not available, trying server-only API');
         const serverResult = await fetchNearbyBusinessesFromApi(latitude, longitude, category, radius);
         
         if (serverResult.success && serverResult.data) {
-          console.log(`Found ${serverResult.data.length} businesses via server API`);
+          log.debug('Found businesses via server API', { count: serverResult.data.length });
           return serverResult;
         }
 
@@ -58,7 +61,7 @@ export function useNearbyBusinesses({
         
         
       } catch (error) {
-        console.error('Error in useNearbyBusinesses:', error);
+        log.error('Error in useNearbyBusinesses', { error });
         throw error;
       }
     },

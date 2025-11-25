@@ -6,6 +6,9 @@ import type { Business } from '@/types/location.types';
 import { fetchRecommendations } from '@/services/cardService';
 import prisma from '@/lib/prisma';
 import { advancedApiCache } from '@/lib/apiCache';
+import logger from '@/lib/logger';
+
+const log = logger.child({ component: 'graphql-resolvers' });
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   email: true,
@@ -198,7 +201,7 @@ export const resolvers = {
           totalCount
         };
       } catch (error) {
-        console.error('GraphQL nearbyBusinesses error:', error);
+        log.error('GraphQL nearbyBusinesses error', { error });
         throw new Error('Failed to fetch nearby businesses');
       }
     },
@@ -269,7 +272,7 @@ export const resolvers = {
 
         return filteredRecommendations;
       } catch (error) {
-        console.error('GraphQL cardRecommendations error:', error);
+        log.error('GraphQL cardRecommendations error', { error });
         throw new Error('Failed to fetch card recommendations');
       }
     },
@@ -345,7 +348,7 @@ export const resolvers = {
 
         return userProfile;
       } catch (error) {
-        console.error('GraphQL userProfile error:', error);
+        log.error('GraphQL userProfile error', { error });
         throw new Error('Failed to fetch user profile');
       }
     },
@@ -381,7 +384,7 @@ export const resolvers = {
           notes: null
         }));
       } catch (error) {
-        console.error('GraphQL userCards error:', error);
+        log.error('GraphQL userCards error', { error });
         return [];
       }
     },
@@ -447,7 +450,7 @@ export const resolvers = {
           message: 'User profile updated successfully'
         };
       } catch (error) {
-        console.error('GraphQL updateUserProfile error:', error);
+        log.error('GraphQL updateUserProfile error', { error });
         throw new Error('Failed to update user profile');
       }
     },
@@ -492,7 +495,7 @@ export const resolvers = {
           message: 'Card added to collection successfully'
         };
       } catch (error) {
-        console.error('GraphQL addUserCard error:', error);
+        log.error('GraphQL addUserCard error', { error });
         throw new Error('Failed to add card to collection');
       }
     }

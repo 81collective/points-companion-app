@@ -1,4 +1,7 @@
 import { NextWebVitalsMetric } from 'next/app';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'performance-monitor' });
 
 // Extend window interface for gtag
 declare global {
@@ -8,9 +11,9 @@ declare global {
 }
 
 export function reportWebVitals(metric: NextWebVitalsMetric) {
-  // Log to console in development
+  // Log in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('Web Vitals:', metric);
+    log.info('Web Vitals', { metric: metric.name, value: metric.value, id: metric.id });
   }
 
   // Send to analytics service
@@ -38,7 +41,7 @@ export function reportWebVitals(metric: NextWebVitalsMetric) {
         id: metric.id,
         timestamp: Date.now(),
       }),
-    }).catch(console.error);
+    }).catch((err) => log.error('Failed to send analytics', { error: String(err) }));
   }
 }
 
@@ -46,7 +49,7 @@ export function reportWebVitals(metric: NextWebVitalsMetric) {
 export const logBundleSize = () => {
   if (process.env.NODE_ENV === 'development') {
     // This will be logged during build
-    console.log('Bundle analysis available at: /analyze');
+    log.info('Bundle analysis available at: /analyze');
   }
 };
 

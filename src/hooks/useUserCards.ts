@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useUserCards' });
 
 export interface SimpleUserCard {
   id: string;
@@ -29,7 +32,7 @@ export function useUserCards() {
         if (!cancelled) setCards(data.cards || []);
       } catch (e) {
         if (!cancelled) setError('Failed to load your cards');
-        console.error('[useUserCards] fetch error', e);
+        log.error('Fetch error', { error: e });
       } finally {
         if (!cancelled) setLoading(false);
       }

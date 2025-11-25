@@ -3,6 +3,9 @@
 // Provides a single structured way to subscribe and clean up.
 // Using loose typing to avoid version mismatch issues with supabase-js realtime channel typings
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'realtime' });
 // Use loose channel typing to avoid version-specific overload mismatches
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RealtimeChannel = any;
@@ -70,7 +73,7 @@ export function createRealtimeChannel(supabase: SupabaseClient, options: Realtim
             if (payload) channel.track(payload);
   } catch (err) {
           // Fail silently; tracking is non-critical
-          console.warn('Presence track failed', err);
+          log.warn('Presence track failed', { error: String(err) });
         }
       }
       onSubscribed?.(channel);

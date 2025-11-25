@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'useServiceWorker' });
 
 interface ServiceWorkerState {
   isInstalled: boolean;
@@ -55,13 +58,13 @@ const useServiceWorker = () => {
       // Listen for messages from service worker
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data.type === 'BACKGROUND_SYNC_COMPLETE') {
-          console.log('Background sync completed');
+          log.debug('Background sync completed');
         }
       });
 
-      console.log('Service Worker registered successfully');
+      log.info('Service Worker registered successfully');
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      log.error('Service Worker registration failed', { error });
     }
   };
 

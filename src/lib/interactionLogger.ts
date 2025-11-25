@@ -1,3 +1,7 @@
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'interaction-logger' });
+
 interface InteractionEventBase {
   type: string
   label?: string
@@ -23,11 +27,11 @@ export async function logInteraction(event: InteractionEventBase) {
     })
 
     if (!res.ok) {
-      console.warn('[interactionLogger] insert failed, falling back to localStorage', await res.text())
+      log.warn('Insert failed, falling back to localStorage', { response: await res.text() });
       fallbackToLocal(payload)
     }
   } catch (err) {
-    console.warn('[interactionLogger] unexpected failure', err)
+    log.warn('Unexpected failure', { error: err });
     fallbackToLocal({ ...event, created_at: new Date().toISOString() })
   }
 }
@@ -67,6 +71,6 @@ export async function flushPendingInteractions() {
     })
     if (res.ok) localStorage.removeItem(key)
   } catch (err) {
-    console.warn('[interactionLogger] flush failed', err)
+    log.warn('Flush failed', { error: err });
   }
 }

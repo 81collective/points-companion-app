@@ -3,6 +3,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'security' });
 
 interface SecurityEvent {
   id: string;
@@ -69,7 +72,7 @@ export class SecurityMonitor {
       this.logToSecurityService(securityEvent);
     }
 
-    console.warn('Security Event:', securityEvent);
+    log.warn('Security Event', { event: securityEvent });
   }
 
   // Rate limiting
@@ -178,7 +181,7 @@ export class SecurityMonitor {
   }
 
   private triggerSecurityAlert(events: SecurityEvent[]): void {
-    console.error('SECURITY ALERT: Multiple suspicious events detected', events);
+    log.error('SECURITY ALERT: Multiple suspicious events detected', { events });
     
     // In production, this would notify security team
     if (process.env.NODE_ENV === 'production') {
@@ -190,13 +193,13 @@ export class SecurityMonitor {
   private logToSecurityService(event: SecurityEvent): void {
     // Placeholder for external security logging service
     // In production, this would send to services like Sentry, LogRocket, etc.
-    console.log('Security event logged to external service:', event);
+    log.info('Security event logged to external service', { event });
   }
 
   private notifySecurityTeam(events: SecurityEvent[]): void {
     // Placeholder for security team notification
     // In production, this would send alerts via email, Slack, PagerDuty, etc.
-    console.error('Security team notified of critical events:', events);
+    log.error('Security team notified of critical events', { events });
   }
 
   private getClientIP(): string {

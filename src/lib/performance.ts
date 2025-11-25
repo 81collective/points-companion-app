@@ -1,5 +1,8 @@
 // Performance monitoring and optimization utilities
 import { onCLS, onINP, onFCP, onLCP, onTTFB } from 'web-vitals';
+import { clientLogger } from '@/lib/clientLogger';
+
+const log = clientLogger.child({ component: 'performance' });
 
 export interface WebVitalsMetric {
   id: string;
@@ -12,9 +15,9 @@ export interface WebVitalsMetric {
 
 // Web Vitals monitoring
 export function reportWebVitals(metric: WebVitalsMetric) {
-  // Log to console in development
+  // Log in development
   if (process.env.NODE_ENV === 'development') {
-    console.log(`Web Vital: ${metric.name}`, {
+    log.info(`Web Vital: ${metric.name}`, {
       value: metric.value,
       rating: metric.rating,
       delta: metric.delta
@@ -53,11 +56,11 @@ export function performanceMeasure(name: string, startMark: string, endMark?: st
       const measureEntries = window.performance.getEntriesByName(name, 'measure') as PerformanceEntry[];
       const measure = measureEntries[0];
       if (measure && typeof measure.duration === 'number') {
-        console.log(`Performance: ${name} took ${measure.duration.toFixed(2)}ms`);
+        log.debug(`Performance: ${name} took ${measure.duration.toFixed(2)}ms`);
         return measure.duration;
       }
     } catch (error) {
-      console.warn('Performance measurement failed:', error);
+      log.warn('Performance measurement failed', { error: String(error) });
     }
   }
   return 0;
@@ -69,11 +72,11 @@ export function analyzeBundleSize() {
     const scripts = Array.from(document.scripts);
     const styles = Array.from(document.styleSheets);
 
-    console.group('Bundle Analysis');
-    console.log('Scripts loaded:', scripts.length);
-    console.log('Stylesheets loaded:', styles.length);
-    console.log('DOM elements:', document.querySelectorAll('*').length);
-    console.groupEnd();
+    log.info('Bundle Analysis', {
+      scriptsLoaded: scripts.length,
+      stylesheetsLoaded: styles.length,
+      domElements: document.querySelectorAll('*').length
+    });
   }
 }
 

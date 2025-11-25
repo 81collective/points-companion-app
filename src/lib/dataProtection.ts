@@ -208,7 +208,7 @@ class DataProtection {
         sessionStorage.setItem(key, encrypted);
       });
     } catch (error) {
-      console.error('Failed to store secure session data:', error);
+      log.error('Failed to store secure session data', { error });
     }
   }
 
@@ -221,7 +221,7 @@ class DataProtection {
       const decrypted = await this.decryptData(encrypted);
       return JSON.parse(decrypted) as T;
     } catch (error) {
-      console.error('Failed to retrieve secure session data:', error);
+      log.error('Failed to retrieve secure session data', { error });
       return null;
     }
   }
