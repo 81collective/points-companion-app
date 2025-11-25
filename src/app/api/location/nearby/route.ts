@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { CATEGORY_MAP, CategoryKey } from '@/lib/places/categories';
 import { scorePlace, haversineMeters, type BasicPlace } from '@/lib/places/score';
 import { classifyBusiness } from '@/lib/classification/businessClassifier';
+import { classifyBusinessesBatch } from '@/lib/classification/aiBusinessClassifier';
 import { evaluateCards } from '@/lib/cards/engine';
 import logger from '@/lib/logger';
 
@@ -229,11 +230,26 @@ async function fetchFresh(q: NearbyParams & { maxRadius?: number; minRating?: nu
     .sort((a, b) => b.s - a.s)
     .slice(0, q.limit ?? 50);
 
-  const final: AggregatedItem[] = scored.map(({ p, s }) => {
+  // Prepare businesses for AI batch classification
+  const businessesForAI = scored.map(({ p }, idx) => ({
+    id: (p.place_id as string) || `temp_${idx}`,
+    name: p.name || 'Unknown',
+    googleTypes: Array.isArray(p.types) ? p.types : [],
+    mapboxPlaceName: p.formatted_address || p.vicinity || undefined,
+    address: p.formatted_address || p.vicinity || undefined,
+  }));
+
+  // Use AI-enhanced batch classification for better accuracy
+  const aiClassifications = await classifyBusinessesBatch(businessesForAI);
+
+  const final: AggregatedItem[] = scored.map(({ p, s }, idx) => {
     const pid = (p.place_id as string) || '';
     const loc = p.geometry?.location;
     const name = p.name || 'Unknown';
-    const classification = classifyBusiness({
+    const bizId = pid || `temp_${idx}`;
+    
+    // Use AI classification if available, fall back to rule-based
+    const classification = aiClassifications.get(bizId) || classifyBusiness({
       name,
       googleTypes: Array.isArray(p.types) ? p.types : [],
       mapboxPlaceName: p.formatted_address || p.vicinity || undefined,
