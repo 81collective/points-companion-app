@@ -61,7 +61,7 @@
     "framer-motion": "^12.23.12",
     "graphql": "^16.11.0",
     "graphql-ws": "^6.0.6",
-    "jspdf": "^3.0.1",
+    "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.535.0",
     "next": "15.4.5",
