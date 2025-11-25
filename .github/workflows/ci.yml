@@ -158,7 +158,7 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: build-files
           path: .next/
