@@ -1,6 +1,6 @@
 # Current Project State
 
-Last updated: 2025-11-24
+Last updated: 2025-11-24 (Session 2)
 
 ## Overview
 
@@ -9,6 +9,14 @@ Points Companion App is a credit card rewards optimization platform that helps u
 ## Active Work
 
 ### Completed This Session
+- ✅ Enterprise Agent Framework review and gap analysis
+- ✅ Zod validation schemas (`src/lib/validation/schemas.ts`)
+- ✅ PostHog analytics wrapper (`src/lib/analytics/posthog.ts`)
+- ✅ Structured logger (`src/lib/logger.ts`)
+- ✅ Recommendations API refactored with Zod + logger
+- ✅ Root file organization (debug → `scripts/debug/`, archive → `docs/archive/`)
+
+### Previous Session
 - ✅ TOML-based card database (110+ US rewards cards)
 - ✅ Fuzzy merchant matching system
 - ✅ Agent skill file framework (14 agent files)
@@ -19,9 +27,10 @@ Points Companion App is a credit card rewards optimization platform that helps u
 - None currently
 
 ### Next Priorities
-1. Add more card issuers to database
-2. Implement offer expiration monitoring
-3. Build card comparison UI component
+1. Add Zod validation to remaining API routes
+2. Integrate PostHog SDK (add NEXT_PUBLIC_POSTHOG_KEY)
+3. Migrate remaining console.logs to structured logger
+4. Add more card issuers to database
 
 ---
 
@@ -68,6 +77,23 @@ Points Companion App is a credit card rewards optimization platform that helps u
 - MCC code mapping (200+ codes)
 - Brand detection for hotels/airlines
 
+### Validation (`src/lib/validation/`)
+- Zod schemas for all API inputs
+- `RecommendationsQuerySchema`, `NearbySearchSchema`, etc.
+- `safeParseQuery()` helper for URLSearchParams
+
+### Analytics (`src/lib/analytics/`)
+- Typed PostHog event wrapper
+- 15+ predefined events from AGENTS.md
+- Correlation IDs for session tracking
+- Server-side event support
+
+### Logging (`src/lib/logger.ts`)
+- Structured JSON logging (production)
+- PII redaction (emails, tokens, cards)
+- Log levels: debug, info, warn, error
+- Child loggers with preset context
+
 ### Agent System (`agents/`)
 - 14 specialized agent skill files
 - Task-based quick reference
@@ -109,15 +135,22 @@ Points Companion App is a credit card rewards optimization platform that helps u
 │   └── offers/           # Current offers
 ├── docs/                 # Documentation
 │   ├── adr/              # Architecture decisions
+│   ├── archive/          # Completed project docs
 │   └── *.md              # Guides and checklists
 ├── prisma/               # Database schema
 ├── public/               # Static assets
+├── scripts/              
+│   ├── debug/            # Debug/test scripts
+│   └── *.mjs             # Build scripts
 ├── src/
 │   ├── app/              # Next.js App Router
 │   ├── components/       # React components
 │   ├── hooks/            # Custom hooks
-│   └── lib/              # Core libraries
-└── scripts/              # Build/dev scripts
+│   └── lib/              
+│       ├── analytics/    # PostHog wrapper
+│       ├── matching/     # Fuzzy matching
+│       ├── validation/   # Zod schemas
+│       └── logger.ts     # Structured logging
 ```
 
 ---
@@ -148,11 +181,27 @@ See `.env.example` for full list. Required:
 
 | Date | Commit | Description |
 |------|--------|-------------|
+| 2025-11-24 | `ce65aec` | Enterprise agent framework implementation |
 | 2025-11-24 | `4454560` | Developer experience improvements |
 | 2025-11-24 | `58b1c5b` | Agent skill files and checklists |
 | 2025-11-24 | `51921cd` | TypeScript fixes for recommendations |
 | 2025-11-24 | `7c1b7e2` | Business, airline, hotel cards |
-| 2025-11-24 | `6fa8031` | Fuzzy merchant matching |
+
+---
+
+## Framework Compliance
+
+Based on ENTERPRISE_AGENT_FRAMEWORK.md review:
+
+| Category | Status | Notes |
+|----------|--------|-------|
+| Agent Files | ✅ 100% | 14 domain agents |
+| GitHub Config | ✅ 100% | CODEOWNERS, templates, Dependabot |
+| CI/CD | ✅ 100% | Lighthouse, E2E, matrix testing |
+| Zod Validation | 🟡 Partial | Recommendations done, others pending |
+| PostHog Analytics | 🟡 Ready | Wrapper created, SDK not installed |
+| Structured Logging | 🟡 Partial | Logger created, migration ongoing |
+| File Organization | ✅ Done | Root cleaned up |
 
 ---
 

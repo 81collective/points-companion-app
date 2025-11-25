@@ -5,23 +5,29 @@ import { creditCardDatabase } from '@/data/creditCardDatabase';
 import { RewardCategory } from '@/types/creditCards';
 import { apiCache } from '@/lib/apiCache';
 import { matchMerchant } from '@/lib/matching/merchantMatcher';
+import { safeParseQuery, RecommendationsQuerySchema } from '@/lib/validation/schemas';
+import logger from '@/lib/logger';
+
+const log = logger.child({ component: 'recommendations-api' });
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = getRequestUrl(request);
-    const category = searchParams.get('category');
-    const businessId = searchParams.get('businessId');
-    const businessName = searchParams.get('businessName');
-    const lat = searchParams.get('lat');
-    const lng = searchParams.get('lng');
-    const fields = searchParams.get('fields'); // Optional field selection
-
-    if (!category && !businessId) {
+    
+    // Validate input with Zod
+    const parseResult = safeParseQuery(searchParams, RecommendationsQuerySchema);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: 'Category or business ID is required', success: false },
+        { 
+          error: 'Validation failed', 
+          details: parseResult.error.flatten().fieldErrors,
+          success: false 
+        },
         { status: 400 }
       );
     }
+    
+    const { category, businessId, businessName, lat, lng, fields } = parseResult.data;
 
     // Create cache key from request parameters
     const cacheKey = apiCache.generateKey({
@@ -36,15 +42,22 @@ export async function GET(request: NextRequest) {
     // Check cache first
     const cachedResult = apiCache.get(cacheKey);
     if (cachedResult) {
-      console.log('🚀 Cache hit for recommendations request');
+      log.debug('Cache hit', { action: 'cache_hit' });
       return NextResponse.json(cachedResult);
     }
 
-    console.log('🎯 Recommendations API called with:', { category, businessId, businessName, lat, lng, fields });
+    log.info('Processing request', { action: 'request', category, businessId, hasBusinessName: !!businessName });
 
     // Use deduplication for concurrent requests
     const result = await apiCache.dedupe(cacheKey, async () => {
-      return await generateRecommendations({ category, businessId, businessName, lat, lng, fields });
+      return await generateRecommendations({ 
+        category: category || null, 
+        businessId: businessId || null, 
+        businessName: businessName || null, 
+        lat: lat?.toString() || null, 
+        lng: lng?.toString() || null, 
+        fields: fields || null 
+      });
     });
 
     // Cache the result for 5 minutes
@@ -53,7 +66,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error('API error:', error);
+    log.error('Request failed', { action: 'error', error: error instanceof Error ? error.message : 'Unknown' });
     return NextResponse.json(
       { error: 'Internal server error', success: false },
       { status: 500 }
@@ -103,12 +116,12 @@ async function generateRecommendations({ category, businessId, businessName, lat
     let matchResult = null;
     if (businessName) {
       matchResult = matchMerchant(businessName);
-      console.log('🔍 Fuzzy match result for', businessName, ':', {
+      log.debug('Fuzzy match result', {
+        action: 'fuzzy_match',
         category: matchResult.category,
         confidence: matchResult.confidence,
         hotelBrand: matchResult.hotelBrand,
-        airlineBrand: matchResult.airlineBrand,
-        notes: matchResult.notes
+        airlineBrand: matchResult.airlineBrand
       });
     }
 
@@ -116,10 +129,10 @@ async function generateRecommendations({ category, businessId, businessName, lat
     let targetCategory = RewardCategory.EverythingElse;
     if (matchResult && matchResult.confidence >= 0.7) {
       targetCategory = matchResult.category;
-      console.log('🎯 Using fuzzy-matched category:', targetCategory);
+      log.debug('Using fuzzy-matched category', { action: 'category_select', targetCategory, source: 'fuzzy' });
     } else if (category) {
       targetCategory = categoryMap[category] || RewardCategory.EverythingElse;
-      console.log('🎯 Using provided category:', targetCategory);
+      log.debug('Using provided category', { action: 'category_select', targetCategory, source: 'param' });
     }
 
     // Get business details if businessId provided
@@ -145,7 +158,7 @@ async function generateRecommendations({ category, businessId, businessName, lat
         priceLevel: null,
         phone: null
       };
-      console.log('🏢 Created temporary business object for:', businessName);
+      log.debug('Created temp business', { action: 'temp_business' });
     }
 
     // Calculate recommendations based on our credit card database
@@ -178,7 +191,6 @@ async function generateRecommendations({ category, businessId, businessName, lat
           if (brandCategory) {
             const brandReward = card.rewards.find(r => r.category === brandCategory);
             if (brandReward) {
-              console.log(`✅ Fuzzy match: ${matchResult.hotelBrand} card found - ${card.name}`);
               rewardMultiplier = brandReward.multiplier;
               rewardCategory = brandCategory;
               hotelBrandBonus = 50;
@@ -201,7 +213,6 @@ async function generateRecommendations({ category, businessId, businessName, lat
           if (brandCategory) {
             const brandReward = card.rewards.find(r => r.category === brandCategory);
             if (brandReward) {
-              console.log(`✅ Fuzzy match: ${matchResult.airlineBrand} card found - ${card.name}`);
               rewardMultiplier = brandReward.multiplier;
               rewardCategory = brandCategory;
               airlineBrandBonus = 30;
@@ -214,7 +225,6 @@ async function generateRecommendations({ category, businessId, businessName, lat
       // Fallback to legacy string matching if no fuzzy match
       if (business && !hotelBrandBonus && !airlineBrandBonus) {
         const legacyBusinessName = business.name.toLowerCase();
-        console.log('🏨 Checking business for brand detection (legacy):', legacyBusinessName);
         
         // Detect hotel brands and check for matching cards
         if (legacyBusinessName.includes('marriott') || legacyBusinessName.includes('bonvoy') || 
@@ -224,38 +234,29 @@ async function generateRecommendations({ category, businessId, businessName, lat
             legacyBusinessName.includes('w hotel') || legacyBusinessName.includes('edition') ||
             legacyBusinessName.includes('st. regis') || legacyBusinessName.includes('luxury collection') ||
             legacyBusinessName.includes('ritz-carlton') || legacyBusinessName.includes('ritz carlton')) {
-          console.log('🎯 MARRIOTT BRAND DETECTED! Business:', legacyBusinessName);
           const marriottReward = card.rewards.find(r => r.category === RewardCategory.Marriott);
           if (marriottReward) {
-            console.log('✅ Found Marriott reward on', card.name, '- multiplier:', marriottReward.multiplier);
             rewardMultiplier = marriottReward.multiplier;
             rewardCategory = RewardCategory.Marriott;
-            hotelBrandBonus = 50; // Major bonus for exact brand match
+            hotelBrandBonus = 50;
             reasons.push(`Perfect for ${business.name} - Marriott brand card`);
-          } else {
-            console.log('❌ No Marriott reward found on', card.name);
           }
         } else if (legacyBusinessName.includes('hilton') || legacyBusinessName.includes('hampton inn') || 
                    legacyBusinessName.includes('doubletree') || legacyBusinessName.includes('embassy suites') ||
                    legacyBusinessName.includes('homewood suites') || legacyBusinessName.includes('home2 suites') ||
                    legacyBusinessName.includes('waldorf astoria') || legacyBusinessName.includes('conrad') ||
                    legacyBusinessName.includes('canopy') || legacyBusinessName.includes('curio')) {
-          console.log('🎯 HILTON BRAND DETECTED! Business:', legacyBusinessName);
           const hiltonReward = card.rewards.find(r => r.category === RewardCategory.Hilton);
           if (hiltonReward) {
-            console.log('✅ Found Hilton reward on', card.name, '- multiplier:', hiltonReward.multiplier);
             rewardMultiplier = hiltonReward.multiplier;
             rewardCategory = RewardCategory.Hilton;
             hotelBrandBonus = 50;
             reasons.push(`Perfect for ${business.name} - Hilton brand card`);
-          } else {
-            console.log('❌ No Hilton reward found on', card.name);
           }
         } else if (legacyBusinessName.includes('hyatt') || legacyBusinessName.includes('grand hyatt') ||
                    legacyBusinessName.includes('park hyatt') || legacyBusinessName.includes('andaz') ||
                    legacyBusinessName.includes('hyatt house') || legacyBusinessName.includes('hyatt place') ||
                    legacyBusinessName.includes('alila') || legacyBusinessName.includes('destination hotels')) {
-          console.log('🎯 HYATT BRAND DETECTED! Business:', legacyBusinessName);
           const hyattReward = card.rewards.find(r => r.category === RewardCategory.Hyatt);
           if (hyattReward) {
             rewardMultiplier = hyattReward.multiplier;
@@ -268,7 +269,6 @@ async function generateRecommendations({ category, businessId, businessName, lat
                    legacyBusinessName.includes('hotel indigo') || legacyBusinessName.includes('even hotels') ||
                    legacyBusinessName.includes('staybridge suites') || legacyBusinessName.includes('candlewood suites') ||
                    legacyBusinessName.includes('avid hotels') || legacyBusinessName.includes('atwell suites')) {
-          console.log('🎯 IHG BRAND DETECTED! Business:', legacyBusinessName);
           const ihgReward = card.rewards.find(r => r.category === RewardCategory.IHG);
           if (ihgReward) {
             rewardMultiplier = ihgReward.multiplier;
@@ -281,7 +281,6 @@ async function generateRecommendations({ category, businessId, businessName, lat
                    legacyBusinessName.includes('howard johnson') || legacyBusinessName.includes('travelodge') ||
                    legacyBusinessName.includes('wingate') || legacyBusinessName.includes('baymont') ||
                    legacyBusinessName.includes('microtel') || legacyBusinessName.includes('la quinta')) {
-          console.log('🎯 WYNDHAM BRAND DETECTED! Business:', legacyBusinessName);
           const wyndhamReward = card.rewards.find(r => r.category === RewardCategory.Wyndham);
           if (wyndhamReward) {
             rewardMultiplier = wyndhamReward.multiplier;
@@ -294,7 +293,6 @@ async function generateRecommendations({ category, businessId, businessName, lat
                    legacyBusinessName.includes('sleep inn') || legacyBusinessName.includes('mainstay suites') ||
                    legacyBusinessName.includes('suburban') || legacyBusinessName.includes('econo lodge') ||
                    legacyBusinessName.includes('rodeway inn') || legacyBusinessName.includes('ascend')) {
-          console.log('🎯 CHOICE BRAND DETECTED! Business:', legacyBusinessName);
           const choiceReward = card.rewards.find(r => r.category === RewardCategory.Choice);
           if (choiceReward) {
             rewardMultiplier = choiceReward.multiplier;
@@ -456,8 +454,12 @@ async function generateRecommendations({ category, businessId, businessName, lat
       return b.match_score - a.match_score;
     });
 
-    console.log('✅ Generated', recommendations.length, 'recommendations');
-    console.log('🥇 Top recommendation:', recommendations[0]?.card.card_name, 'with score:', recommendations[0]?.match_score);
+    log.info('Generated recommendations', { 
+      action: 'complete', 
+      count: recommendations.length,
+      topCard: recommendations[0]?.card.card_name,
+      topScore: recommendations[0]?.match_score 
+    });
 
     // Apply field selection if requested
     let filteredRecommendations: unknown[] = recommendations.slice(0, 10); // Top 10 recommendations
