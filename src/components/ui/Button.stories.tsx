@@ -230,6 +230,9 @@ export const FullWidth: Story = {
 
 // All variants showcase
 export const AllVariants: Story = {
+  args: {
+    children: 'Button',
+  },
   render: () => (
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
