@@ -9,6 +9,7 @@ import { useUserCards } from '@/hooks/useUserCards';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
+import NearbyExplorer from '@/components/home/NearbyExplorer';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -93,6 +94,11 @@ export default function HomePage() {
         {/* Deal of the Day replaces the features grid */}
         <section className="bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
           <DealOfTheDay />
+        </section>
+
+        {/* Nearby Businesses Explorer */}
+        <section>
+          <NearbyExplorer />
         </section>
       </div>
     </>
