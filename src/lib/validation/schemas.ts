@@ -126,7 +126,7 @@ export function parseQueryParams<T extends z.ZodSchema>(
 export function safeParseQuery<T extends z.ZodSchema>(
   searchParams: URLSearchParams,
   schema: T
-): z.SafeParseReturnType<z.input<T>, z.infer<T>> {
+) {
   const params: Record<string, string> = {};
   searchParams.forEach((value, key) => {
     params[key] = value;

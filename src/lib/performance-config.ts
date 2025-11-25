@@ -17,13 +17,14 @@ export const bundleAnalyzerConfig = {
 
 // Image optimization configuration
 export const imageConfig = {
-  domains: [
-    'images.unsplash.com',
-    'via.placeholder.com', 
-    'creditcards.com',
-    'cdn.creditcards.com',
-    'storage.googleapis.com',
-    'supabase.com'
+  remotePatterns: [
+    { protocol: 'https' as const, hostname: 'images.unsplash.com' },
+    { protocol: 'https' as const, hostname: 'via.placeholder.com' },
+    { protocol: 'https' as const, hostname: 'creditcards.com' },
+    { protocol: 'https' as const, hostname: 'cdn.creditcards.com' },
+    { protocol: 'https' as const, hostname: 'storage.googleapis.com' },
+    { protocol: 'https' as const, hostname: 'supabase.com' },
+    { protocol: 'https' as const, hostname: '*.supabase.co' },
   ],
   formats: ['image/webp' as const, 'image/avif' as const],
   minimumCacheTTL: 86400, // 24 hours

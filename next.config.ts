@@ -24,12 +24,6 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   ...performanceConfig,
 
-  // ESLint: enforce during builds
-  eslint: {
-    ignoreDuringBuilds: false,
-    dirs: ['src'],
-  },
-
   // TypeScript: Skip type checking during build (handled by pre-commit hooks)
   typescript: {
     ignoreBuildErrors: true,
@@ -41,7 +35,10 @@ const nextConfig: NextConfig = {
   // Compression and optimization
   ...compressionConfig,
 
-  // Bundle optimization
+  // Turbopack config (required for Next.js 16+)
+  turbopack: {},
+
+  // Bundle optimization (webpack fallback)
   webpack: (config, { isServer }) => {
     // Optimize bundle splitting
     if (!isServer) {
