@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import getRequestUrl from '@/lib/getRequestUrl';
 import prisma from '@/lib/prisma';
 import { CATEGORY_MAP, CategoryKey } from '@/lib/places/categories';
 import { scorePlace, haversineMeters, type BasicPlace } from '@/lib/places/score';
 import { classifyBusiness } from '@/lib/classification/businessClassifier';
 import { evaluateCards } from '@/lib/cards/engine';
+import logger from '@/lib/logger';
+
+const log = logger.child({ component: 'location-nearby-api' });
+
+// Validation schema
+const NearbyQuerySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  category: z.string().max(50),
+  radius: z.coerce.number().int().min(100).max(50000).optional().default(5000),
+  limit: z.coerce.number().int().min(1).max(60).optional().default(20),
+});
 
 type LatLng = { lat: number; lng: number };
 

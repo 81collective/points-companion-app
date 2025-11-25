@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getRequestUrl from '@/lib/getRequestUrl';
+import logger from '@/lib/logger';
+
+const log = logger.child({ component: 'sw-api' });
 
 // Service Worker API endpoint for background sync and updates
 export async function GET(request: NextRequest) {
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
     switch (type) {
       case 'BACKGROUND_SYNC':
         // Handle background sync data
-        console.log('Background sync data:', data);
+        log.debug('Background sync received', { action: 'sync', dataKeys: Object.keys(data || {}) });
         return NextResponse.json({ success: true });
 
       case 'PUSH_NOTIFICATION':

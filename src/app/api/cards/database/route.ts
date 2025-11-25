@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { 
   loadAllCards, 
   loadCurrentOffers,
@@ -6,6 +7,19 @@ import {
   getCardsForCategory,
   type LoadedCard
 } from '@/lib/cards/tomlCardLoader'
+import logger from '@/lib/logger'
+
+const log = logger.child({ component: 'cards-database-api' })
+
+// Validation schema
+const CardDatabaseQuerySchema = z.object({
+  id: z.string().max(100).optional(),
+  search: z.string().max(100).optional(),
+  issuer: z.string().max(50).optional(),
+  category: z.string().max(50).optional(),
+  popular: z.enum(['true', 'false']).optional(),
+  withOffers: z.enum(['true', 'false']).optional(),
+})
 
 export const dynamic = 'force-dynamic'
 
@@ -62,15 +76,25 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
-    const id = searchParams.get('id')
-    const search = searchParams.get('search')
-    const issuer = searchParams.get('issuer')
-    const category = searchParams.get('category')
-    const popularOnly = searchParams.get('popular') === 'true'
-    const withOffersOnly = searchParams.get('withOffers') === 'true'
+    // Parse and validate query params
+    const params: Record<string, string> = {}
+    searchParams.forEach((value, key) => { params[key] = value })
+    
+    const parseResult = CardDatabaseQuerySchema.safeParse(params)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid parameters', details: parseResult.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    
+    const { id, search, issuer, category, popular, withOffers } = parseResult.data
+    const popularOnly = popular === 'true'
+    const withOffersOnly = withOffers === 'true'
     
     // Load all cards with offers merged
     const allCards = getCards()
+    log.debug('Cards loaded', { action: 'load', count: allCards.length })
     
     // Get specific card by ID
     if (id) {
