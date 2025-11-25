@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { requireServerSession, getOptionalServerSession } from '@/lib/auth/session'
 import { getOpenAIClient, isOpenAIConfigured } from '@/lib/openai-server'
 import type { RecommendationRequest, RecommendationResponse } from '@/types/recommendation.types'
+import { logger } from '@/lib/logger'
 
 let lastRequestTime = 0
 const RATE_LIMIT_MS = 2000
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
       try {
         await prisma.$transaction(batchedCreates)
       } catch (error) {
-        console.warn('[recommendations] failed to persist AI response', error)
+        logger.warn('Failed to persist AI recommendation response', { error, route: '/api/recommendations' });
       }
     }
 

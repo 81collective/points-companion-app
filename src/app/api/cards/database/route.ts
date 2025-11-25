@@ -163,7 +163,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('[cards/database] Error loading card database:', error)
+    logger.error('Error loading card database', { error, route: '/api/cards/database' });
     return NextResponse.json(
       { 
         error: 'Failed to load card database',
@@ -193,7 +193,7 @@ export async function POST() {
       timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error('[cards/database] Error refreshing:', error)
+    logger.error('Error refreshing card database', { error, route: '/api/cards/database' });
     return NextResponse.json(
       { error: 'Failed to refresh card database' },
       { status: 500 }

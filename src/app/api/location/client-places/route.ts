@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getRequestUrl from '@/lib/getRequestUrl';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (err) {
-    console.error('API error:', err);
+    logger.error('Client places API error', { error: err, route: '/api/location/client-places' });
     return NextResponse.json({
       success: false,
       error: 'Internal server error'

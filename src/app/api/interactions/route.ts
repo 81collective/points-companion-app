@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { getOptionalServerSession } from '@/lib/auth/session'
+import { logger } from '@/lib/logger'
 
 interface IncomingEvent {
   event_type?: string
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ count: created.count })
   } catch (error) {
-    console.error('[interactions] failed to record events', error)
+    logger.error('Failed to record interaction events', { error, route: '/api/interactions' });
     return NextResponse.json({ error: 'Unable to record interaction events' }, { status: 500 })
   }
 }

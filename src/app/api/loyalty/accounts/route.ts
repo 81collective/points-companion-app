@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getRequestUrl from '@/lib/getRequestUrl';
 import { LoyaltyAccount, LoyaltyAccountsResponse } from '@/types/loyalty';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Error in loyalty accounts API:', error);
+    logger.error('Error in loyalty accounts API', { error, route: '/api/loyalty/accounts' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in loyalty accounts POST API:', error);
+    logger.error('Error in loyalty accounts POST API', { error, route: '/api/loyalty/accounts' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireServerSession } from '@/lib/auth/session'
+import { logger } from '@/lib/logger'
 
 type CardRecord = NonNullable<Awaited<ReturnType<typeof prisma.creditCard.findFirst>>>
 
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ card: formatCard(card) })
   } catch (error) {
-    console.error('[cards] failed to create card', error)
+    logger.error('Failed to create card', { error, route: '/api/cards' });
     return NextResponse.json({ error: 'Unable to create card' }, { status: 500 })
   }
 }

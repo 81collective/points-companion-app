@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import { requireServerSession } from '@/lib/auth/session'
+import { logger } from '@/lib/logger'
 
 type TransactionWithRelations = Prisma.TransactionGetPayload<{
   include: {
@@ -72,7 +73,7 @@ export async function PATCH(
 
     return NextResponse.json({ transaction: serializeTransaction(transaction) })
   } catch (error) {
-    console.error('[transactions] failed to update transaction', error)
+    logger.error('Failed to update transaction', { error, route: '/api/transactions/[transactionId]' });
     return NextResponse.json({ error: 'Unable to update transaction' }, { status: 500 })
   }
 }
@@ -88,7 +89,7 @@ export async function DELETE(
     await prisma.transaction.delete({ where: { id: transactionId, userId: session.user!.id } })
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error('[transactions] failed to delete transaction', error)
+    logger.error('Failed to delete transaction', { error, route: '/api/transactions/[transactionId]' });
     return NextResponse.json({ error: 'Unable to delete transaction' }, { status: 500 })
   }
 }

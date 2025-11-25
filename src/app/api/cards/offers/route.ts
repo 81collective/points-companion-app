@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 import TOML from 'toml';
+import { logger } from '@/lib/logger';
 
 // Simple auth check - in production, use proper API key validation
 const API_KEY = process.env.CARD_OFFERS_API_KEY;
@@ -73,7 +74,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Error reading offers:', error);
+    logger.error('Error reading offers', { error, route: '/api/cards/offers' });
     return NextResponse.json({ error: 'Failed to read offers' }, { status: 500 });
   }
 }
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
       timestamp: existing.meta.last_updated,
     });
   } catch (error) {
-    console.error('Error updating offers:', error);
+    logger.error('Error updating offers', { error, route: '/api/cards/offers' });
     return NextResponse.json({ error: 'Failed to update offers' }, { status: 500 });
   }
 }

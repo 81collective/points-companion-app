@@ -11,16 +11,17 @@ Points Companion App is a credit card rewards optimization platform that helps u
 ### Completed This Session
 - ✅ Enterprise Agent Framework review and gap analysis
 - ✅ Zod validation schemas (`src/lib/validation/schemas.ts`)
-- ✅ PostHog analytics wrapper (`src/lib/analytics/posthog.ts`)
 - ✅ Structured logger (`src/lib/logger.ts`)
 - ✅ API routes refactored with Zod + logger:
-  - `/api/cards/recommendations`
-  - `/api/cards/database`
-  - `/api/location/nearby`
-  - `/api/search`
-  - `/api/sw`
+  - `/api/cards/recommendations` ✅
+  - `/api/cards/database` ✅
+  - `/api/location/nearby` ✅
+  - `/api/search` ✅
+  - `/api/sw` ✅
+  - `/api/auth/signup` ✅
+  - `/api/totp` ✅
+  - `/api/transactions` ✅
 - ✅ Root file organization (debug → `scripts/debug/`, archive → `docs/archive/`)
-- ✅ All console.log statements removed from API routes
 
 ### Previous Session
 - ✅ TOML-based card database (110+ US rewards cards)
@@ -33,8 +34,8 @@ Points Companion App is a credit card rewards optimization platform that helps u
 - None currently
 
 ### Next Priorities
-1. Integrate PostHog SDK (add `NEXT_PUBLIC_POSTHOG_KEY` to env)
-2. Add Zod validation to auth/transactions routes
+1. Add Zod validation to remaining API routes (cards, loyalty, profile)
+2. Replace remaining console.error with structured logger
 3. Add more card issuers to database
 4. Build card comparison UI component
 

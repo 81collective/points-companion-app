@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Buffer } from 'node:buffer';
 import prisma from '@/lib/prisma';
 import { requireServerSession } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024 // 2MB
 
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ avatarUrl: profile.avatarUrl })
   } catch (error) {
-    console.error('[profile/avatar] upload failed', error)
+    logger.error('Avatar upload failed', { error, route: '/api/profile/avatar' });
     return buildError('Unable to upload avatar', 500)
   }
 }

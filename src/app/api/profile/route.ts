@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireServerSession } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   const session = await requireServerSession();
@@ -55,7 +56,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ profile })
   } catch (error) {
-    console.error('[profile] failed to update profile', error)
+    logger.error('Failed to update profile', { error, route: '/api/profile' });
     return NextResponse.json({ error: 'Unable to update profile' }, { status: 500 })
   }
 }

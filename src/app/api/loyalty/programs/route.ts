@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getRequestUrl from '@/lib/getRequestUrl';
 import { getAllPrograms, getProgramById, getProgramsByCategory } from '@/lib/loyaltyPrograms';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in loyalty programs API:', error);
+    logger.error('Error in loyalty programs API', { error, route: '/api/loyalty/programs' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

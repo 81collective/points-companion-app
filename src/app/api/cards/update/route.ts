@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { CardDataUpdater } from '@/lib/cardDataUpdater';
+import { logger } from '@/lib/logger';
 
 export async function POST() {
   try {
@@ -22,7 +23,7 @@ export async function POST() {
       }
     });
   } catch (error) {
-    console.error('Error updating card database:', error);
+    logger.error('Error updating card database', { error, route: '/api/cards/update' });
     return NextResponse.json(
       { 
         success: false, 
@@ -48,7 +49,7 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error('Error fetching card data:', error);
+    logger.error('Error fetching card data', { error, route: '/api/cards/update' });
     return NextResponse.json(
       { 
         success: false, 

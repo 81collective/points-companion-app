@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { LoyaltyAnalytics } from '@/types/loyalty';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -68,7 +69,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in loyalty analytics API:', error);
+    logger.error('Error in loyalty analytics API', { error, route: '/api/loyalty/analytics' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

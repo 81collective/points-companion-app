@@ -287,14 +287,14 @@ async function getCachedOrFetch(q: NearbyOptions): Promise<Aggregated> {
       return cachedData;
     }
   } catch (error) {
-    console.warn('[nearby] cache lookup failed, continuing without cache', error);
+    logger.warn('Cache lookup failed, continuing without cache', { error, route: '/api/location/nearby' });
   }
 
   const fresh = await fetchFresh(q);
   try {
     await prisma.nearbyCache.upsert({ where: { key }, update: { data: fresh }, create: { key, data: fresh } });
   } catch (error) {
-    console.warn('[nearby] failed to update cache', error);
+    logger.warn('Failed to update cache', { error, route: '/api/location/nearby' });
   }
   return fresh;
 }
@@ -392,7 +392,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Nearby API error:', error);
+    logger.error('Nearby API error', { error, route: '/api/location/nearby' });
     return NextResponse.json({ error: 'Internal server error', success: false }, { status: 500 });
   }
 }

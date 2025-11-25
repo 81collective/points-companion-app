@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireServerSession } from '@/lib/auth/session'
+import { logger } from '@/lib/logger'
 
 type CardRecord = NonNullable<Awaited<ReturnType<typeof prisma.creditCard.findFirst>>>
 
@@ -64,7 +65,7 @@ export async function PATCH(
 
     return NextResponse.json({ card: formatCard(card) })
   } catch (error) {
-    console.error('[cards] failed to update card', error)
+    logger.error('Failed to update card', { error, route: '/api/cards/[cardId]' });
     return NextResponse.json({ error: 'Unable to update card' }, { status: 500 })
   }
 }
@@ -82,7 +83,7 @@ export async function DELETE(
     }
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error('[cards] failed to delete card', error)
+    logger.error('Failed to delete card', { error, route: '/api/cards/[cardId]' });
     return NextResponse.json({ error: 'Unable to delete card' }, { status: 500 })
   }
 }

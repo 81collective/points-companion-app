@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import getRequestUrl from '@/lib/getRequestUrl';
 import { LoyaltyInsight, LoyaltyInsightsResponse } from '@/types/loyalty';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -51,7 +52,7 @@ export async function GET() {
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Error in loyalty insights API:', error);
+    logger.error('Error in loyalty insights API', { error, route: '/api/loyalty/insights' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
@@ -83,7 +84,7 @@ export async function PATCH(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in loyalty insights PATCH API:', error);
+    logger.error('Error in loyalty insights PATCH API', { error, route: '/api/loyalty/insights' });
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
