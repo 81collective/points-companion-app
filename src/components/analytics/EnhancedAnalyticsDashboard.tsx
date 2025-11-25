@@ -362,7 +362,10 @@ export default function EnhancedAnalyticsDashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ category, amount }) => `${category}: $${amount.toLocaleString()}`}
+                  label={(props) => {
+                    const { payload } = props as { payload: { category: string; amount: number } };
+                    return `${payload.category}: $${payload.amount.toLocaleString()}`;
+                  }}
                   outerRadius={120}
                   fill="#8884d8"
                   dataKey="amount"

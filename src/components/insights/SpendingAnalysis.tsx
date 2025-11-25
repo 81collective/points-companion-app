@@ -36,6 +36,7 @@ interface CategoryTotal {
   name: string;
   value: number;
   color: string;
+  [key: string]: string | number;
 }
 
 const CATEGORY_COLORS: { [key: string]: string } = {
