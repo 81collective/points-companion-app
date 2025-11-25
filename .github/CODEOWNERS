@@ -1,0 +1,93 @@
+# CODEOWNERS - Define code ownership for automatic review requests
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+*                           @81collective/maintainers
+
+# ============================================
+# Core Application
+# ============================================
+
+# App Router and pages
+/src/app/                   @81collective/frontend
+/src/components/            @81collective/frontend
+
+# API routes
+/src/app/api/               @81collective/backend
+
+# ============================================
+# Infrastructure & Configuration
+# ============================================
+
+# Database and Prisma
+/prisma/                    @81collective/backend
+/src/lib/prisma/            @81collective/backend
+
+# Build configuration
+/next.config.ts             @81collective/maintainers
+/tsconfig.json              @81collective/maintainers
+/tailwind.config.js         @81collective/frontend
+/postcss.config.js          @81collective/frontend
+
+# ============================================
+# CI/CD & DevOps
+# ============================================
+
+/.github/                   @81collective/devops
+/.github/workflows/         @81collective/devops
+/vercel.json                @81collective/devops
+/lighthouserc.js            @81collective/devops
+
+# ============================================
+# Testing
+# ============================================
+
+/jest.config.js             @81collective/qa
+/playwright.config.ts       @81collective/qa
+/src/**/*.test.ts           @81collective/qa
+/src/**/*.test.tsx          @81collective/qa
+/playwright-tests/          @81collective/qa
+
+# ============================================
+# Documentation & Agent Files
+# ============================================
+
+# Agent skill files
+/agents/                    @81collective/maintainers
+/AGENTS.md                  @81collective/maintainers
+
+# Documentation
+/docs/                      @81collective/maintainers
+/README.md                  @81collective/maintainers
+/CONTRIBUTING.md            @81collective/maintainers
+/CHANGELOG.md               @81collective/maintainers
+
+# ============================================
+# Security-Sensitive Files
+# ============================================
+
+# Security changes require security team review
+/src/lib/auth/              @81collective/security
+/src/app/api/auth/          @81collective/security
+/.env.example               @81collective/security
+
+# Payment integration
+/src/lib/stripe/            @81collective/security @81collective/backend
+/src/app/api/payments/      @81collective/security @81collective/backend
+/src/app/api/webhooks/      @81collective/security @81collective/backend
+
+# ============================================
+# Card Database & Recommendations
+# ============================================
+
+/config/cards/              @81collective/backend
+/config/offers/             @81collective/backend
+/src/lib/cards/             @81collective/backend
+/src/lib/matching/          @81collective/backend
+
+# ============================================
+# Design System
+# ============================================
+
+/src/components/ui/         @81collective/frontend @81collective/design
+/src/styles/                @81collective/frontend @81collective/design

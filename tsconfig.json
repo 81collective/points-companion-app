@@ -37,6 +37,9 @@
     ".next",
     "out",
     "build",
-    "dist"
+    "dist",
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
+    ".storybook"
   ]
 }

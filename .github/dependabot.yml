@@ -1,0 +1,111 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 10
+    
+    # Group related updates together
+    groups:
+      # Next.js and React ecosystem
+      next-react:
+        patterns:
+          - "next"
+          - "next-*"
+          - "react"
+          - "react-dom"
+          - "@next/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # TypeScript and type definitions
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Testing frameworks
+      testing:
+        patterns:
+          - "jest"
+          - "@jest/*"
+          - "playwright"
+          - "@playwright/*"
+          - "@testing-library/*"
+          - "vitest"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Linting and formatting
+      linting:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "prettier"
+          - "prettier-*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Database and ORM
+      database:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Build tools
+      build:
+        patterns:
+          - "postcss"
+          - "postcss-*"
+          - "tailwindcss"
+          - "autoprefixer"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Labels to apply to PRs
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Reviewers for dependency updates
+    reviewers:
+      - "81collective/maintainers"
+    
+    # Commit message format
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    
+    # Ignore specific dependencies (pin to specific versions)
+    ignore:
+      # Major version updates should be reviewed manually
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
