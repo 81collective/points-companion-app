@@ -348,7 +348,7 @@ export function detectBrandFromName(businessName: string): {
   return { type: null, brand: null }
 }
 
-export default {
+const fuzzyMatcherExports = {
   levenshteinDistance,
   similarityScore,
   normalizeBusinessName,
@@ -358,3 +358,5 @@ export default {
   detectBrandFromName,
   BUSINESS_ALIASES,
 }
+
+export default fuzzyMatcherExports

@@ -6,7 +6,7 @@
  */
 
 import { getOpenAIClient, isOpenAIConfigured } from '../openai-server';
-import { classifyBusiness, Classification, ProviderSignals } from './businessClassifier';
+import { classifyBusiness, Classification, ProviderSignals as _ProviderSignals } from './businessClassifier';
 import { Taxonomy } from './mccMap';
 import logger from '../logger';
 
@@ -20,7 +20,7 @@ const VALID_TAXONOMIES: Taxonomy[] = [
 ];
 
 // Cache for AI classifications to reduce API calls
-const classificationCache = new Map<string, Classification>();
+const _classificationCache = new Map<string, Classification>();
 const CACHE_MAX_SIZE = 500;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 

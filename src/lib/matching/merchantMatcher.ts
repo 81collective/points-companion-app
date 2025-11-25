@@ -287,10 +287,12 @@ export function getMerchantSimilarity(
   return similarityScore(normalizedMerchant, normalizedTarget)
 }
 
-export default {
+const merchantMatcherExports = {
   matchMerchant,
   getBestCategoryForMerchant,
   merchantMatchesCategory,
   matchMerchants,
   getMerchantSimilarity,
 }
+
+export default merchantMatcherExports

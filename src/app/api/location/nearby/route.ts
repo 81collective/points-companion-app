@@ -12,7 +12,7 @@ import logger from '@/lib/logger';
 const log = logger.child({ component: 'location-nearby-api' });
 
 // Validation schema
-const NearbyQuerySchema = z.object({
+const _NearbyQuerySchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   category: z.string().max(50),

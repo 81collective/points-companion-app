@@ -291,7 +291,7 @@ export function isBonusCategoryMCC(
   return bonusCategories.includes(category)
 }
 
-export default {
+const mccMappingExports = {
   MCC_CATEGORY_MAP,
   MCC_RANGES,
   AIRLINE_MCCS,
@@ -301,3 +301,5 @@ export default {
   getAirlineBrandFromMCC,
   isBonusCategoryMCC,
 }
+
+export default mccMappingExports
