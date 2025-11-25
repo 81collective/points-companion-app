@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 32" role="img" aria-label="PointAdvisor">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="PointAdvisor">
   <title>PointAdvisor</title>
-  <style>
-    .logo-text { font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
-  </style>
-  <text x="0" y="24" class="logo-text">
-    <tspan fill="#0ea5e9">Point</tspan><tspan fill="#171717">Advisor</tspan>
-  </text>
+  <!-- Iconic mark: Abstract pin/compass combining P + upward direction -->
+  <path 
+    d="M24 4 C14 4 8 12 8 20 C8 30 24 44 24 44 C24 44 40 30 40 20 C40 12 34 4 24 4 Z M24 26 C20.7 26 18 23.3 18 20 C18 16.7 20.7 14 24 14 C27.3 14 30 16.7 30 20 C30 23.3 27.3 26 24 26 Z"
+    fill="#0ea5e9"
+    fill-rule="evenodd"
+  />
 </svg>

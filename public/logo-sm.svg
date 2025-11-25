@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 32" role="img" aria-label="PA">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="PointAdvisor">
   <title>PointAdvisor</title>
-  <style>
-    .logo-letter { font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
-  </style>
-  <text x="0" y="25" class="logo-letter" fill="#0ea5e9">P</text>
+  <path 
+    d="M16 2 C9.4 2 5 7.4 5 13 C5 20 16 30 16 30 C16 30 27 20 27 13 C27 7.4 22.6 2 16 2 Z M16 17 C13.8 17 12 15.2 12 13 C12 10.8 13.8 9 16 9 C18.2 9 20 10.8 20 13 C20 15.2 18.2 17 16 17 Z"
+    fill="#0ea5e9"
+    fill-rule="evenodd"
+  />
 </svg>

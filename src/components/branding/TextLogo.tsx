@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 
 type TextLogoProps = {
@@ -13,9 +14,9 @@ type TextLogoProps = {
 };
 
 /**
- * TextLogo — Pure text-based minimalist wordmark.
- * - "Point" in brand sky blue, "Advisor" in neutral.
- * - Compact mode shows just "P" letter.
+ * TextLogo — Iconic pin mark with wordmark.
+ * - Distinctive pin/compass symbol representing guidance.
+ * - Compact mode shows just the icon.
  */
 export default function TextLogo({
   className,
@@ -29,17 +30,22 @@ export default function TextLogo({
     <span
       aria-label={ariaLabel}
       className={clsx(
-        "select-none font-semibold tracking-tight leading-none inline-flex items-center",
+        "select-none font-semibold tracking-tight leading-none inline-flex items-center gap-2",
         className
       )}
     >
-      {compact ? (
-        <span className="text-sky-500 text-xl font-bold">P</span>
-      ) : (
-        <>
-          <span className="text-sky-500">Point</span>
-          <span className={dark ? "text-white" : "text-neutral-900"}>Advisor</span>
-        </>
+      <Image
+        src="/logo-sm.svg"
+        alt=""
+        width={compact ? 28 : 32}
+        height={compact ? 28 : 32}
+        className="flex-shrink-0"
+        priority
+      />
+      {!compact && (
+        <span className={clsx("text-lg", dark ? "text-white" : "text-neutral-900")}>
+          Point<span className="text-sky-500">Advisor</span>
+        </span>
       )}
     </span>
   );

@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="PointAdvisor">
   <title>PointAdvisor</title>
-  <style>
-    .favicon-letter { font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 24px; font-weight: 700; }
-  </style>
-  <rect width="32" height="32" rx="6" fill="#0ea5e9"/>
-  <text x="8" y="24" class="favicon-letter" fill="white">P</text>
+  <rect width="32" height="32" rx="8" fill="#0ea5e9"/>
+  <path 
+    d="M16 5 C11 5 8 9 8 13 C8 18.5 16 27 16 27 C16 27 24 18.5 24 13 C24 9 21 5 16 5 Z M16 16 C14.3 16 13 14.7 13 13 C13 11.3 14.3 10 16 10 C17.7 10 19 11.3 19 13 C19 14.7 17.7 16 16 16 Z"
+    fill="white"
+    fill-rule="evenodd"
+  />
 </svg>
