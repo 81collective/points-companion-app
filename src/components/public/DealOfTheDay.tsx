@@ -77,46 +77,58 @@ export default function DealOfTheDay() {
   }, [bonuses]);
 
   if (loading) {
-    return <div className="bg-white rounded-2xl border border-gray-200 p-6">Loading deal…</div>;
+    return (
+      <div className="card animate-pulse">
+        <div className="h-6 w-48 bg-neutral-200 rounded mb-4" />
+        <div className="h-4 w-32 bg-neutral-100 rounded" />
+      </div>
+    );
   }
 
   if (!best) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center">
-        <p className="text-gray-600">No bonus deals available today. Check back soon.</p>
+      <div className="card text-center py-8">
+        <p className="text-neutral-500">No bonus deals available today. Check back soon.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6">
-      <div className="flex items-start justify-between">
+    <div className="card">
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Best Welcome Bonus Today</h3>
-          <p className="text-sm text-gray-600 mt-1">{best.cardIssuer} • {best.cardName}</p>
+          <p className="text-overline mb-1">Featured Offer</p>
+          <h3 className="text-h3 text-neutral-900">{best.cardName}</h3>
+          <p className="text-body-sm text-neutral-500 mt-1">{best.cardIssuer}</p>
         </div>
         {best.deadline && (
-          <span className="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">Ends by {best.deadline}</span>
+          <span className="badge badge-warning">Ends {best.deadline}</span>
         )}
       </div>
 
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
-          <p className="text-xs text-blue-800">Estimated First-Year Value</p>
-          <p className="text-2xl font-bold text-blue-900">${estimateValue(best)}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-lg bg-brand-50 border border-brand-100">
+          <p className="text-caption text-brand-600 font-medium mb-1">Estimated Value</p>
+          <p className="text-2xl font-bold text-brand-700">${estimateValue(best)}</p>
         </div>
-        <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
-          <p className="text-xs text-gray-700">Offer</p>
-          <p className="font-medium text-gray-900">{best.bonusAmount.toLocaleString()} {best.bonusType}</p>
+        <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
+          <p className="text-caption text-neutral-500 mb-1">Bonus</p>
+          <p className="text-body font-semibold text-neutral-900">
+            {best.bonusAmount.toLocaleString()} {best.bonusType}
+          </p>
         </div>
-        <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
-          <p className="text-xs text-gray-700">Notes</p>
-          <p className="text-sm text-gray-900">{best.notes || 'High-value welcome offer with strong everyday utility.'}</p>
+        <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
+          <p className="text-caption text-neutral-500 mb-1">Details</p>
+          <p className="text-body-sm text-neutral-700">
+            {best.notes || 'High-value welcome offer'}
+          </p>
         </div>
       </div>
 
-      <div className="mt-6">
-        <a href="/bonuses" className="inline-flex items-center px-5 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">See all bonuses</a>
+      <div className="mt-6 pt-6 border-t border-neutral-100">
+        <a href="/bonuses" className="btn btn-primary">
+          View all offers
+        </a>
       </div>
     </div>
   );

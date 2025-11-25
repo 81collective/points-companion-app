@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="PointAdvisor">
+  <title>PointAdvisor</title>
+  <!-- Modern minimalist logomark: Abstract "P" + compass/arrow motif -->
+  <defs>
+    <linearGradient id="brand-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square container -->
+  <rect width="40" height="40" rx="10" fill="url(#brand-gradient)"/>
+  <!-- Stylized "P" with arrow/compass element -->
+  <path 
+    d="M12 10 L12 30 M12 10 L22 10 Q28 10 28 16 Q28 22 22 22 L12 22 M22 22 L28 30" 
+    fill="none" 
+    stroke="white" 
+    stroke-width="3" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</svg>

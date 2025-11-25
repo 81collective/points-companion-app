@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useUserCards';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Sparkles, CreditCard, MapPin } from 'lucide-react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
 import NearbyExplorer from '@/components/home/NearbyExplorer';
@@ -24,8 +24,8 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="spinner" />
       </div>
     );
   }
@@ -35,64 +35,106 @@ export default function HomePage() {
   }
 
   return (
-    <>
-      {/* Minimal header for guests */}
-      <header className="w-full border-b border-gray-800 bg-black/90 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2 font-semibold text-white text-lg">
-            <Image src="/pointadvisor-mark.svg" alt="PointAdvisor" width={32} height={32} className="rounded-lg" priority />
+    <div className="min-h-screen bg-neutral-50">
+      {/* Clean minimal header */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-neutral-200/60">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
+          <div className="flex items-center gap-2.5 font-semibold text-neutral-900">
+            <Image src="/logo-sm.svg" alt="PointAdvisor" width={32} height={32} className="rounded-lg" priority />
             <span className="hidden sm:inline">PointAdvisor</span>
           </div>
           <button
             onClick={() => router.push('/auth')}
-            className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-sm transition"
+            className="btn btn-primary"
           >
-            Sign in / Sign up
+            Get Started
           </button>
         </div>
       </header>
 
-      <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-6 md:py-10 space-y-8">
-        {/* Combined Hero + Assistant */}
-        <section className="bg-gradient-to-b from-gray-900 to-gray-800 shadow-sm border border-gray-900 p-4 sm:p-6 md:p-8 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-3">
-            Maximize your
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-700"> credit card rewards</span>
+      <main className="max-w-6xl mx-auto px-6 py-12 space-y-16">
+        {/* Hero Section - Clean and Focused */}
+        <section className="text-center max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 text-brand-600 text-sm font-medium mb-6">
+            <Sparkles className="w-4 h-4" />
+            AI-Powered Recommendations
+          </div>
+          
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 tracking-tight leading-[1.1] mb-6">
+            Maximize every
+            <span className="text-brand-500"> purchase</span>
           </h1>
-          <p className="mt-2 text-base md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Smart AI recommendations help you earn more points, cashback, and travel rewards. Never miss out on the best card for each purchase again.
+          
+          <p className="text-lg sm:text-xl text-neutral-600 leading-relaxed max-w-2xl mx-auto mb-10">
+            Smart AI tells you exactly which card to use for maximum rewards. 
+            Never leave points on the table again.
           </p>
-          <div className="mt-6">
-            <div className="mx-auto max-w-3xl bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="h-[520px]">
-                <ChatInterface
-                  mode="quick"
-                  isAuthenticated={Boolean(user)}
-                  userCards={cards}
-                  persistUiState={false}
-                />
-              </div>
+
+          {/* Chat Interface - The Hero */}
+          <div className="surface-elevated overflow-hidden">
+            <div className="h-[480px] sm:h-[520px]">
+              <ChatInterface
+                mode="quick"
+                isAuthenticated={Boolean(user)}
+                userCards={cards}
+                persistUiState={false}
+              />
             </div>
           </div>
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+
+          {/* CTA Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => router.push('/auth')}
-              className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="btn btn-primary btn-lg"
             >
-              Sign up
-              <ArrowRight className="ml-2 w-5 h-5" />
+              Start for free
+              <ArrowRight className="w-5 h-5" />
             </button>
             <button
               onClick={() => router.push('/auth')}
-              className="inline-flex items-center px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-medium border-2 border-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="btn btn-secondary btn-lg"
             >
               Learn more
             </button>
           </div>
         </section>
 
-        {/* Deal of the Day replaces the features grid */}
-        <section className="bg-gray-950 shadow-sm border border-gray-900 p-4 md:p-6">
+        {/* Features Grid - Minimal */}
+        <section className="grid md:grid-cols-3 gap-6">
+          <div className="card">
+            <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center mb-4">
+              <CreditCard className="w-5 h-5 text-brand-500" />
+            </div>
+            <h3 className="text-h4 text-neutral-900 mb-2">Smart Card Matching</h3>
+            <p className="text-body-sm text-neutral-600">
+              AI analyzes your cards and spending to recommend the best card for every purchase.
+            </p>
+          </div>
+          
+          <div className="card">
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-4">
+              <Sparkles className="w-5 h-5 text-emerald-500" />
+            </div>
+            <h3 className="text-h4 text-neutral-900 mb-2">Bonus Tracking</h3>
+            <p className="text-body-sm text-neutral-600">
+              Never miss a welcome bonus or category promotion with real-time tracking.
+            </p>
+          </div>
+          
+          <div className="card">
+            <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-4">
+              <MapPin className="w-5 h-5 text-violet-500" />
+            </div>
+            <h3 className="text-h4 text-neutral-900 mb-2">Location Aware</h3>
+            <p className="text-body-sm text-neutral-600">
+              Get instant recommendations when you arrive at restaurants, stores, and more.
+            </p>
+          </div>
+        </section>
+
+        {/* Deal of the Day */}
+        <section>
           <DealOfTheDay />
         </section>
 
@@ -100,7 +142,22 @@ export default function HomePage() {
         <section>
           <NearbyExplorer />
         </section>
-      </div>
-    </>
+      </main>
+
+      {/* Minimal Footer */}
+      <footer className="border-t border-neutral-200 mt-16">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-neutral-500 text-sm">
+            <Image src="/logo-sm.svg" alt="" width={20} height={20} className="opacity-50" />
+            <span>© 2025 PointAdvisor</span>
+          </div>
+          <div className="flex gap-6 text-sm text-neutral-500">
+            <a href="#" className="hover:text-neutral-900 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-neutral-900 transition-colors">Terms</a>
+            <a href="#" className="hover:text-neutral-900 transition-colors">Contact</a>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
