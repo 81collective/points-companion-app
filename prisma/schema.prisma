@@ -24,6 +24,7 @@ model User {
   recommendations Recommendation[]
   interactionEvents InteractionEvent[]
   totpSecret     TotpSecret?
+  passwordResetToken PasswordResetToken?
 }
 
 model Profile {
@@ -178,4 +179,14 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

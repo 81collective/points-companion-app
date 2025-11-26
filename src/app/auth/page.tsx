@@ -6,13 +6,16 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import LoginForm from '@/components/auth/LoginForm'
 import SignupForm from '@/components/auth/SignupForm'
+import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
 import AuthDiagnostics from '@/components/auth/AuthDiagnostics'
 import { Loader2, CreditCard, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import TextLogo from '@/components/branding/TextLogo'
 
+type AuthMode = 'login' | 'signup' | 'forgot-password'
+
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true)
+  const [mode, setMode] = useState<AuthMode>('login')
   const { user, loading } = useAuth()
   const router = useRouter()
 
@@ -55,22 +58,30 @@ export default function AuthPage() {
           {/* Welcome Message */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
-              {isLogin ? 'Welcome back' : 'Join PointAdvisor'}
+              {mode === 'login' && 'Welcome back'}
+              {mode === 'signup' && 'Join PointAdvisor'}
+              {mode === 'forgot-password' && 'Reset password'}
             </h1>
             <p className="text-white/70">
-              {isLogin 
-                ? 'Sign in to continue optimizing your rewards' 
-                : 'Start maximizing your credit card rewards today'
-              }
+              {mode === 'login' && 'Sign in to continue optimizing your rewards'}
+              {mode === 'signup' && 'Start maximizing your credit card rewards today'}
+              {mode === 'forgot-password' && 'We\'ll send you a link to reset your password'}
             </p>
           </div>
 
           {/* Auth Form */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            {isLogin ? (
-              <LoginForm onToggleMode={() => setIsLogin(false)} />
-            ) : (
-              <SignupForm onToggleMode={() => setIsLogin(true)} />
+            {mode === 'login' && (
+              <LoginForm 
+                onToggleMode={() => setMode('signup')} 
+                onForgotPassword={() => setMode('forgot-password')}
+              />
+            )}
+            {mode === 'signup' && (
+              <SignupForm onToggleMode={() => setMode('login')} />
+            )}
+            {mode === 'forgot-password' && (
+              <ForgotPasswordForm onBack={() => setMode('login')} />
             )}
           </div>
 

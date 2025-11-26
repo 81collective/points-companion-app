@@ -7,9 +7,10 @@ import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react'
 
 interface LoginFormProps {
   onToggleMode: () => void
+  onForgotPassword: () => void
 }
 
-export default function LoginForm({ onToggleMode }: LoginFormProps) {
+export default function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -90,6 +91,16 @@ export default function LoginForm({ onToggleMode }: LoginFormProps) {
               )}
             </button>
           </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+          >
+            Forgot password?
+          </button>
         </div>
 
         <button
