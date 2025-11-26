@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useUserCards';
-import { ArrowRight, Sparkles, CreditCard, MapPin, TrendingUp, Shield, ShieldCheck, LineChart, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, CreditCard, MapPin, TrendingUp, Shield, Zap } from 'lucide-react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
 import NearbyExplorer from '@/components/home/NearbyExplorer';
@@ -23,67 +23,67 @@ const NAV_LINKS = [
 
 const PROOF_STATS = [
   {
-    label: 'Rewards optimized',
-    value: '$128M+',
-    subtext: 'Tracked past 12 months',
-    chips: [{ label: '2,400+ teams', tone: 'neutral' as const }],
+    label: 'Rewards earned',
+    value: '$4.2M+',
+    subtext: 'By our users this year',
+    chips: [{ label: '50K+ users', tone: 'neutral' as const }],
   },
   {
-    label: 'Missed perks prevented',
-    value: '$12.8M',
-    subtext: 'Instant card-switch alerts',
-    chips: [{ label: '↓82% leakage', tone: 'positive' as const }],
+    label: 'Avg. savings per user',
+    value: '$840',
+    subtext: 'Extra rewards annually',
+    chips: [{ label: '+32% vs before', tone: 'positive' as const }],
   },
   {
-    label: 'Time to insight',
-    value: '1.7s',
-    subtext: 'Signal-to-recommendation latency',
-    chips: [{ label: 'Realtime AI', tone: 'highlight' as const }],
+    label: 'Cards supported',
+    value: '200+',
+    subtext: 'All major issuers covered',
+    chips: [{ label: 'Updated weekly', tone: 'highlight' as const }],
   },
 ];
 
 const HOW_IT_WORKS = [
   {
     id: '01',
-    title: 'Connect your cards + data',
-    description: 'Secure read-only connections across issuers, ERPs, and expense tools in minutes.',
+    title: 'Add your credit cards',
+    description: 'Securely add your cards in seconds. We never store card numbers—just the rewards info.',
     accent: 'sky' as const,
   },
   {
     id: '02',
-    title: 'Copilots watch every swipe',
-    description: 'Location, POS, and itinerary signals trigger the right card + perk in <2 seconds.',
+    title: 'Shop or plan a trip',
+    description: 'At checkout or planning travel, PointAdvisor tells you which card earns the most.',
     accent: 'mint' as const,
   },
   {
     id: '03',
-    title: 'Ops + finance get clarity',
-    description: 'Live dashboards surface savings, missed perks, and policy compliance instantly.',
+    title: 'Maximize every purchase',
+    description: 'Earn more points, miles, and cashback without thinking. We do the math for you.',
     accent: 'rose' as const,
   },
 ];
 
 const FEATURE_HIGHLIGHTS = [
   {
-    title: 'Wallet-grade intelligence',
-    description: 'AI ranks every card in your fleet against current location, merchant, and promos.',
+    title: 'Best card for every store',
+    description: 'AI analyzes your cards against each merchant category to maximize your rewards.',
     icon: <CreditCard className="h-5 w-5" />,
     accent: 'sky' as const,
-    footer: '200+ issuers modeled',
+    footer: '200+ cards supported',
   },
   {
-    title: 'Global merchant graph',
-    description: '1M+ merchants mapped with MCC cleanup, so every swipe is contextual.',
+    title: 'Location-aware suggestions',
+    description: 'Get instant recommendations when you arrive at a store or restaurant.',
     icon: <MapPin className="h-5 w-5" />,
     accent: 'amber' as const,
-    footer: 'Live enrichment feed',
+    footer: '1M+ merchants mapped',
   },
   {
-    title: 'Compliance-grade auditing',
-    description: 'Role-based controls, SOC2 workflows, and automated audit trails.',
+    title: 'Travel rewards optimizer',
+    description: 'Plan trips with the right cards for flights, hotels, and dining abroad.',
     icon: <Shield className="h-5 w-5" />,
     accent: 'mint' as const,
-    footer: 'Export-ready reports',
+    footer: 'Airline & hotel perks',
   },
 ];
 
@@ -163,17 +163,17 @@ export default function HomePage() {
                     size="md"
                     tone="highlight"
                     icon={<TrendingUp className="h-4 w-4" />}
-                    label="Enterprise-ready voice AI"
+                    label="Smart rewards optimizer"
                   />
                 </div>
 
                 <div className="space-y-6">
                   <h1 className="font-display text-4xl leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl">
-                    PointAdvisor multiplies every dollar your team spends.
+                    Know which card to use, every time you pay.
                   </h1>
                   <p className="text-lg text-neutral-600">
-                    Our AI copilots read the moment you tap or swipe, then push the exact card, perk,
-                    or promo to use. No spreadsheets, no guesswork—just automatic reward optimization at scale.
+                    PointAdvisor tells you the best credit card for every purchase—whether you&apos;re grabbing coffee
+                    or booking a flight. Maximize rewards, never miss a perk.
                   </p>
                 </div>
 
@@ -181,20 +181,20 @@ export default function HomePage() {
                   <StatChip
                     size="md"
                     tone="positive"
-                    icon={<LineChart className="h-4 w-4" />}
-                    label="$128M optimized"
+                    icon={<CreditCard className="h-4 w-4" />}
+                    label="200+ cards supported"
                   />
                   <StatChip
                     size="md"
                     tone="neutral"
-                    icon={<ShieldCheck className="h-4 w-4" />}
-                    label="SOC2 controls"
+                    icon={<MapPin className="h-4 w-4" />}
+                    label="Location-aware"
                   />
                   <StatChip
                     size="md"
                     tone="highlight"
                     icon={<Sparkles className="h-4 w-4" />}
-                    label="Live AI copilots"
+                    label="AI-powered"
                   />
                 </div>
 
@@ -203,14 +203,14 @@ export default function HomePage() {
                     onClick={() => router.push('/auth')}
                     className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand-600 to-brand-500 px-8 py-3 text-base font-semibold text-white shadow-[0_25px_45px_rgba(83,46,177,0.35)] transition hover:-translate-y-0.5"
                   >
-                    Launch Copilot
+                    Get started free
                     <ArrowRight className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => router.push('/auth')}
                     className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-base font-semibold text-neutral-800 transition hover:border-brand-200 hover:text-brand-700"
                   >
-                    Book enterprise demo
+                    See how it works
                   </button>
                 </div>
 
@@ -226,7 +226,7 @@ export default function HomePage() {
                     ))}
                   </div>
                   <div>
-                    <span className="font-semibold text-neutral-900">2,400+</span> revenue teams optimizing every swipe
+                    <span className="font-semibold text-neutral-900">50,000+</span> cardholders maximizing rewards
                   </div>
                 </div>
               </div>
@@ -238,20 +238,20 @@ export default function HomePage() {
                 <div className="relative grid gap-6 rounded-[2.25rem] border border-white/80 bg-white/95 p-6 shadow-[0_35px_95px_rgba(82,47,174,0.25)] backdrop-blur-2xl">
                   <div className="grid gap-6 sm:grid-cols-2">
                     <MetricCard
-                      label="Annual rewards unlocked"
-                      value="$128,400"
-                      delta={{ value: '+38%', trend: 'up', label: 'YoY growth' }}
-                      subtext="Across enterprise portfolio"
-                      icon={<ArrowRight className="h-4 w-4" />}
-                      chips={[{ label: '46 cards connected', tone: 'neutral' as const }]}
+                      label="Rewards earned this year"
+                      value="$2,340"
+                      delta={{ value: '+24%', trend: 'up', label: 'vs last year' }}
+                      subtext="Across all your cards"
+                      icon={<CreditCard className="h-4 w-4" />}
+                      chips={[{ label: '8 cards tracked', tone: 'neutral' as const }]}
                     />
                     <MetricCard
-                      label="Missed perks recovered"
-                      value="$12,870"
-                      delta={{ value: '↓82%', trend: 'down', label: 'Missed spend' }}
-                      subtext="Alerts before the receipt prints"
+                      label="Missed rewards saved"
+                      value="$187"
+                      delta={{ value: '↓ 92%', trend: 'down', label: 'Wrong card use' }}
+                      subtext="Smart alerts saved you money"
                       icon={<Shield className="h-4 w-4" />}
-                      chips={[{ label: 'Realtime alerts', tone: 'highlight' as const }]}
+                      chips={[{ label: 'This month', tone: 'highlight' as const }]}
                     />
                   </div>
 
@@ -268,11 +268,11 @@ export default function HomePage() {
                   </div>
 
                   <FeatureCard
-                    title="Signal-based copilots"
-                    description="PointAdvisor listens across POS, geofence, and travel signals to push the exact action in <2s."
+                    title="Smart card recommendations"
+                    description="PointAdvisor knows your location and purchase category to suggest the best card instantly."
                     icon={<Zap className="h-5 w-5" />}
                     accent="sky"
-                    stat={<p className="text-sm text-neutral-500">35 cities running live pilots</p>}
+                    stat={<p className="text-sm text-neutral-500">Works at any store</p>}
                     footer={
                       <div className="flex w-full items-center justify-between text-neutral-600">
                         <span className="text-xs uppercase tracking-[0.3em]">Location aware</span>
@@ -301,9 +301,9 @@ export default function HomePage() {
         <section id="how-it-works" className="bg-white py-20 text-neutral-900">
           <div className="mx-auto max-w-6xl px-6">
             <div className="mb-12 text-center">
-              <StatChip size="md" tone="highlight" label="Playbook" />
-              <h2 className="mt-4 font-display text-3xl text-neutral-900">How PointAdvisor runs in the field</h2>
-              <p className="mt-3 text-neutral-600">From secure onboarding to real-time copilots, go live in hours—not quarters.</p>
+              <StatChip size="md" tone="highlight" label="How it works" />
+              <h2 className="mt-4 font-display text-3xl text-neutral-900">Start earning more in 3 simple steps</h2>
+              <p className="mt-3 text-neutral-600">Set up in minutes, see results on your next purchase.</p>
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {HOW_IT_WORKS.map((step) => (
@@ -314,7 +314,7 @@ export default function HomePage() {
                   accent={step.accent}
                   icon={<span className="font-display text-lg font-semibold">{step.id}</span>}
                   badge={`Step ${step.id}`}
-                  footer={<span className="text-sm text-neutral-600">Enterprise-ready in <strong>2 weeks</strong></span>}
+                  footer={<span className="text-sm text-neutral-600">Takes <strong>2 minutes</strong></span>}
                 />
               ))}
             </div>
@@ -325,10 +325,10 @@ export default function HomePage() {
         <section id="security" className="border-y border-neutral-100 bg-gradient-to-b from-white via-[#f7f1ff] to-white py-20 text-neutral-900">
           <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[1.1fr,0.9fr]">
             <div className="space-y-6">
-              <StatChip size="md" tone="highlight" label="Platform" />
+              <StatChip size="md" tone="highlight" label="Features" />
               <div>
-                <h2 className="font-display text-3xl leading-tight text-neutral-900">Every control built for enterprise-grade trust.</h2>
-                <p className="mt-3 text-neutral-600">Wallet intelligence, merchant graph, and compliance automation in a single pane.</p>
+                <h2 className="font-display text-3xl leading-tight text-neutral-900">Everything you need to maximize rewards.</h2>
+                <p className="mt-3 text-neutral-600">Smart recommendations for everyday purchases and travel planning.</p>
               </div>
               <div className="grid gap-5">
                 {FEATURE_HIGHLIGHTS.map((feature) => (
@@ -356,11 +356,11 @@ export default function HomePage() {
                 <DealOfTheDay />
               </div>
               <div className="rounded-3xl border border-white/80 bg-white/95 p-6 text-sm text-neutral-600 backdrop-blur-xl">
-                <h4 className="font-semibold text-neutral-900">Security stack</h4>
+                <h4 className="font-semibold text-neutral-900">Your data is safe</h4>
                 <ul className="mt-3 space-y-2 text-neutral-600">
-                  <li>• Zero card storage, read-only Plaid connections</li>
-                  <li>• SOC2 Type II controls & quarterly pen tests</li>
-                  <li>• Correlated PostHog events for every action</li>
+                  <li>• We never store card numbers—only rewards info</li>
+                  <li>• Bank-level encryption for all connections</li>
+                  <li>• Delete your data anytime with one click</li>
                 </ul>
               </div>
             </div>
@@ -371,9 +371,9 @@ export default function HomePage() {
         <section className="bg-white py-20">
           <div className="mx-auto max-w-6xl px-6">
             <div className="mb-8 text-center">
-              <StatChip size="md" tone="highlight" label="Live trial" />
-              <h2 className="mt-4 text-3xl font-bold text-neutral-900">Try the copilot on your block</h2>
-              <p className="mt-2 text-neutral-600">See which cards earn the most at businesses near you.</p>
+              <StatChip size="md" tone="highlight" label="Try it now" />
+              <h2 className="mt-4 text-3xl font-bold text-neutral-900">See recommendations near you</h2>
+              <p className="mt-2 text-neutral-600">Discover which card to use at businesses in your area.</p>
             </div>
             <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 shadow-[0_35px_65px_rgba(15,20,40,0.1)]">
               <NearbyExplorer />
@@ -385,12 +385,12 @@ export default function HomePage() {
         <section id="cta" className="relative overflow-hidden border-t border-white/80 bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 py-20 text-white">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.18),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(249,173,255,0.25),transparent_45%)]" aria-hidden />
           <div className="relative mx-auto max-w-4xl px-6 text-center">
-            <StatChip size="md" tone="highlight" label="Pricing" />
+            <StatChip size="md" tone="highlight" label="Free to start" />
             <h2 className="mt-4 font-display text-3xl sm:text-4xl">
-              Ready to stop leaving money behind?
+              Stop leaving rewards on the table.
             </h2>
             <p className="mt-3 text-white/80">
-              Launch in 60 seconds for free, then unlock enterprise controls when you need them.
+              Join thousands of cardholders earning more on every purchase. Free forever for personal use.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <button
@@ -404,10 +404,10 @@ export default function HomePage() {
                 onClick={() => router.push('/auth')}
                 className="inline-flex items-center gap-2 rounded-full border border-white/60 px-6 py-3 text-base font-semibold text-white/90 transition hover:bg-white/10"
               >
-                Talk to sales
+                Learn more
               </button>
             </div>
-            <p className="mt-4 text-sm text-white/75">No credit card required • SOC2-ready controls</p>
+            <p className="mt-4 text-sm text-white/75">No credit card required • Works with all major issuers</p>
           </div>
         </section>
       </main>
