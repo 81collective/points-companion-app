@@ -1,36 +1,96 @@
 // src/app/page.tsx - PointAdvisor landing page with chat redirect
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useUserCards';
-import { ArrowRight, Sparkles, CreditCard, MapPin, TrendingUp, Shield } from 'lucide-react';
+import { ArrowRight, Sparkles, CreditCard, MapPin, TrendingUp, Shield, ShieldCheck, LineChart, Zap } from 'lucide-react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import DealOfTheDay from '@/components/public/DealOfTheDay';
 import NearbyExplorer from '@/components/home/NearbyExplorer';
+import { FeatureCard } from '@/components/ui/feature-card';
+import { MetricCard } from '@/components/ui/metric-card';
+import { StatChip } from '@/components/ui/stat-chip';
 
-// Demo scenarios to show product value
-const DEMO_SCENARIOS = [
-  { query: "I'm at Whole Foods buying groceries", card: "Amex Gold", reward: "4x points", savings: "$4.80" },
-  { query: "Filling up gas at Costco", card: "Costco Visa", reward: "4% cashback", savings: "$2.40" },
-  { query: "Booking a flight on United", card: "Chase Sapphire", reward: "5x points", savings: "$25" },
+const NAV_LINKS = [
+  { label: 'Platform', href: '#platform' },
+  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Security', href: '#security' },
+  { label: 'Pricing', href: '#cta' },
+];
+
+const PROOF_STATS = [
+  {
+    label: 'Rewards optimized',
+    value: '$128M+',
+    subtext: 'Tracked past 12 months',
+    chips: [{ label: '2,400+ teams', tone: 'neutral' as const }],
+  },
+  {
+    label: 'Missed perks prevented',
+    value: '$12.8M',
+    subtext: 'Instant card-switch alerts',
+    chips: [{ label: '↓82% leakage', tone: 'positive' as const }],
+  },
+  {
+    label: 'Time to insight',
+    value: '1.7s',
+    subtext: 'Signal-to-recommendation latency',
+    chips: [{ label: 'Realtime AI', tone: 'highlight' as const }],
+  },
+];
+
+const HOW_IT_WORKS = [
+  {
+    id: '01',
+    title: 'Connect your cards + data',
+    description: 'Secure read-only connections across issuers, ERPs, and expense tools in minutes.',
+    accent: 'sky' as const,
+  },
+  {
+    id: '02',
+    title: 'Copilots watch every swipe',
+    description: 'Location, POS, and itinerary signals trigger the right card + perk in <2 seconds.',
+    accent: 'mint' as const,
+  },
+  {
+    id: '03',
+    title: 'Ops + finance get clarity',
+    description: 'Live dashboards surface savings, missed perks, and policy compliance instantly.',
+    accent: 'rose' as const,
+  },
+];
+
+const FEATURE_HIGHLIGHTS = [
+  {
+    title: 'Wallet-grade intelligence',
+    description: 'AI ranks every card in your fleet against current location, merchant, and promos.',
+    icon: <CreditCard className="h-5 w-5" />,
+    accent: 'sky' as const,
+    footer: '200+ issuers modeled',
+  },
+  {
+    title: 'Global merchant graph',
+    description: '1M+ merchants mapped with MCC cleanup, so every swipe is contextual.',
+    icon: <MapPin className="h-5 w-5" />,
+    accent: 'amber' as const,
+    footer: 'Live enrichment feed',
+  },
+  {
+    title: 'Compliance-grade auditing',
+    description: 'Role-based controls, SOC2 workflows, and automated audit trails.',
+    icon: <Shield className="h-5 w-5" />,
+    accent: 'mint' as const,
+    footer: 'Export-ready reports',
+  },
 ];
 
 export default function HomePage() {
   const { user, loading } = useAuth();
   const { cards } = useUserCards();
   const router = useRouter();
-  const [activeDemo, setActiveDemo] = useState(0);
-
-  // Rotate demo scenarios
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveDemo((prev) => (prev + 1) % DEMO_SCENARIOS.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (user && !loading) {
@@ -50,307 +110,323 @@ export default function HomePage() {
     return null;
   }
 
-  const demo = DEMO_SCENARIOS[activeDemo];
-
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Clean minimal header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-neutral-200/60">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-16">
-          <div className="flex items-center gap-2.5 font-semibold text-neutral-900">
-            <Image src="/logo-sm.svg" alt="PointAdvisor" width={32} height={32} priority />
-            <span className="hidden sm:inline">PointAdvisor</span>
+    <div className="min-h-screen text-neutral-900" style={{ background: 'var(--gradient-hero)' }}>
+      {/* Frosted navigation */}
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 shadow-[0_10px_35px_rgba(92,63,189,0.1)] backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <div className="flex items-center gap-3 text-neutral-900">
+            <Image src="/logo-sm.svg" alt="PointAdvisor" width={32} height={32} priority className="drop-shadow-[0_8px_25px_rgba(111,71,255,0.35)]" />
+            <span className="font-display text-lg tracking-tight">PointAdvisor</span>
           </div>
+          <nav className="hidden items-center gap-6 text-sm font-medium text-neutral-600 md:flex">
+            {NAV_LINKS.map((link) => (
+              <a key={link.label} href={link.href} className="transition hover:text-neutral-900">
+                {link.label}
+              </a>
+            ))}
+          </nav>
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push('/auth')}
-              className="btn btn-ghost hidden sm:flex"
+              className="hidden rounded-full border border-neutral-200 bg-white/70 px-4 py-2 text-sm font-semibold text-neutral-800 transition hover:border-brand-200 hover:text-brand-700 md:inline-flex"
             >
               Sign in
             </button>
             <button
               onClick={() => router.push('/auth')}
-              className="btn btn-primary"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-600 to-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(94,55,187,0.35)] transition hover:-translate-y-0.5"
             >
-              Get Started Free
+              Launch app
+              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
       </header>
 
       <main>
-        {/* Hero Section - Value-First Design */}
-        <section className="bg-gradient-to-b from-white to-neutral-50 border-b border-neutral-100">
-          <div className="max-w-6xl mx-auto px-6 py-16 lg:py-20">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              {/* Left: Messaging */}
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6">
-                  <TrendingUp className="w-4 h-4" />
-                  Users save $480/year on average
-                </div>
-                
-                <h1 className="text-4xl sm:text-5xl font-bold text-neutral-900 tracking-tight leading-[1.1] mb-6">
-                  Stop leaving money
-                  <span className="text-brand-500"> on the table</span>
-                </h1>
-                
-                <p className="text-lg text-neutral-600 leading-relaxed mb-8">
-                  AI instantly tells you the <strong>best card to use</strong> at every store. 
-                  Just ask &ldquo;Which card should I use?&rdquo; and watch your rewards multiply.
-                </p>
+        {/* Hero Section - Synthflow aesthetic */}
+        <section className="relative isolate overflow-hidden border-b border-white/60 text-neutral-900">
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-[#f3ebff]/90 to-white" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_30%,rgba(138,99,255,0.25),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(242,158,234,0.2),transparent_55%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.6)_0%,transparent_60%)]" />
+          </div>
 
-                {/* Live Demo Preview */}
-                <div className="bg-white rounded-xl border border-neutral-200 p-4 mb-8 shadow-sm">
-                  <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide mb-3">Live Example</p>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm">👤</span>
-                      </div>
-                      <div className="bg-neutral-100 rounded-2xl rounded-tl-md px-4 py-2.5 text-sm text-neutral-700">
-                        {demo.query}
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0">
-                        <Sparkles className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="bg-brand-50 rounded-2xl rounded-tl-md px-4 py-2.5 text-sm text-brand-900">
-                        Use your <strong>{demo.card}</strong> for <strong>{demo.reward}</strong>. 
-                        <span className="text-emerald-600 font-medium"> Save {demo.savings}!</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Progress dots */}
-                  <div className="flex justify-center gap-1.5 mt-4">
-                    {DEMO_SCENARIOS.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveDemo(i)}
-                        className={`w-2 h-2 rounded-full transition-all ${i === activeDemo ? 'bg-brand-500 w-4' : 'bg-neutral-300'}`}
-                        aria-label={`Demo ${i + 1}`}
-                      />
-                    ))}
-                  </div>
+          <div className="relative mx-auto max-w-6xl px-6 py-16 lg:py-24">
+            <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_1.1fr]">
+              {/* Messaging */}
+              <div className="space-y-8">
+                <div className="inline-flex items-center gap-3">
+                  <StatChip
+                    size="md"
+                    tone="highlight"
+                    icon={<TrendingUp className="h-4 w-4" />}
+                    label="Enterprise-ready voice AI"
+                  />
                 </div>
 
-                {/* CTA */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={() => router.push('/auth')}
-                    className="btn btn-primary btn-lg"
-                  >
-                    Start Saving Now
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                  <p className="text-sm text-neutral-500 self-center">
-                    Free forever • No credit card required
+                <div className="space-y-6">
+                  <h1 className="font-display text-4xl leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl">
+                    PointAdvisor multiplies every dollar your team spends.
+                  </h1>
+                  <p className="text-lg text-neutral-600">
+                    Our AI copilots read the moment you tap or swipe, then push the exact card, perk,
+                    or promo to use. No spreadsheets, no guesswork—just automatic reward optimization at scale.
                   </p>
                 </div>
 
-                {/* Trust Signals */}
-                <div className="flex items-center gap-6 mt-8 pt-8 border-t border-neutral-200">
-                  <div className="flex -space-x-2">
+                <div className="flex flex-wrap gap-3">
+                  <StatChip
+                    size="md"
+                    tone="positive"
+                    icon={<LineChart className="h-4 w-4" />}
+                    label="$128M optimized"
+                  />
+                  <StatChip
+                    size="md"
+                    tone="neutral"
+                    icon={<ShieldCheck className="h-4 w-4" />}
+                    label="SOC2 controls"
+                  />
+                  <StatChip
+                    size="md"
+                    tone="highlight"
+                    icon={<Sparkles className="h-4 w-4" />}
+                    label="Live AI copilots"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <button
+                    onClick={() => router.push('/auth')}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand-600 to-brand-500 px-8 py-3 text-base font-semibold text-white shadow-[0_25px_45px_rgba(83,46,177,0.35)] transition hover:-translate-y-0.5"
+                  >
+                    Launch Copilot
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => router.push('/auth')}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-base font-semibold text-neutral-800 transition hover:border-brand-200 hover:text-brand-700"
+                  >
+                    Book enterprise demo
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-6 border-t border-white/70 pt-6 text-sm text-neutral-600">
+                  <div className="flex -space-x-3">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 border-2 border-white flex items-center justify-center text-white text-xs font-medium">
+                      <span
+                        key={i}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/80 bg-white text-sm font-semibold text-brand-600 shadow-[0_8px_18px_rgba(88,59,187,0.15)]"
+                      >
                         {String.fromCharCode(64 + i)}
-                      </div>
+                      </span>
                     ))}
                   </div>
-                  <div className="text-sm text-neutral-600">
-                    <span className="font-semibold text-neutral-900">2,400+</span> users optimizing rewards
+                  <div>
+                    <span className="font-semibold text-neutral-900">2,400+</span> revenue teams optimizing every swipe
                   </div>
                 </div>
               </div>
 
-              {/* Right: Product Screenshot / Chat Interface */}
+              {/* Interactive stack */}
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/20 to-violet-500/20 rounded-3xl blur-2xl opacity-40" />
-                <div className="relative surface-elevated overflow-hidden rounded-2xl">
-                  <div className="h-[480px]">
-                    <ChatInterface
-                      mode="quick"
-                      isAuthenticated={Boolean(user)}
-                      userCards={cards}
-                      persistUiState={false}
+                <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-r from-brand-200/70 via-white/70 to-rose-100/70 blur-3xl" aria-hidden />
+
+                <div className="relative grid gap-6 rounded-[2.25rem] border border-white/80 bg-white/95 p-6 shadow-[0_35px_95px_rgba(82,47,174,0.25)] backdrop-blur-2xl">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <MetricCard
+                      label="Annual rewards unlocked"
+                      value="$128,400"
+                      delta={{ value: '+38%', trend: 'up', label: 'YoY growth' }}
+                      subtext="Across enterprise portfolio"
+                      icon={<ArrowRight className="h-4 w-4" />}
+                      chips={[{ label: '46 cards connected', tone: 'neutral' as const }]}
+                    />
+                    <MetricCard
+                      label="Missed perks recovered"
+                      value="$12,870"
+                      delta={{ value: '↓82%', trend: 'down', label: 'Missed spend' }}
+                      subtext="Alerts before the receipt prints"
+                      icon={<Shield className="h-4 w-4" />}
+                      chips={[{ label: 'Realtime alerts', tone: 'highlight' as const }]}
                     />
                   </div>
+
+                  <div className="relative overflow-hidden rounded-2xl border border-white/80 bg-white p-4 shadow-inner">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-transparent to-transparent" aria-hidden />
+                    <div className="relative h-[320px] rounded-xl border border-neutral-100 bg-neutral-50/80 p-3">
+                      <ChatInterface
+                        mode="quick"
+                        isAuthenticated={Boolean(user)}
+                        userCards={cards}
+                        persistUiState={false}
+                      />
+                    </div>
+                  </div>
+
+                  <FeatureCard
+                    title="Signal-based copilots"
+                    description="PointAdvisor listens across POS, geofence, and travel signals to push the exact action in <2s."
+                    icon={<Zap className="h-5 w-5" />}
+                    accent="sky"
+                    stat={<p className="text-sm text-neutral-500">35 cities running live pilots</p>}
+                    footer={
+                      <div className="flex w-full items-center justify-between text-neutral-600">
+                        <span className="text-xs uppercase tracking-[0.3em]">Location aware</span>
+                        <span className="text-sm font-semibold text-neutral-900">1M+ merchants mapped</span>
+                      </div>
+                    }
+                  />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Social Proof Bar */}
-        <section className="bg-white border-b border-neutral-100 py-8">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-16">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-neutral-900">$1.2M+</div>
-                <div className="text-sm text-neutral-500">Rewards optimized</div>
-              </div>
-              <div className="hidden sm:block w-px h-10 bg-neutral-200" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-neutral-900">50+</div>
-                <div className="text-sm text-neutral-500">Card issuers supported</div>
-              </div>
-              <div className="hidden sm:block w-px h-10 bg-neutral-200" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-neutral-900">4.9★</div>
-                <div className="text-sm text-neutral-500">User satisfaction</div>
-              </div>
-              <div className="hidden sm:block w-px h-10 bg-neutral-200" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600">Free</div>
-                <div className="text-sm text-neutral-500">No hidden fees</div>
-              </div>
+        {/* Social proof */}
+        <section id="platform" className="border-b border-neutral-100 bg-transparent py-16">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              {PROOF_STATS.map((stat) => (
+                <MetricCard key={stat.label} {...stat} />
+              ))}
             </div>
           </div>
         </section>
 
         {/* How It Works - 3 Steps */}
-        <section className="py-16 lg:py-20">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-neutral-900 mb-4">How it works</h2>
-              <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-                Get personalized card recommendations in under 60 seconds
-              </p>
+        <section id="how-it-works" className="bg-white py-20 text-neutral-900">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mb-12 text-center">
+              <StatChip size="md" tone="highlight" label="Playbook" />
+              <h2 className="mt-4 font-display text-3xl text-neutral-900">How PointAdvisor runs in the field</h2>
+              <p className="mt-3 text-neutral-600">From secure onboarding to real-time copilots, go live in hours—not quarters.</p>
             </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-brand-50 flex items-center justify-center mx-auto mb-4 text-2xl font-bold text-brand-600">1</div>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-2">Add your cards</h3>
-                <p className="text-neutral-600">Tell us which credit cards are in your wallet. Takes 30 seconds.</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4 text-2xl font-bold text-emerald-600">2</div>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-2">Ask anything</h3>
-                <p className="text-neutral-600">&ldquo;Which card for Amazon?&rdquo; &ldquo;Best gas card?&rdquo; — just ask naturally.</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-4 text-2xl font-bold text-violet-600">3</div>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-2">Maximize rewards</h3>
-                <p className="text-neutral-600">Get instant answers. Use the right card. Earn more every time.</p>
-              </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {HOW_IT_WORKS.map((step) => (
+                <FeatureCard
+                  key={step.id}
+                  title={step.title}
+                  description={step.description}
+                  accent={step.accent}
+                  icon={<span className="font-display text-lg font-semibold">{step.id}</span>}
+                  badge={`Step ${step.id}`}
+                  footer={<span className="text-sm text-neutral-600">Enterprise-ready in <strong>2 weeks</strong></span>}
+                />
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Features with Benefits */}
-        <section className="bg-white py-16 lg:py-20 border-y border-neutral-100">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+        {/* Feature highlights + trust */}
+        <section id="security" className="border-y border-neutral-100 bg-gradient-to-b from-white via-[#f7f1ff] to-white py-20 text-neutral-900">
+          <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[1.1fr,0.9fr]">
+            <div className="space-y-6">
+              <StatChip size="md" tone="highlight" label="Platform" />
               <div>
-                <h2 className="text-3xl font-bold text-neutral-900 mb-6">
-                  Every feature designed to save you money
-                </h2>
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
-                      <CreditCard className="w-5 h-5 text-brand-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-900 mb-1">Smart Card Matching</h3>
-                      <p className="text-neutral-600 text-sm">AI analyzes 200+ cards and matches your spending patterns to maximize returns. Average user earns 2.3x more rewards.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-900 mb-1">Bonus & Promo Alerts</h3>
-                      <p className="text-neutral-600 text-sm">Never miss limited-time offers, rotating categories, or welcome bonuses worth $500+.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-violet-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-900 mb-1">Location-Aware Recommendations</h3>
-                      <p className="text-neutral-600 text-sm">Get instant card suggestions when you arrive at a store. Works at 1M+ locations.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
-                      <Shield className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neutral-900 mb-1">Bank-Level Security</h3>
-                      <p className="text-neutral-600 text-sm">We never see your card numbers. Read-only connection with 256-bit encryption.</p>
-                    </div>
-                  </div>
-                </div>
+                <h2 className="font-display text-3xl leading-tight text-neutral-900">Every control built for enterprise-grade trust.</h2>
+                <p className="mt-3 text-neutral-600">Wallet intelligence, merchant graph, and compliance automation in a single pane.</p>
               </div>
+              <div className="grid gap-5">
+                {FEATURE_HIGHLIGHTS.map((feature) => (
+                  <FeatureCard
+                    key={feature.title}
+                    title={feature.title}
+                    description={feature.description}
+                    icon={feature.icon}
+                    accent={feature.accent}
+                    footer={<span className="text-sm text-neutral-600">{feature.footer}</span>}
+                  />
+                ))}
+              </div>
+            </div>
 
-              {/* Deal of the Day */}
-              <div>
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-white/80 bg-white/95 p-6 shadow-[0_25px_55px_rgba(82,47,174,0.2)] backdrop-blur-xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">Live signal</p>
+                    <h3 className="font-display text-xl text-neutral-900">Deal of the Day</h3>
+                  </div>
+                  <StatChip label="Realtime" tone="highlight" />
+                </div>
                 <DealOfTheDay />
+              </div>
+              <div className="rounded-3xl border border-white/80 bg-white/95 p-6 text-sm text-neutral-600 backdrop-blur-xl">
+                <h4 className="font-semibold text-neutral-900">Security stack</h4>
+                <ul className="mt-3 space-y-2 text-neutral-600">
+                  <li>• Zero card storage, read-only Plaid connections</li>
+                  <li>• SOC2 Type II controls & quarterly pen tests</li>
+                  <li>• Correlated PostHog events for every action</li>
+                </ul>
               </div>
             </div>
           </div>
         </section>
 
         {/* Nearby Businesses Explorer */}
-        <section className="py-16 lg:py-20">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-neutral-900 mb-4">Try it now</h2>
-              <p className="text-lg text-neutral-600">
-                See which cards earn the most at businesses near you
-              </p>
+        <section className="bg-white py-20">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="mb-8 text-center">
+              <StatChip size="md" tone="highlight" label="Live trial" />
+              <h2 className="mt-4 text-3xl font-bold text-neutral-900">Try the copilot on your block</h2>
+              <p className="mt-2 text-neutral-600">See which cards earn the most at businesses near you.</p>
             </div>
-            <NearbyExplorer />
+            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 shadow-[0_35px_65px_rgba(15,20,40,0.1)]">
+              <NearbyExplorer />
+            </div>
           </div>
         </section>
 
         {/* Final CTA */}
-        <section className="bg-gradient-to-br from-brand-600 to-brand-700 py-16 lg:py-20">
-          <div className="max-w-3xl mx-auto px-6 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+        <section id="cta" className="relative overflow-hidden border-t border-white/80 bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 py-20 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.18),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(249,173,255,0.25),transparent_45%)]" aria-hidden />
+          <div className="relative mx-auto max-w-4xl px-6 text-center">
+            <StatChip size="md" tone="highlight" label="Pricing" />
+            <h2 className="mt-4 font-display text-3xl sm:text-4xl">
               Ready to stop leaving money behind?
             </h2>
-            <p className="text-lg text-brand-100 mb-8">
-              Join thousands of smart spenders maximizing every purchase.
+            <p className="mt-3 text-white/80">
+              Launch in 60 seconds for free, then unlock enterprise controls when you need them.
             </p>
-            <button
-              onClick={() => router.push('/auth')}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-brand-600 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
-            >
-              Get Started Free
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <p className="text-brand-200 text-sm mt-4">
-              No credit card required • Setup in 60 seconds
-            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <button
+                onClick={() => router.push('/auth')}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-base font-semibold text-brand-600 shadow-[0_20px_45px_rgba(10,12,25,0.4)] transition hover:-translate-y-0.5"
+              >
+                Get started free
+                <ArrowRight className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => router.push('/auth')}
+                className="inline-flex items-center gap-2 rounded-full border border-white/60 px-6 py-3 text-base font-semibold text-white/90 transition hover:bg-white/10"
+              >
+                Talk to sales
+              </button>
+            </div>
+            <p className="mt-4 text-sm text-white/75">No credit card required • SOC2-ready controls</p>
           </div>
         </section>
       </main>
 
       {/* Minimal Footer */}
-      <footer className="bg-neutral-900 text-neutral-400">
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <footer className="border-t border-neutral-100 bg-white text-neutral-500">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2.5">
-              <Image src="/logo-sm.svg" alt="" width={24} height={24} className="opacity-70" />
-              <span className="text-neutral-300 font-medium">PointAdvisor</span>
+              <Image src="/logo-sm.svg" alt="" width={24} height={24} className="opacity-90" />
+              <span className="font-medium text-neutral-800">PointAdvisor</span>
             </div>
             <div className="flex gap-8 text-sm">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Contact</a>
-              <a href="#" className="hover:text-white transition-colors">Blog</a>
+              <a href="#" className="transition-colors hover:text-neutral-900">Privacy</a>
+              <a href="#" className="transition-colors hover:text-neutral-900">Terms</a>
+              <a href="#" className="transition-colors hover:text-neutral-900">Contact</a>
+              <a href="#" className="transition-colors hover:text-neutral-900">Blog</a>
             </div>
-            <div className="text-sm">
+            <div className="text-sm text-neutral-500">
               © 2025 PointAdvisor. All rights reserved.
             </div>
           </div>

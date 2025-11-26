@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorProvider } from "@/contexts/ErrorContext";
@@ -18,10 +18,16 @@ import ForceLightMode from "@/components/layout/ForceLightMode";
 import { Haptics } from "@/components/pwa/Haptics";
 import { reportWebVitals } from "@/lib/performance-monitor";
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ["latin"],
-  display: 'swap',
-  preload: true,
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const geistDisplay = Geist({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -57,7 +63,7 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationSchema();
 
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={`${geistSans.variable} ${geistDisplay.variable}`}>
       <head>
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

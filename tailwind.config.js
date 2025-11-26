@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -8,58 +11,84 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
+        display: ['var(--font-display)', 'var(--font-sans)', ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        // Modern brand palette
+        background: {
+          DEFAULT: 'var(--color-bg)',
+          muted: 'var(--color-bg-muted)',
+          inverted: 'var(--color-bg-inverse)',
+        },
+        surface: {
+          DEFAULT: 'var(--color-surface)',
+          raised: 'var(--color-surface-raised)',
+          glass: 'var(--color-surface-glass)',
+        },
         brand: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',  // Primary
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: 'var(--brand-50)',
+          100: 'var(--brand-100)',
+          200: 'var(--brand-200)',
+          300: 'var(--brand-300)',
+          400: 'var(--brand-400)',
+          500: 'var(--brand-500)',
+          600: 'var(--brand-600)',
+          700: 'var(--brand-700)',
+          800: 'var(--brand-800)',
+          900: 'var(--brand-900)',
         },
-        // Legacy alias for compatibility
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+        accent: {
+          sky: 'var(--color-accent-sky)',
+          rose: 'var(--color-accent-rose)',
+          mint: 'var(--color-accent-mint)',
+          amber: 'var(--color-accent-amber)',
         },
+        neutral: {
+          50: 'var(--neutral-50)',
+          100: 'var(--neutral-100)',
+          200: 'var(--neutral-200)',
+          300: 'var(--neutral-300)',
+          400: 'var(--neutral-400)',
+          500: 'var(--neutral-500)',
+          600: 'var(--neutral-600)',
+          700: 'var(--neutral-700)',
+          800: 'var(--neutral-800)',
+          900: 'var(--neutral-900)',
+        },
+        success: 'var(--success)',
+        warning: 'var(--warning)',
+        error: 'var(--error)',
       },
       borderRadius: {
-        'sm': '6px',
-        'DEFAULT': '10px',
-        'lg': '14px',
-        'xl': '20px',
+        'sm': 'var(--radius-sm)',
+        'DEFAULT': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
       },
       boxShadow: {
-        'xs': '0 1px 2px rgba(0, 0, 0, 0.04)',
-        'sm': '0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04)',
-        'DEFAULT': '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
-        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
-        'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03)',
-        'glow': '0 0 0 3px rgba(14, 165, 233, 0.15)',
+        'xs': 'var(--shadow-xs)',
+        'sm': 'var(--shadow-sm)',
+        'DEFAULT': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
+        'xl': 'var(--shadow-xl)',
+        'glow': 'var(--shadow-glow)',
+        'floating': '0 25px 65px rgba(5, 6, 10, 0.35)',
       },
       spacing: {
+        '15': '3.75rem',
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
       },
+      backgroundImage: {
+        'grid-radial': 'radial-gradient(circle at 20% 0%, rgba(138, 99, 255, 0.25), transparent 50%), radial-gradient(circle at 85% 10%, rgba(242, 158, 234, 0.18), transparent 55%)',
+        'hero-gradient': 'linear-gradient(180deg, #fdf7ff 0%, #f3ebff 50%, #f8f5ff 100%)',
+        'hero-overlay': 'radial-gradient(circle at 35% 25%, rgba(111, 71, 255, 0.25), transparent 55%)',
+      },
       animation: {
         'fade-in': 'fadeIn 200ms ease-out',
         'slide-up': 'slideUp 300ms ease-out',
+        'pulse-soft': 'pulseSoft 2.5s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -69,6 +98,10 @@ module.exports = {
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        pulseSoft: {
+          '0%, 100%': { opacity: '0.8' },
+          '50%': { opacity: '1' },
         },
       },
     },
