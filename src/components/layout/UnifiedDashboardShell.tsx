@@ -40,7 +40,7 @@ export default function UnifiedDashboardShell({ children }: { children: React.Re
   }, [mobileOpen]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#faf8ff] via-white to-[#f5f0ff]">
       <TopBarMinimal onMobileMenuToggle={() => setMobileOpen(o => !o)} mobileMenuOpen={mobileOpen} />
       <div className="flex flex-1 relative">
         {/* Desktop sidebar */}
@@ -50,7 +50,7 @@ export default function UnifiedDashboardShell({ children }: { children: React.Re
         {/* Mobile drawer */}
         {mobileOpen && (
           <div className="md:hidden fixed inset-0 z-50 flex" aria-modal="true" role="dialog">
-            <div ref={drawerRef} className="w-60 bg-white dark:bg-gray-900 h-full shadow-xl outline-none" tabIndex={-1}>
+            <div ref={drawerRef} className="w-60 bg-white h-full shadow-xl outline-none" tabIndex={-1}>
               <SideNavCompact mobile onNavigate={() => setMobileOpen(false)} />
             </div>
             <button

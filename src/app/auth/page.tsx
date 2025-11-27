@@ -38,31 +38,31 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#faf8ff] via-white to-[#f5f0ff]">
       <AuthDiagnostics />
       {/* Header */}
-      <div className="w-full border-b border-gray-800 bg-black/90 sticky top-0 z-30">
+      <div className="w-full border-b border-neutral-100 bg-white/80 backdrop-blur-xl sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-white text-lg">
+          <Link href="/" className="flex items-center gap-2 font-semibold text-neutral-900 text-lg">
             <TextLogo className="text-xl sm:text-2xl" withLink={false} />
           </Link>
-          <Link href="/" className="text-sm text-white/80 hover:text-white transition-colors flex items-center">
+          <Link href="/" className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors flex items-center">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to home
           </Link>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-6 md:py-10">
+      <div className="w-full mx-auto md:max-w-5xl px-4 md:px-0 py-10 md:py-16">
         <div className="w-full max-w-md mx-auto">
           {/* Welcome Message */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
               {mode === 'login' && 'Welcome back'}
               {mode === 'signup' && 'Join PointAdvisor'}
               {mode === 'forgot-password' && 'Reset password'}
             </h1>
-            <p className="text-white/70">
+            <p className="text-neutral-600">
               {mode === 'login' && 'Sign in to continue optimizing your rewards'}
               {mode === 'signup' && 'Start maximizing your credit card rewards today'}
               {mode === 'forgot-password' && 'We\'ll send you a link to reset your password'}
@@ -70,7 +70,7 @@ export default function AuthPage() {
           </div>
 
           {/* Auth Form */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+          <div className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(82,47,174,0.12)] border border-neutral-100 p-8">
             {mode === 'login' && (
               <LoginForm 
                 onToggleMode={() => setMode('signup')} 
@@ -87,25 +87,25 @@ export default function AuthPage() {
 
           {/* Features Preview */}
           <div className="mt-8 grid grid-cols-1 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10 text-white">
+            <div className="bg-white rounded-xl p-4 border border-neutral-100 shadow-sm">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
                   <CreditCard className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-medium text-white">Smart Card Management</h3>
-                  <p className="text-sm text-white/70">Track all your cards in one place</p>
+                  <h3 className="font-medium text-neutral-900">Smart Card Management</h3>
+                  <p className="text-sm text-neutral-600">Track all your cards in one place</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10 text-white">
+            <div className="bg-white rounded-xl p-4 border border-neutral-100 shadow-sm">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold">AI</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-brand-400 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-sm">AI</span>
                 </div>
                 <div>
-                  <h3 className="font-medium text-white">AI-Powered Recommendations</h3>
-                  <p className="text-sm text-white/70">Get personalized card suggestions</p>
+                  <h3 className="font-medium text-neutral-900">AI-Powered Recommendations</h3>
+                  <p className="text-sm text-neutral-600">Get personalized card suggestions</p>
                 </div>
               </div>
             </div>
@@ -113,18 +113,18 @@ export default function AuthPage() {
 
           {/* Trust Indicators */}
           <div className="mt-8 text-center">
-            <p className="text-sm text-white/70 mb-4">Trusted by thousands of smart spenders</p>
-            <div className="flex items-center justify-center space-x-6 text-white/60">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <p className="text-sm text-neutral-500 mb-4">Trusted by thousands of smart spenders</p>
+            <div className="flex items-center justify-center gap-6 text-neutral-500">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                 <span className="text-xs">Bank-level security</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-brand-500 rounded-full"></div>
                 <span className="text-xs">Privacy protected</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-brand-400 rounded-full"></div>
                 <span className="text-xs">Always free</span>
               </div>
             </div>

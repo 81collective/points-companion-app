@@ -56,13 +56,13 @@ export default function ProfileSettingsPage() {
       <ProfileLayout>
         <section id="personal" className="space-y-6">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Profile & Preferences</h1>
-            <p className="text-gray-600 mt-1">Control account info, dashboard experience, privacy, and integrations.</p>
+            <h1 className="text-xl font-semibold text-neutral-900">Profile & Preferences</h1>
+            <p className="text-neutral-600 mt-1">Control account info, dashboard experience, privacy, and integrations.</p>
           </div>
 
           {/* Personal Info */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Personal information</h2>
+          <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+            <h2 className="text-lg font-medium text-neutral-900 mb-4">Personal information</h2>
             <div className="mb-6"><AvatarUploader /></div>
             <PersonalInfoForm profile={profile as ProfileShape | null} updateProfile={updateProfile as (u: Partial<ProfileShape>) => Promise<{ error?: string }>} />
           </div>
@@ -71,11 +71,11 @@ export default function ProfileSettingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="preferences">
           {/* Preferences */}
           <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Dashboard sections</h2>
+            <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+              <h2 className="text-lg font-medium text-neutral-900 mb-4">Dashboard sections</h2>
               <div className="space-y-3">
                 {loading ? (
-                  <p className="text-gray-500">Loading…</p>
+                  <p className="text-neutral-500">Loading…</p>
                 ) : (
                   <>
                     <ToggleItem label="Credit cards" checked={preferences.showCreditCards} onChange={onToggle('showCreditCards')} />
@@ -89,8 +89,8 @@ export default function ProfileSettingsPage() {
               </div>
             </section>
 
-            <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Display</h2>
+            <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+              <h2 className="text-lg font-medium text-neutral-900 mb-4">Display</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectItem
                   label="Default view"
