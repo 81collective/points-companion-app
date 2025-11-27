@@ -1,4 +1,4 @@
-// src/app/page.tsx - PointAdvisor landing page with chat redirect
+// src/app/page.tsx - PointAdvisor landing page with chat-first hero
 'use client';
 
 import { useEffect } from 'react';
@@ -6,84 +6,43 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserCards } from '@/hooks/useUserCards';
-import { ArrowRight, Sparkles, CreditCard, MapPin, TrendingUp, Shield, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, CreditCard, MessageCircle, Zap, Shield, Check } from 'lucide-react';
 import ChatInterface from '@/components/chat/ChatInterface';
-import DealOfTheDay from '@/components/public/DealOfTheDay';
-import NearbyExplorer from '@/components/home/NearbyExplorer';
-import { FeatureCard } from '@/components/ui/feature-card';
-import { MetricCard } from '@/components/ui/metric-card';
 import { StatChip } from '@/components/ui/stat-chip';
 
 const NAV_LINKS = [
-  { label: 'Platform', href: '#platform' },
   { label: 'How it works', href: '#how-it-works' },
+  { label: 'Features', href: '#features' },
   { label: 'Security', href: '#security' },
-  { label: 'Pricing', href: '#cta' },
 ];
 
-const PROOF_STATS = [
-  {
-    label: 'Rewards earned',
-    value: '$4.2M+',
-    subtext: 'By our users this year',
-    chips: [{ label: '50K+ users', tone: 'neutral' as const }],
-  },
-  {
-    label: 'Avg. savings per user',
-    value: '$840',
-    subtext: 'Extra rewards annually',
-    chips: [{ label: '+32% vs before', tone: 'positive' as const }],
-  },
-  {
-    label: 'Cards supported',
-    value: '200+',
-    subtext: 'All major issuers covered',
-    chips: [{ label: 'Updated weekly', tone: 'highlight' as const }],
-  },
+const EXAMPLE_PROMPTS = [
+  "What card should I use at Costco?",
+  "Best card for dining out tonight",
+  "Which card has the best travel rewards?",
+  "I'm booking a hotel, help me maximize points",
 ];
 
-const HOW_IT_WORKS = [
+const FEATURES = [
   {
-    id: '01',
-    title: 'Add your credit cards',
-    description: 'Securely add your cards in seconds. We never store card numbers—just the rewards info.',
-    accent: 'sky' as const,
+    icon: <MessageCircle className="h-5 w-5" />,
+    title: 'Ask anything about your cards',
+    description: 'Natural conversation about rewards, perks, and the best card for any situation.',
   },
   {
-    id: '02',
-    title: 'Shop or plan a trip',
-    description: 'At checkout or planning travel, PointAdvisor tells you which card earns the most.',
-    accent: 'mint' as const,
+    icon: <Zap className="h-5 w-5" />,
+    title: 'Instant recommendations',
+    description: 'Get the optimal card for any merchant or category in seconds.',
   },
   {
-    id: '03',
-    title: 'Maximize every purchase',
-    description: 'Earn more points, miles, and cashback without thinking. We do the math for you.',
-    accent: 'rose' as const,
-  },
-];
-
-const FEATURE_HIGHLIGHTS = [
-  {
-    title: 'Best card for every store',
-    description: 'AI analyzes your cards against each merchant category to maximize your rewards.',
     icon: <CreditCard className="h-5 w-5" />,
-    accent: 'sky' as const,
-    footer: '200+ cards supported',
+    title: '200+ cards supported',
+    description: 'All major issuers including Chase, Amex, Capital One, Citi, and more.',
   },
   {
-    title: 'Location-aware suggestions',
-    description: 'Get instant recommendations when you arrive at a store or restaurant.',
-    icon: <MapPin className="h-5 w-5" />,
-    accent: 'amber' as const,
-    footer: '1M+ merchants mapped',
-  },
-  {
-    title: 'Travel rewards optimizer',
-    description: 'Plan trips with the right cards for flights, hotels, and dining abroad.',
     icon: <Shield className="h-5 w-5" />,
-    accent: 'mint' as const,
-    footer: 'Airline & hotel perks',
+    title: 'Privacy first',
+    description: 'We never store card numbers. Your data is encrypted and deletable anytime.',
   },
 ];
 
@@ -111,9 +70,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen text-neutral-900" style={{ background: 'var(--gradient-hero)' }}>
+    <div className="min-h-screen bg-gradient-to-b from-[#faf8ff] via-white to-[#f5f0ff] text-neutral-900">
       {/* Frosted navigation */}
-      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 shadow-[0_10px_35px_rgba(92,63,189,0.1)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 shadow-[0_10px_35px_rgba(92,63,189,0.08)] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-3 text-neutral-900">
             <Image src="/logo-sm.svg" alt="PointAdvisor" width={32} height={32} priority className="drop-shadow-[0_8px_25px_rgba(111,71,255,0.35)]" />
@@ -137,7 +96,7 @@ export default function HomePage() {
               onClick={() => router.push('/auth')}
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-600 to-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(94,55,187,0.35)] transition hover:-translate-y-0.5"
             >
-              Launch app
+              Get started
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -145,252 +104,197 @@ export default function HomePage() {
       </header>
 
       <main>
-        {/* Hero Section - Synthflow aesthetic */}
-        <section className="relative isolate overflow-hidden border-b border-white/60 text-neutral-900">
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-[#f3ebff]/90 to-white" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_30%,rgba(138,99,255,0.25),transparent_55%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(242,158,234,0.2),transparent_55%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.6)_0%,transparent_60%)]" />
+        {/* Hero Section - Chat First */}
+        <section className="relative overflow-hidden pb-12 pt-8 lg:pb-20 lg:pt-12">
+          {/* Background effects */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-1/4 top-0 h-[600px] w-[600px] rounded-full bg-brand-200/30 blur-[120px]" />
+            <div className="absolute right-1/4 top-1/4 h-[400px] w-[400px] rounded-full bg-rose-200/20 blur-[100px]" />
           </div>
 
-          <div className="relative mx-auto max-w-6xl px-6 py-16 lg:py-24">
-            <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_1.1fr]">
-              {/* Messaging */}
-              <div className="space-y-8">
-                <div className="inline-flex items-center gap-3">
-                  <StatChip
-                    size="md"
-                    tone="highlight"
-                    icon={<TrendingUp className="h-4 w-4" />}
-                    label="Smart rewards optimizer"
-                  />
-                </div>
-
-                <div className="space-y-6">
-                  <h1 className="font-display text-4xl leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl">
-                    Know which card to use, every time you pay.
-                  </h1>
-                  <p className="text-lg text-neutral-600">
-                    PointAdvisor tells you the best credit card for every purchase—whether you&apos;re grabbing coffee
-                    or booking a flight. Maximize rewards, never miss a perk.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <StatChip
-                    size="md"
-                    tone="positive"
-                    icon={<CreditCard className="h-4 w-4" />}
-                    label="200+ cards supported"
-                  />
-                  <StatChip
-                    size="md"
-                    tone="neutral"
-                    icon={<MapPin className="h-4 w-4" />}
-                    label="Location-aware"
-                  />
-                  <StatChip
-                    size="md"
-                    tone="highlight"
-                    icon={<Sparkles className="h-4 w-4" />}
-                    label="AI-powered"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <button
-                    onClick={() => router.push('/auth')}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand-600 to-brand-500 px-8 py-3 text-base font-semibold text-white shadow-[0_25px_45px_rgba(83,46,177,0.35)] transition hover:-translate-y-0.5"
-                  >
-                    Get started free
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => router.push('/auth')}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white/70 px-6 py-3 text-base font-semibold text-neutral-800 transition hover:border-brand-200 hover:text-brand-700"
-                  >
-                    See how it works
-                  </button>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-6 border-t border-white/70 pt-6 text-sm text-neutral-600">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <span
-                        key={i}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/80 bg-white text-sm font-semibold text-brand-600 shadow-[0_8px_18px_rgba(88,59,187,0.15)]"
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </span>
-                    ))}
-                  </div>
-                  <div>
-                    <span className="font-semibold text-neutral-900">50,000+</span> cardholders maximizing rewards
-                  </div>
-                </div>
+          <div className="relative mx-auto max-w-6xl px-6">
+            {/* Headline */}
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-medium text-brand-700 shadow-sm">
+                <Sparkles className="h-4 w-4" />
+                AI-powered credit card advisor
               </div>
+              
+              <h1 className="font-display text-4xl leading-[1.1] tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl">
+                Just ask which card to use.
+              </h1>
+              
+              <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600 lg:text-xl">
+                PointAdvisor is your AI assistant for maximizing credit card rewards. 
+                Ask a question, get the best card for any purchase instantly.
+              </p>
+            </div>
 
-              {/* Interactive stack */}
-              <div className="relative">
-                <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-r from-brand-200/70 via-white/70 to-rose-100/70 blur-3xl" aria-hidden />
-
-                <div className="relative grid gap-6 rounded-[2.25rem] border border-white/80 bg-white/95 p-6 shadow-[0_35px_95px_rgba(82,47,174,0.25)] backdrop-blur-2xl">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <MetricCard
-                      label="Rewards earned this year"
-                      value="$2,340"
-                      delta={{ value: '+24%', trend: 'up', label: 'vs last year' }}
-                      subtext="Across all your cards"
-                      icon={<CreditCard className="h-4 w-4" />}
-                      chips={[{ label: '8 cards tracked', tone: 'neutral' as const }]}
-                    />
-                    <MetricCard
-                      label="Missed rewards saved"
-                      value="$187"
-                      delta={{ value: '↓ 92%', trend: 'down', label: 'Wrong card use' }}
-                      subtext="Smart alerts saved you money"
-                      icon={<Shield className="h-4 w-4" />}
-                      chips={[{ label: 'This month', tone: 'highlight' as const }]}
-                    />
-                  </div>
-
-                  <div className="relative overflow-hidden rounded-2xl border border-white/80 bg-white p-4 shadow-inner">
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-50 via-transparent to-transparent" aria-hidden />
-                    <div className="relative h-[320px] rounded-xl border border-neutral-100 bg-neutral-50/80 p-3">
-                      <ChatInterface
-                        mode="quick"
-                        isAuthenticated={Boolean(user)}
-                        userCards={cards}
-                        persistUiState={false}
-                      />
+            {/* Main Chat Interface - Hero Element */}
+            <div className="relative mx-auto mt-10 max-w-3xl">
+              {/* Decorative glow behind chat */}
+              <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-r from-brand-300/50 via-brand-200/30 to-rose-200/40 blur-2xl" aria-hidden />
+              
+              {/* Chat container */}
+              <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-white shadow-[0_40px_100px_rgba(82,47,174,0.2)]">
+                {/* Chat header */}
+                <div className="flex items-center justify-between border-b border-neutral-100 bg-gradient-to-r from-brand-50 to-white px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg">
+                      <MessageCircle className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-neutral-900">PointAdvisor</h3>
+                      <p className="text-xs text-neutral-500">Your AI rewards assistant</p>
                     </div>
                   </div>
-
-                  <FeatureCard
-                    title="Smart card recommendations"
-                    description="PointAdvisor knows your location and purchase category to suggest the best card instantly."
-                    icon={<Zap className="h-5 w-5" />}
-                    accent="sky"
-                    stat={<p className="text-sm text-neutral-500">Works at any store</p>}
-                    footer={
-                      <div className="flex w-full items-center justify-between text-neutral-600">
-                        <span className="text-xs uppercase tracking-[0.3em]">Location aware</span>
-                        <span className="text-sm font-semibold text-neutral-900">1M+ merchants mapped</span>
-                      </div>
-                    }
+                  <StatChip label="Try it free" tone="highlight" size="sm" />
+                </div>
+                
+                {/* Chat interface */}
+                <div className="h-[420px] lg:h-[480px]">
+                  <ChatInterface
+                    mode="quick"
+                    isAuthenticated={Boolean(user)}
+                    userCards={cards}
+                    persistUiState={false}
                   />
                 </div>
+              </div>
+              
+              {/* Example prompts */}
+              <div className="mt-6 text-center">
+                <p className="mb-3 text-sm font-medium text-neutral-500">Try asking:</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {EXAMPLE_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+                    >
+                      &ldquo;{prompt}&rdquo;
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Trust indicators */}
+            <div className="mx-auto mt-12 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-neutral-500">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-500" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-500" />
+                <span>Works with 200+ cards</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-500" />
+                <span>Free forever for personal use</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Social proof */}
-        <section id="platform" className="border-b border-neutral-100 bg-transparent py-16">
-          <div className="mx-auto max-w-6xl px-6">
-            <div className="grid gap-6 md:grid-cols-3">
-              {PROOF_STATS.map((stat) => (
-                <MetricCard key={stat.label} {...stat} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works - 3 Steps */}
-        <section id="how-it-works" className="bg-white py-20 text-neutral-900">
-          <div className="mx-auto max-w-6xl px-6">
+        {/* How It Works - Simple 3 steps */}
+        <section id="how-it-works" className="border-y border-neutral-100 bg-white py-20">
+          <div className="mx-auto max-w-5xl px-6">
             <div className="mb-12 text-center">
-              <StatChip size="md" tone="highlight" label="How it works" />
-              <h2 className="mt-4 font-display text-3xl text-neutral-900">Start earning more in 3 simple steps</h2>
-              <p className="mt-3 text-neutral-600">Set up in minutes, see results on your next purchase.</p>
+              <h2 className="font-display text-3xl text-neutral-900">How it works</h2>
+              <p className="mt-3 text-neutral-600">Start maximizing rewards in under a minute.</p>
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {HOW_IT_WORKS.map((step) => (
-                <FeatureCard
-                  key={step.id}
-                  title={step.title}
-                  description={step.description}
-                  accent={step.accent}
-                  icon={<span className="font-display text-lg font-semibold">{step.id}</span>}
-                  badge={`Step ${step.id}`}
-                  footer={<span className="text-sm text-neutral-600">Takes <strong>2 minutes</strong></span>}
-                />
+            
+            <div className="grid gap-8 md:grid-cols-3">
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
+                  <span className="font-display text-xl font-bold">1</span>
+                </div>
+                <h3 className="font-semibold text-neutral-900">Add your cards</h3>
+                <p className="mt-2 text-sm text-neutral-600">Tell us which credit cards you have. We only store rewards info, never card numbers.</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
+                  <span className="font-display text-xl font-bold">2</span>
+                </div>
+                <h3 className="font-semibold text-neutral-900">Ask a question</h3>
+                <p className="mt-2 text-sm text-neutral-600">Type where you&apos;re shopping or what you&apos;re buying. Our AI understands natural language.</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-brand-600">
+                  <span className="font-display text-xl font-bold">3</span>
+                </div>
+                <h3 className="font-semibold text-neutral-900">Use the best card</h3>
+                <p className="mt-2 text-sm text-neutral-600">Get instant recommendations with exact rewards you&apos;ll earn. No more guessing.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features grid */}
+        <section id="features" className="bg-gradient-to-b from-white to-[#faf8ff] py-20">
+          <div className="mx-auto max-w-5xl px-6">
+            <div className="mb-12 text-center">
+              <h2 className="font-display text-3xl text-neutral-900">Why PointAdvisor?</h2>
+              <p className="mt-3 text-neutral-600">The smarter way to use your credit cards.</p>
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              {FEATURES.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm transition hover:shadow-md"
+                >
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-brand-600">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-semibold text-neutral-900">{feature.title}</h3>
+                  <p className="mt-2 text-sm text-neutral-600">{feature.description}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Feature highlights + trust */}
-        <section id="security" className="border-y border-neutral-100 bg-gradient-to-b from-white via-[#f7f1ff] to-white py-20 text-neutral-900">
-          <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[1.1fr,0.9fr]">
-            <div className="space-y-6">
-              <StatChip size="md" tone="highlight" label="Features" />
-              <div>
-                <h2 className="font-display text-3xl leading-tight text-neutral-900">Everything you need to maximize rewards.</h2>
-                <p className="mt-3 text-neutral-600">Smart recommendations for everyday purchases and travel planning.</p>
-              </div>
-              <div className="grid gap-5">
-                {FEATURE_HIGHLIGHTS.map((feature) => (
-                  <FeatureCard
-                    key={feature.title}
-                    title={feature.title}
-                    description={feature.description}
-                    icon={feature.icon}
-                    accent={feature.accent}
-                    footer={<span className="text-sm text-neutral-600">{feature.footer}</span>}
-                  />
-                ))}
-              </div>
+        {/* Security / Trust */}
+        <section id="security" className="border-t border-neutral-100 bg-white py-20">
+          <div className="mx-auto max-w-3xl px-6 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100">
+              <Shield className="h-8 w-8 text-emerald-600" />
             </div>
-
-            <div className="space-y-6">
-              <div className="rounded-3xl border border-white/80 bg-white/95 p-6 shadow-[0_25px_55px_rgba(82,47,174,0.2)] backdrop-blur-xl">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">Live signal</p>
-                    <h3 className="font-display text-xl text-neutral-900">Deal of the Day</h3>
-                  </div>
-                  <StatChip label="Realtime" tone="highlight" />
-                </div>
-                <DealOfTheDay />
+            <h2 className="font-display text-3xl text-neutral-900">Your data is safe with us</h2>
+            <p className="mt-4 text-neutral-600">
+              We take security seriously. PointAdvisor never stores your actual card numbers—only the rewards 
+              structure and categories. All connections use bank-level encryption, and you can delete your 
+              data anytime with one click.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-600">
+                <Check className="h-4 w-4 text-emerald-500" />
+                No card numbers stored
               </div>
-              <div className="rounded-3xl border border-white/80 bg-white/95 p-6 text-sm text-neutral-600 backdrop-blur-xl">
-                <h4 className="font-semibold text-neutral-900">Your data is safe</h4>
-                <ul className="mt-3 space-y-2 text-neutral-600">
-                  <li>• We never store card numbers—only rewards info</li>
-                  <li>• Bank-level encryption for all connections</li>
-                  <li>• Delete your data anytime with one click</li>
-                </ul>
+              <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-600">
+                <Check className="h-4 w-4 text-emerald-500" />
+                Bank-level encryption
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Nearby Businesses Explorer */}
-        <section className="bg-white py-20">
-          <div className="mx-auto max-w-6xl px-6">
-            <div className="mb-8 text-center">
-              <StatChip size="md" tone="highlight" label="Try it now" />
-              <h2 className="mt-4 text-3xl font-bold text-neutral-900">See recommendations near you</h2>
-              <p className="mt-2 text-neutral-600">Discover which card to use at businesses in your area.</p>
-            </div>
-            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 shadow-[0_35px_65px_rgba(15,20,40,0.1)]">
-              <NearbyExplorer />
+              <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-600">
+                <Check className="h-4 w-4 text-emerald-500" />
+                Delete anytime
+              </div>
             </div>
           </div>
         </section>
 
         {/* Final CTA */}
-        <section id="cta" className="relative overflow-hidden border-t border-white/80 bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 py-20 text-white">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.18),transparent_45%),radial-gradient(circle_at_85%_10%,rgba(249,173,255,0.25),transparent_45%)]" aria-hidden />
-          <div className="relative mx-auto max-w-4xl px-6 text-center">
-            <StatChip size="md" tone="highlight" label="Free to start" />
-            <h2 className="mt-4 font-display text-3xl sm:text-4xl">
-              Stop leaving rewards on the table.
+        <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-500 to-brand-700 py-20 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.18),transparent_45%)]" aria-hidden />
+          <div className="relative mx-auto max-w-3xl px-6 text-center">
+            <h2 className="font-display text-3xl sm:text-4xl">
+              Ready to maximize your rewards?
             </h2>
-            <p className="mt-3 text-white/80">
-              Join thousands of cardholders earning more on every purchase. Free forever for personal use.
+            <p className="mt-4 text-lg text-white/80">
+              Join thousands of cardholders earning more on every purchase. It&apos;s free to get started.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <button
@@ -400,14 +304,8 @@ export default function HomePage() {
                 Get started free
                 <ArrowRight className="h-5 w-5" />
               </button>
-              <button
-                onClick={() => router.push('/auth')}
-                className="inline-flex items-center gap-2 rounded-full border border-white/60 px-6 py-3 text-base font-semibold text-white/90 transition hover:bg-white/10"
-              >
-                Learn more
-              </button>
             </div>
-            <p className="mt-4 text-sm text-white/75">No credit card required • Works with all major issuers</p>
+            <p className="mt-4 text-sm text-white/60">No credit card required • Free forever for personal use</p>
           </div>
         </section>
       </main>
